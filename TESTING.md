@@ -1,10 +1,10 @@
 # Testing Documentation
 
-This document provides comprehensive information about the testing suite for the CSV Parser application.
+This document provides comprehensive information about the testing suite for the Implementation Scoping Document Parser application.
 
 ## Overview
 
-The CSV Parser application has achieved **97% code coverage** with a robust testing suite consisting of **81 test cases** across multiple categories.
+The Implementation Scoping Document Parser application has achieved **97% code coverage** with a robust testing suite consisting of **81 test cases** across multiple categories.
 
 ## Test Structure
 
@@ -17,7 +17,7 @@ tests/
 │   ├── invalid_csv.csv        # Invalid test CSV
 │   ├── empty_csv.csv          # Empty test CSV
 │   └── malformed_csv.csv      # Malformed test CSV
-├── test_csv_parser.py         # Core CSV parser tests (27 tests)
+├── test_csv_parser.py         # Core implementation document parser tests (27 tests)
 ├── test_web_app.py            # Web application tests (28 tests) 
 ├── test_integration.py        # End-to-end tests (11 tests)
 └── test_coverage_boost.py     # Coverage enhancement tests (13 tests)
@@ -26,13 +26,13 @@ tests/
 ## Test Categories
 
 ### 1. Unit Tests (27 tests)
-Tests core CSV parsing functionality in isolation:
+Tests core implementation document parsing functionality in isolation:
 
 - **Parser Initialization**: Testing constructor parameters and state
-- **CSV Loading**: File reading, error handling, encoding support
-- **Column Identification**: Valid/invalid provider detection
-- **Feature Extraction**: Data parsing and structure validation
-- **Result Display**: Output formatting and verbose modes
+- **Document Loading**: Implementation document reading, error handling, encoding support
+- **Column Identification**: Valid/invalid provider detection in BDM handover documents
+- **Feature Extraction**: Implementation data parsing and structure validation
+- **Result Display**: Output formatting optimized for documentation generation
 - **Error Handling**: Exception management and edge cases
 
 **Key Test Cases:**

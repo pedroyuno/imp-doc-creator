@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
-Web interface for CSV Parser for Provider Payment Method Features
+Web interface for Implementation Scoping Document Parser
+Handles BDM handover documents for implementation analysis
 """
 
 from flask import Flask, render_template, request, flash, redirect, url_for, jsonify
@@ -158,8 +159,8 @@ def download_sample():
 
 if __name__ == '__main__':
     port = 5001
-    print(f"🌐 Starting CSV Parser Web Application on http://localhost:{port}")
-    print(f"📊 Open your browser and go to: http://localhost:{port}")
+    print(f"🌐 Starting Implementation Scoping Document Parser on http://localhost:{port}")
+    print(f"📋 Open your browser and go to: http://localhost:{port}")
     print("⏹️  Press Ctrl+C to stop the server")
     
     app.run(debug=False, host='0.0.0.0', port=port) 

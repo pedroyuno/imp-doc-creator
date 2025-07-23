@@ -1,10 +1,10 @@
-# CSV Parser for Provider Payment Method Features
+# Implementation Scoping Document Parser
 
-This Python program parses CSV files containing provider and payment method integration information, extracting features only for valid combinations where both the provider and payment method are properly defined (not "#N/A" or empty).
+This Python program parses implementation scoping documents (provided by BDM teams during merchant handover) containing provider and payment method integration information. It extracts features only for valid combinations where both the provider and payment method are properly defined (not "#N/A" or empty). The parsed data will later be used to generate comprehensive implementation documentation.
 
 ## How it Works
 
-The program analyzes CSV files with the following structure:
+The program analyzes implementation scoping documents (CSV format) with the following structure:
 - **Row 1**: Feature column names (e.g., "REDE_CARD", "PAGARME_CARD")
 - **Row 2**: Provider names (e.g., "REDE", "PAGARME", "#N/A")
 - **Row 3**: Payment methods (e.g., "CARD", "CARD", "#N/A")
@@ -28,21 +28,21 @@ A column is considered valid if:
 ```
 
 **Web Features:**
-- 🖱️ Drag & drop CSV file upload
-- 📊 Beautiful results visualization
-- 🔍 Filter and search features
-- 📥 Export results as JSON
+- 🖱️ Drag & drop document upload (CSV format)
+- 📊 Beautiful implementation results visualization
+- 🔍 Filter and search implementation features
+- 📥 Export parsed data as JSON for documentation generation
 - 📱 Mobile responsive design
-- 📖 Interactive format documentation
+- 📖 Interactive document format guide
 
 ### Command Line Interface
 
 ```bash
 # Basic usage
-python csv_parser.py path/to/your/file.csv
+python csv_parser.py path/to/your/implementation_scoping_document.csv
 
 # Quiet mode (only show results)
-python csv_parser.py path/to/your/file.csv --quiet
+python csv_parser.py path/to/your/implementation_scoping_document.csv --quiet
 ```
 
 ### Programmatic Usage
@@ -50,10 +50,10 @@ python csv_parser.py path/to/your/file.csv --quiet
 ```python
 from csv_parser import ProviderPaymentParser
 
-# Create parser instance
-parser = ProviderPaymentParser('your_file.csv')
+# Create parser instance for implementation scoping document
+parser = ProviderPaymentParser('implementation_scoping_document.csv')
 
-# Parse the CSV and get results
+# Parse the implementation document and get results
 results = parser.parse()
 
 # Display results
@@ -85,7 +85,7 @@ pytest -m web                     # Web interface tests
 pytest -m api                     # API endpoint tests
 
 # Run specific test files
-pytest tests/test_csv_parser.py    # CSV parser tests
+pytest tests/test_csv_parser.py    # Implementation document parser tests
 pytest tests/test_web_app.py       # Web application tests
 pytest tests/test_integration.py   # End-to-end tests
 
@@ -98,9 +98,9 @@ pytest --cov=csv_parser --cov=web_app --cov-report=html
 
 Our test suite achieves **97% code coverage** with comprehensive testing:
 
-- **Unit Tests**: 27 tests covering core CSV parsing functionality
-- **Web Tests**: 28 tests for Flask routes, file uploads, and API endpoints
-- **Integration Tests**: 11 tests for end-to-end workflows
+- **Unit Tests**: 27 tests covering core implementation document parsing functionality
+- **Web Tests**: 28 tests for Flask routes, document uploads, and API endpoints
+- **Integration Tests**: 11 tests for end-to-end implementation workflows
 - **Coverage Boost Tests**: 13 tests for edge cases and error handling
 - **Setup Tests**: 4 tests for environment verification
 
@@ -197,20 +197,20 @@ deactivate
 ## Features
 
 ### Core Functionality
-- ✅ Automatically identifies valid provider + payment method combinations
-- ✅ Extracts all features for valid combinations
+- ✅ Automatically identifies valid provider + payment method combinations from BDM handover documents
+- ✅ Extracts implementation features for valid combinations
 - ✅ Handles missing data gracefully
 - ✅ Provides both CLI and programmatic interfaces
-- ✅ Clean, readable output formatting
-- ✅ Error handling for malformed CSV files
+- ✅ Clean, readable output formatting optimized for documentation generation
+- ✅ Error handling for malformed implementation documents
 
 ### Web Interface
-- 🖱️ Drag & drop CSV file upload
-- 📊 Beautiful results visualization
-- 🔍 Filter and search features
-- 📥 Export results as JSON
+- 🖱️ Drag & drop implementation document upload
+- 📊 Beautiful implementation results visualization
+- 🔍 Filter and search implementation features
+- 📥 Export parsed data as JSON for documentation generation
 - 📱 Mobile responsive design
-- 📖 Interactive format documentation
+- 📖 Interactive document format guide
 - 🌐 RESTful API endpoints
 
 ### Testing & Quality

@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """
-CSV Parser for Provider Payment Method Features
+Implementation Scoping Document Parser
 
-This program parses CSV files containing provider and payment method information,
-extracting features only for valid combinations (where provider and payment method
-are not "#N/A" or empty).
+This program parses implementation scoping documents (provided by BDM teams during 
+merchant handover) containing provider and payment method information. It extracts 
+implementation features only for valid combinations (where provider and payment method
+are not "#N/A" or empty). The parsed data is structured for later documentation generation.
 """
 
 import csv
