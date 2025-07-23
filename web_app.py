@@ -68,21 +68,19 @@ def upload_file():
                     flash('No valid provider + payment method combinations found in the CSV file.')
                     return redirect(url_for('index'))
                 
-                # Process results for web display
+                # Process results for web display with enriched data
                 processed_results = []
-                for key, data in results.items():
+                enriched_data = parser.export_enriched_dict()
+                
+                for key, data in enriched_data.items():
                     provider_data = {
                         'provider': data['provider'],
                         'payment_method': data['payment_method'],
                         'features': []
                     }
                     
-                    for feature_name, feature_value in data['features'].items():
-                        provider_data['features'].append({
-                            'name': feature_name,
-                            'value': feature_value,
-                            'has_value': bool(feature_value.strip()) if feature_value else False
-                        })
+                    for feature_name, feature_data in data['features'].items():
+                        provider_data['features'].append(feature_data)
                     
                     processed_results.append(provider_data)
                 
@@ -131,10 +129,14 @@ def api_upload():
         # Clean up temporary file
         os.unlink(temp_filename)
         
+        # Return enriched results for API
+        enriched_results = parser.export_enriched_dict()
+        
         return jsonify({
             'success': True,
             'filename': secure_filename(file.filename),
-            'results': results
+            'results': results,
+            'enriched_results': enriched_results
         })
         
     except Exception as e:

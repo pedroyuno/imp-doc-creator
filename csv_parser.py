@@ -12,15 +12,18 @@ import csv
 import sys
 from typing import Dict, List, Tuple, Any
 import argparse
+from rules_manager import RulesManager
 
 
 class ProviderPaymentParser:
-    def __init__(self, csv_file_path: str, verbose: bool = True):
+    def __init__(self, csv_file_path: str, verbose: bool = True, rules_file_path: str = 'feature_rules.json'):
         self.csv_file_path = csv_file_path
         self.verbose = verbose
         self.data = []
         self.valid_columns = []
         self.parsed_features = {}
+        self.rules_manager = RulesManager(rules_file_path, verbose=verbose)
+        self.rules_manager.load_rules()
         
     def load_csv(self) -> None:
         """Load CSV data from file."""
@@ -122,7 +125,7 @@ class ProviderPaymentParser:
         if self.verbose:
             print(f"✓ Extracted features for {len(self.parsed_features)} valid combinations")
     
-    def display_results(self) -> None:
+    def display_results(self, show_enriched: bool = False) -> None:
         """Display the parsed results in a readable format."""
         if not self.parsed_features:
             if self.verbose:
@@ -130,22 +133,61 @@ class ProviderPaymentParser:
             return
         
         print("\n" + "="*80)
-        print("PARSED PROVIDER + PAYMENT METHOD FEATURES")
+        if show_enriched:
+            print("PARSED PROVIDER + PAYMENT METHOD FEATURES (with Documentation)")
+        else:
+            print("PARSED PROVIDER + PAYMENT METHOD FEATURES")
         print("="*80)
         
-        for key, data in self.parsed_features.items():
-            print(f"\n📋 {data['provider']} + {data['payment_method']}")
-            print("-" * 50)
-            
-            for feature_name, feature_value in data['features'].items():
-                if feature_value:  # Only show features with values
-                    print(f"  • {feature_name}: {feature_value}")
-                else:
-                    print(f"  • {feature_name}: [empty]")
+        if show_enriched:
+            enriched_data = self.export_enriched_dict()
+            for key, data in enriched_data.items():
+                print(f"\n📋 {data['provider']} + {data['payment_method']}")
+                print("-" * 50)
+                
+                for feature_name, feature_data in data['features'].items():
+                    if feature_data['value']:  # Only show features with values
+                        print(f"  • {feature_data['name']}: {feature_data['value']}")
+                        if feature_data['has_rule']:
+                            print(f"    📚 Documentation: {feature_data['documentation_url']}")
+                            print(f"    💬 Comment: {feature_data['comment']}")
+                    else:
+                        print(f"  • {feature_data['name']}: [empty]")
+                        if feature_data['has_rule']:
+                            print(f"    📚 Documentation: {feature_data['documentation_url']}")
+        else:
+            for key, data in self.parsed_features.items():
+                print(f"\n📋 {data['provider']} + {data['payment_method']}")
+                print("-" * 50)
+                
+                for feature_name, feature_value in data['features'].items():
+                    if feature_value:  # Only show features with values
+                        print(f"  • {feature_name}: {feature_value}")
+                    else:
+                        print(f"  • {feature_name}: [empty]")
     
     def export_to_dict(self) -> Dict[str, Any]:
         """Export parsed data as a dictionary for programmatic use."""
         return self.parsed_features
+    
+    def export_enriched_dict(self) -> Dict[str, Any]:
+        """Export parsed data enriched with documentation URLs and comments."""
+        enriched_data = {}
+        
+        for key, data in self.parsed_features.items():
+            enriched_data[key] = {
+                'provider': data['provider'],
+                'payment_method': data['payment_method'],
+                'features': {}
+            }
+            
+            # Enrich each feature with rules data
+            for feature_name, feature_value in data['features'].items():
+                enriched_data[key]['features'][feature_name] = self.rules_manager.enrich_feature_data(
+                    feature_name, feature_value
+                )
+        
+        return enriched_data
     
     def parse(self) -> Dict[str, Any]:
         """Main parsing method that executes the full pipeline."""
@@ -170,26 +212,47 @@ def main():
         action="store_true",
         help="Only output the results, suppress progress messages"
     )
+    parser.add_argument(
+        "--enriched", "-e",
+        action="store_true",
+        help="Show enriched results with documentation URLs and comments"
+    )
+    parser.add_argument(
+        "--rules-file", "-r",
+        default="feature_rules.json",
+        help="Path to the feature rules JSON file"
+    )
     
     args = parser.parse_args()
     
     # Create parser instance
-    csv_parser = ProviderPaymentParser(args.csv_file)
+    csv_parser = ProviderPaymentParser(args.csv_file, verbose=not args.quiet, rules_file_path=args.rules_file)
     
     # Parse the CSV
     try:
         parsed_data = csv_parser.parse()
         
         if not args.quiet:
-            csv_parser.display_results()
+            csv_parser.display_results(show_enriched=args.enriched)
         else:
             # In quiet mode, just output the essential results
-            for key, data in parsed_data.items():
-                print(f"{data['provider']} + {data['payment_method']}:")
-                for feature, value in data['features'].items():
-                    if value:
-                        print(f"  {feature}: {value}")
-                print()
+            if args.enriched:
+                enriched_data = csv_parser.export_enriched_dict()
+                for key, data in enriched_data.items():
+                    print(f"{data['provider']} + {data['payment_method']}:")
+                    for feature_name, feature_data in data['features'].items():
+                        if feature_data['value']:
+                            print(f"  {feature_data['name']}: {feature_data['value']}")
+                            if feature_data['has_rule']:
+                                print(f"    📚 {feature_data['documentation_url']}")
+                    print()
+            else:
+                for key, data in parsed_data.items():
+                    print(f"{data['provider']} + {data['payment_method']}:")
+                    for feature, value in data['features'].items():
+                        if value:
+                            print(f"  {feature}: {value}")
+                    print()
         
     except Exception as e:
         print(f"✗ Error during parsing: {e}")

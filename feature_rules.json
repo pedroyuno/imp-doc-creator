@@ -1,0 +1,97 @@
+{
+  "version": "1.0",
+  "description": "Feature documentation rules for dynamic documentation generation",
+  "last_updated": "2024-01-01",
+  "rules": {
+    "Country": {
+      "feature_name": "Country",
+      "documentation_url": "https://docs.company.com/integration/country-support",
+      "comment": "Specifies the country where this provider + payment method combination is available. Essential for geographic implementation planning."
+    },
+    "Verify": {
+      "feature_name": "Verify",
+      "documentation_url": "https://docs.company.com/integration/verification",
+      "comment": "Indicates whether payment verification is supported. Critical for transaction security and compliance requirements."
+    },
+    "Authorize": {
+      "feature_name": "Authorize",
+      "documentation_url": "https://docs.company.com/integration/authorization",
+      "comment": "Supports payment authorization functionality. Required for holding funds before capture in two-step payment flows."
+    },
+    "Capture": {
+      "feature_name": "Capture",
+      "documentation_url": "https://docs.company.com/integration/capture",
+      "comment": "Enables capturing previously authorized payments. Essential for completing two-step payment transactions."
+    },
+    "Cancel": {
+      "feature_name": "Cancel",
+      "documentation_url": "https://docs.company.com/integration/cancellation",
+      "comment": "Allows canceling authorized but not yet captured payments. Important for inventory management and customer service."
+    },
+    "Refund": {
+      "feature_name": "Refund",
+      "documentation_url": "https://docs.company.com/integration/refunds",
+      "comment": "Supports full or partial refunds of completed payments. Critical for customer service and dispute resolution."
+    },
+    "Currency": {
+      "feature_name": "Currency",
+      "documentation_url": "https://docs.company.com/integration/currency-support",
+      "comment": "Defines supported currencies for this provider + payment method. Essential for multi-currency implementations."
+    },
+    "Recurring": {
+      "feature_name": "Recurring",
+      "documentation_url": "https://docs.company.com/integration/recurring-payments",
+      "comment": "Enables recurring payment functionality for subscriptions and installments. Required for subscription-based business models."
+    },
+    "Installments": {
+      "feature_name": "Installments",
+      "documentation_url": "https://docs.company.com/integration/installments",
+      "comment": "Supports installment payments split across multiple charges. Popular in Latin American markets."
+    },
+    "3DS": {
+      "feature_name": "3DS",
+      "documentation_url": "https://docs.company.com/integration/3d-secure",
+      "comment": "3D Secure authentication support for enhanced card payment security. Required for SCA compliance in Europe."
+    },
+    "Webhook": {
+      "feature_name": "Webhook",
+      "documentation_url": "https://docs.company.com/integration/webhooks",
+      "comment": "Webhook notification support for real-time payment status updates. Essential for reliable payment status tracking."
+    },
+    "PaymentLink": {
+      "feature_name": "PaymentLink",
+      "documentation_url": "https://docs.company.com/integration/payment-links",
+      "comment": "Support for generating shareable payment links. Useful for invoice payments and remote transactions."
+    },
+    "TokenVault": {
+      "feature_name": "TokenVault",
+      "documentation_url": "https://docs.company.com/integration/token-vault",
+      "comment": "Secure token storage for saved payment methods. Required for one-click payments and recurring transactions."
+    },
+    "Chargeback": {
+      "feature_name": "Chargeback",
+      "documentation_url": "https://docs.company.com/integration/chargeback-handling",
+      "comment": "Chargeback notification and management capabilities. Important for dispute resolution and merchant protection."
+    },
+    "Split": {
+      "feature_name": "Split",
+      "documentation_url": "https://docs.company.com/integration/split-payments",
+      "comment": "Support for splitting payments between multiple recipients. Essential for marketplace and platform implementations."
+    },
+    "Sandbox": {
+      "feature_name": "Sandbox",
+      "documentation_url": "https://docs.company.com/integration/sandbox-testing",
+      "comment": "Testing environment availability for safe integration development. Critical for development and QA processes."
+    }
+  },
+  "metadata": {
+    "total_rules": 16,
+    "categories": [
+      "Payment Processing",
+      "Security & Compliance", 
+      "Customer Experience",
+      "Development & Testing"
+    ],
+    "usage_instructions": "This file contains documentation rules that map feature names to their corresponding documentation URLs and explanatory comments. Update URLs and comments as needed without requiring code changes."
+  }
+} 
