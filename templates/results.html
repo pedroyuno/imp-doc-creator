@@ -1,0 +1,286 @@
+{% extends "base.html" %}
+
+{% block title %}Results - {{ super() }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="fw-bold text-dark mb-1">📊 Parsing Results</h2>
+                <p class="text-muted mb-0">File: <strong>{{ filename }}</strong></p>
+            </div>
+            <div>
+                <a href="{{ url_for('index') }}" class="btn btn-outline-primary">
+                    📤 Upload Another File
+                </a>
+            </div>
+        </div>
+
+        <!-- Summary Statistics -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-number">{{ results|length }}</div>
+                    <div class="stats-label">Valid Combinations</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-number">{{ results[0].features|length if results else 0 }}</div>
+                    <div class="stats-label">Features per Provider</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    {% set total_implemented = [] %}
+                    {% for result in results %}
+                        {% for feature in result.features %}
+                            {% if feature.value in ['TRUE', 'Implemented'] %}
+                                {% set _ = total_implemented.append(1) %}
+                            {% endif %}
+                        {% endfor %}
+                    {% endfor %}
+                    <div class="stats-number">{{ total_implemented|length }}</div>
+                    <div class="stats-label">Total Implemented</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    {% set unique_providers = [] %}
+                    {% for result in results %}
+                        {% if result.provider not in unique_providers %}
+                            {% set _ = unique_providers.append(result.provider) %}
+                        {% endif %}
+                    {% endfor %}
+                    <div class="stats-number">{{ unique_providers|length }}</div>
+                    <div class="stats-label">Unique Providers</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Controls -->
+        <div class="card border-0 bg-light mb-4">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <label for="featureFilter" class="form-label"><strong>Filter by feature value:</strong></label>
+                        <select id="featureFilter" class="form-select">
+                            <option value="all">All features</option>
+                            <option value="true">TRUE/Implemented only</option>
+                            <option value="false">FALSE only</option>
+                            <option value="empty">Empty values only</option>
+                            <option value="hasValue">Non-empty values only</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="searchFeature" class="form-label"><strong>Search features:</strong></label>
+                        <input type="text" id="searchFeature" class="form-control" placeholder="Type to search features...">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Grid -->
+        <div class="row" id="resultsContainer">
+            {% for result in results %}
+            <div class="col-lg-6 mb-4 provider-card" data-provider="{{ result.provider }}" data-payment="{{ result.payment_method }}">
+                <div class="feature-card">
+                    <div class="provider-header">
+                        <h4 class="mb-1">
+                            🏢 {{ result.provider }}
+                        </h4>
+                        <p class="mb-0 opacity-75">
+                            💳 {{ result.payment_method }}
+                        </p>
+                    </div>
+                    
+                    <div class="feature-list">
+                        <!-- Feature Summary -->
+                        <div class="row mb-3 text-center">
+                            {% set implemented_count = result.features | selectattr('value', 'equalto', 'TRUE') | list | length + result.features | selectattr('value', 'equalto', 'Implemented') | list | length %}
+                            {% set total_count = result.features | length %}
+                            <div class="col-4">
+                                <div class="text-success fw-bold">{{ implemented_count }}</div>
+                                <small class="text-muted">Implemented</small>
+                            </div>
+                            <div class="col-4">
+                                <div class="text-danger fw-bold">{{ result.features | selectattr('value', 'equalto', 'FALSE') | list | length }}</div>
+                                <small class="text-muted">Not Available</small>
+                            </div>
+                            <div class="col-4">
+                                <div class="text-warning fw-bold">{{ result.features | rejectattr('has_value') | list | length }}</div>
+                                <small class="text-muted">Empty</small>
+                            </div>
+                        </div>
+                        
+                        <hr>
+                        
+                        <!-- Features List -->
+                        <div class="features-list">
+                            {% for feature in result.features %}
+                            <div class="feature-item" 
+                                 data-value="{{ feature.value.lower() if feature.value else 'empty' }}" 
+                                 data-feature-name="{{ feature.name.lower() }}">
+                                <span class="feature-name">{{ feature.name }}</span>
+                                <span class="feature-value 
+                                    {% if feature.value in ['TRUE', 'Implemented'] %}true
+                                    {% elif feature.value == 'FALSE' %}false
+                                    {% elif not feature.has_value %}empty
+                                    {% endif %}">
+                                    {% if feature.has_value %}
+                                        {{ feature.value }}
+                                    {% else %}
+                                        <em>Not specified</em>
+                                    {% endif %}
+                                </span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Export Options -->
+        <div class="text-center mt-4">
+            <button class="btn btn-custom" onclick="exportToJSON()">
+                📥 Export as JSON
+            </button>
+            <button class="btn btn-outline-secondary ms-2" onclick="printResults()">
+                🖨️ Print Results
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- No Results Message (Hidden by default) -->
+<div id="noResultsMessage" class="text-center py-5" style="display: none;">
+    <div class="text-muted">
+        <i class="fas fa-search fa-3x mb-3"></i>
+        <h4>No features match your filter</h4>
+        <p>Try adjusting your search or filter criteria</p>
+    </div>
+</div>
+
+<!-- Hidden data for export (avoid JS template syntax issues) -->
+<div id="exportData" style="display: none;">{{ results | tojson | safe }}</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const featureFilter = document.getElementById('featureFilter');
+    const searchFeature = document.getElementById('searchFeature');
+    const resultsContainer = document.getElementById('resultsContainer');
+    const noResultsMessage = document.getElementById('noResultsMessage');
+
+    // Filter functionality
+    function applyFilters() {
+        const filterValue = featureFilter.value;
+        const searchValue = searchFeature.value.toLowerCase();
+        const providerCards = document.querySelectorAll('.provider-card');
+        let visibleCards = 0;
+
+        providerCards.forEach(card => {
+            const features = card.querySelectorAll('.feature-item');
+            let visibleFeatures = 0;
+
+            features.forEach(feature => {
+                let showFeature = true;
+
+                // Apply value filter
+                const featureValue = feature.dataset.value;
+                if (filterValue !== 'all') {
+                    switch (filterValue) {
+                        case 'true':
+                            showFeature = featureValue === 'true' || featureValue === 'implemented';
+                            break;
+                        case 'false':
+                            showFeature = featureValue === 'false';
+                            break;
+                        case 'empty':
+                            showFeature = featureValue === 'empty';
+                            break;
+                        case 'hasValue':
+                            showFeature = featureValue !== 'empty';
+                            break;
+                    }
+                }
+
+                // Apply search filter
+                if (showFeature && searchValue) {
+                    const featureName = feature.dataset.featureName;
+                    showFeature = featureName.includes(searchValue);
+                }
+
+                // Show/hide feature
+                if (showFeature) {
+                    feature.style.display = 'flex';
+                    visibleFeatures++;
+                } else {
+                    feature.style.display = 'none';
+                }
+            });
+
+            // Show/hide card based on visible features
+            if (visibleFeatures > 0) {
+                card.style.display = 'block';
+                visibleCards++;
+            } else {
+                card.style.display = 'none';
+            }
+        });
+
+        // Show/hide no results message
+        if (visibleCards === 0) {
+            resultsContainer.style.display = 'none';
+            noResultsMessage.style.display = 'block';
+        } else {
+            resultsContainer.style.display = 'flex';
+            noResultsMessage.style.display = 'none';
+        }
+    }
+
+    // Event listeners
+    featureFilter.addEventListener('change', applyFilters);
+    searchFeature.addEventListener('input', applyFilters);
+
+    // Export functionality
+    window.exportToJSON = function() {
+        // Get data from a hidden element to avoid template syntax issues
+        const dataElement = document.getElementById('exportData');
+        if (dataElement) {
+            const dataStr = dataElement.textContent;
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = '{{ filename }}_parsed_results.json';
+            link.click();
+        }
+    };
+
+    window.printResults = function() {
+        window.print();
+    };
+});
+</script>
+
+<style media="print">
+    .navbar, footer, .btn, #featureFilter, #searchFeature, .card.border-0.bg-light {
+        display: none !important;
+    }
+    
+    .feature-card {
+        break-inside: avoid;
+        margin-bottom: 20px;
+    }
+    
+    body {
+        background: white !important;
+    }
+</style>
+{% endblock %} 

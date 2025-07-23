@@ -1,0 +1,10 @@
+,Feature,REDE_CARD,,,PAGARME_CARD,,,[Provider],,,[Provider],,,
+,Provider,REDE,,,PAGARME,,,#N/A,,,#N/A,,,
+,Payment_Method,CARD,,,CARD,,,#N/A,,,#N/A,,,
+,,INFORMATION,STATUS,ADDITIONAL INFO,INFORMATION,STATUS,ADDITIONAL INFO,INFORMATION,STATUS,ADDITIONAL INFO,INFORMATION,STATUS,ADDITIONAL INFO
+,Country,Brazil,Supported,,Brazil,Supported,,Brazil,,,Brazil,,,
+,Verify,TRUE,Implemented,,FALSE,Not supported,,FALSE,,,FALSE,,,
+,Authorize,TRUE,Implemented,,TRUE,Implemented,,FALSE,,,FALSE,,,
+,Capture,TRUE,Implemented,,TRUE,Implemented,,FALSE,,,FALSE,,,
+,Refund,TRUE,Implemented,,TRUE,Implemented,,FALSE,,,FALSE,,,
+,3DS,TRUE,Implemented,,FALSE,Not supported,,FALSE,,,FALSE,,, 

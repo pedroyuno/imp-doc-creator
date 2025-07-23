@@ -1,0 +1,270 @@
+{% extends "base.html" %}
+
+{% block title %}Example Format - {{ super() }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-10 mx-auto">
+        <!-- Header -->
+        <div class="text-center mb-5">
+            <h1 class="display-5 fw-bold text-dark">📋 CSV Format Example</h1>
+            <p class="lead text-muted">
+                Learn how to structure your CSV file for optimal parsing results
+            </p>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="text-center mb-4">
+            <a href="{{ url_for('download_sample') }}" class="btn btn-custom me-3">
+                📥 Download Sample File
+            </a>
+            <a href="{{ url_for('index') }}" class="btn btn-outline-primary">
+                📤 Upload Your File
+            </a>
+        </div>
+
+        <!-- CSV Structure Overview -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body">
+                <h3 class="card-title text-primary">📊 CSV Structure Overview</h3>
+                <p class="card-text">
+                    Your CSV file should have a specific structure with 4 main sections:
+                </p>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="border rounded p-3 mb-3 bg-light">
+                            <h6 class="text-success fw-bold">✅ Valid Columns</h6>
+                            <ul class="mb-0">
+                                <li>Provider: Actual provider name (e.g., "REDE", "PAGARME")</li>
+                                <li>Payment Method: Actual method (e.g., "CARD", "PIX")</li>
+                                <li>Contains integration feature data</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="border rounded p-3 mb-3 bg-light">
+                            <h6 class="text-danger fw-bold">❌ Invalid Columns</h6>
+                            <ul class="mb-0">
+                                <li>Provider: "#N/A" or empty</li>
+                                <li>Payment Method: "#N/A" or empty</li>
+                                <li>Generic labels like "Provider" or "[Provider]"</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Visual CSV Example -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body">
+                <h3 class="card-title text-primary">👁️ Visual Example</h3>
+                <p class="text-muted mb-3">Here's how your CSV should look:</p>
+                
+                <div class="table-responsive">
+                    <table class="table table-bordered table-sm">
+                        <thead>
+                            <tr class="table-info">
+                                <th>Column</th>
+                                <th>A</th>
+                                <th class="bg-success text-white">B ✅</th>
+                                <th>C</th>
+                                <th>D</th>
+                                <th class="bg-success text-white">E ✅</th>
+                                <th>F</th>
+                                <th>G</th>
+                                <th class="bg-danger text-white">H ❌</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="table-secondary">
+                                <th>Row 1</th>
+                                <td></td>
+                                <td>REDE_CARD</td>
+                                <td></td>
+                                <td></td>
+                                <td>PAGARME_CARD</td>
+                                <td></td>
+                                <td></td>
+                                <td>[Provider]</td>
+                            </tr>
+                            <tr class="table-secondary">
+                                <th>Row 2</th>
+                                <td>Provider</td>
+                                <td class="bg-success-subtle">REDE</td>
+                                <td></td>
+                                <td></td>
+                                <td class="bg-success-subtle">PAGARME</td>
+                                <td></td>
+                                <td></td>
+                                <td class="bg-danger-subtle">#N/A</td>
+                            </tr>
+                            <tr class="table-secondary">
+                                <th>Row 3</th>
+                                <td>Payment_Method</td>
+                                <td class="bg-success-subtle">CARD</td>
+                                <td></td>
+                                <td></td>
+                                <td class="bg-success-subtle">CARD</td>
+                                <td></td>
+                                <td></td>
+                                <td class="bg-danger-subtle">#N/A</td>
+                            </tr>
+                            <tr class="table-warning">
+                                <th>Row 4</th>
+                                <td></td>
+                                <td>INFORMATION</td>
+                                <td>STATUS</td>
+                                <td>ADDITIONAL INFO</td>
+                                <td>INFORMATION</td>
+                                <td>STATUS</td>
+                                <td>ADDITIONAL INFO</td>
+                                <td>...</td>
+                            </tr>
+                            <tr>
+                                <th>Row 5</th>
+                                <td>Country</td>
+                                <td>Brazil</td>
+                                <td>Supported</td>
+                                <td></td>
+                                <td>Brazil</td>
+                                <td>Supported</td>
+                                <td></td>
+                                <td>Brazil</td>
+                            </tr>
+                            <tr>
+                                <th>Row 6</th>
+                                <td>Verify</td>
+                                <td>TRUE</td>
+                                <td>Implemented</td>
+                                <td></td>
+                                <td>TRUE</td>
+                                <td>Does not support</td>
+                                <td>Note about limitation</td>
+                                <td>FALSE</td>
+                            </tr>
+                            <tr>
+                                <th>...</th>
+                                <td colspan="8" class="text-center text-muted">More feature rows...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="mt-3">
+                    <span class="badge bg-success me-2">✅ Valid columns (will be parsed)</span>
+                    <span class="badge bg-danger">❌ Invalid columns (will be ignored)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row Descriptions -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body">
+                <h3 class="card-title text-primary">📝 Row Descriptions</h3>
+                
+                <div class="row">
+                    <div class="col-lg-6">
+                        <div class="border-start border-primary border-3 ps-3 mb-4">
+                            <h6 class="text-primary fw-bold">Row 1: Feature Column Names</h6>
+                            <p class="mb-1">Names for each provider + payment method combination</p>
+                            <small class="text-muted">Examples: "REDE_CARD", "PAGARME_PIX", "[Provider]"</small>
+                        </div>
+                        
+                        <div class="border-start border-success border-3 ps-3 mb-4">
+                            <h6 class="text-success fw-bold">Row 2: Provider Names</h6>
+                            <p class="mb-1">Actual provider names for valid combinations</p>
+                            <small class="text-muted">Valid: "REDE", "PAGARME" | Invalid: "#N/A", empty</small>
+                        </div>
+                    </div>
+                    
+                    <div class="col-lg-6">
+                        <div class="border-start border-info border-3 ps-3 mb-4">
+                            <h6 class="text-info fw-bold">Row 3: Payment Methods</h6>
+                            <p class="mb-1">Payment methods for each provider</p>
+                            <small class="text-muted">Valid: "CARD", "PIX", "BOLETO" | Invalid: "#N/A", empty</small>
+                        </div>
+                        
+                        <div class="border-start border-warning border-3 ps-3 mb-4">
+                            <h6 class="text-warning fw-bold">Rows 4+: Feature Data</h6>
+                            <p class="mb-1">Integration features and their values</p>
+                            <small class="text-muted">Feature names in column 1, values in corresponding provider columns</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sample Features -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body">
+                <h3 class="card-title text-primary">🔧 Common Features</h3>
+                <p class="text-muted mb-3">Here are some typical features that appear in integration CSV files:</p>
+                
+                <div class="row">
+                    <div class="col-md-4">
+                        <h6 class="text-info">🏛️ Basic Information</h6>
+                        <ul class="list-unstyled">
+                            <li>• Country</li>
+                            <li>• Signed contract with provider</li>
+                            <li>• Already integrated with Yuno?</li>
+                            <li>• Experience</li>
+                            <li>• Market Segment</li>
+                            <li>• Processing model</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <h6 class="text-success">💳 Payment Features</h6>
+                        <ul class="list-unstyled">
+                            <li>• Card Type Accepted</li>
+                            <li>• Verify</li>
+                            <li>• Authorize</li>
+                            <li>• Capture</li>
+                            <li>• Purchase</li>
+                            <li>• Refund</li>
+                            <li>• Cancel</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <h6 class="text-warning">⚡ Advanced Features</h6>
+                        <ul class="list-unstyled">
+                            <li>• Partial Capture</li>
+                            <li>• Multiple Refunds</li>
+                            <li>• Network Tokens</li>
+                            <li>• Recurring payments</li>
+                            <li>• 3DS</li>
+                            <li>• Split payments</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tips -->
+        <div class="card border-0 bg-primary text-white">
+            <div class="card-body">
+                <h3 class="card-title">💡 Pro Tips</h3>
+                <div class="row">
+                    <div class="col-md-6">
+                        <ul class="mb-0">
+                            <li>Use clear, descriptive provider names</li>
+                            <li>Keep feature names consistent</li>
+                            <li>Use "TRUE"/"FALSE" for boolean values</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <ul class="mb-0">
+                            <li>Mark invalid columns with "#N/A"</li>
+                            <li>Leave empty cells blank (don't use "N/A")</li>
+                            <li>Test with our sample file first</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
