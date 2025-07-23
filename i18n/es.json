@@ -1,0 +1,84 @@
+{
+  "testcase": {
+    "country": {
+      "process_payment_supported": "Procesar pago en país soportado",
+      "reject_unsupported": "Verificar rechazo de pago en país no soportado",
+      "specific_availability": "Probar disponibilidad específica de método de pago por país"
+    },
+    "verify": {
+      "valid_payment_method": "Verificar método de pago válido",
+      "invalid_payment_method": "Verificar método de pago inválido",
+      "response_handling": "Probar manejo de respuesta de verificación"
+    },
+    "authorize": {
+      "successful": "Autorizar pago exitosamente",
+      "failure": "Manejar falla de autorización",
+      "expiration": "Probar expiración de autorización"
+    },
+    "capture": {
+      "full_amount": "Capturar monto autorizado completo",
+      "partial_amount": "Capturar monto autorizado parcial",
+      "expired_authorization": "Intentar captura en autorización expirada"
+    },
+    "cancel": {
+      "authorized_payment": "Cancelar pago autorizado",
+      "captured_payment": "Intentar cancelar pago ya capturado",
+      "confirmation": "Probar confirmación de cancelación"
+    },
+    "refund": {
+      "full": "Procesar reembolso completo",
+      "partial": "Procesar reembolso parcial",
+      "failure": "Manejar escenarios de falla de reembolso"
+    },
+    "currency": {
+      "supported": "Procesar pago en moneda soportada",
+      "unsupported": "Verificar rechazo de moneda no soportada",
+      "conversion": "Probar manejo de conversión de moneda"
+    },
+    "recurring": {
+      "create_subscription": "Crear suscripción de pago recurrente",
+      "process_scheduled": "Procesar pago recurrente programado",
+      "cancel_subscription": "Cancelar suscripción de pago recurrente"
+    },
+    "installments": {
+      "create_plan": "Crear plan de cuotas",
+      "process_payment": "Procesar pago de cuota",
+      "failed_payment": "Manejar falla de pago de cuota"
+    },
+    "3ds": {
+      "successful_auth": "Completar autenticación 3DS exitosamente",
+      "failed_auth": "Manejar falla de autenticación 3DS",
+      "challenge_flow": "Probar flujo de desafío 3DS"
+    },
+    "webhook": {
+      "receive_notification": "Recibir notificación webhook",
+      "verify_signature": "Verificar firma de webhook",
+      "retry_mechanism": "Manejar mecanismo de reintento de webhook"
+    },
+    "paymentlink": {
+      "generate": "Generar enlace de pago",
+      "complete_payment": "Completar pago a través del enlace",
+      "expired": "Probar enlace de pago expirado"
+    },
+    "tokenvault": {
+      "store_token": "Almacenar token de método de pago",
+      "use_stored_token": "Procesar pago usando token almacenado",
+      "delete_token": "Eliminar token de método de pago"
+    },
+    "chargeback": {
+      "receive_notification": "Recibir notificación de contracargo",
+      "submit_defense": "Enviar defensa de contracargo",
+      "resolution": "Manejar resolución de contracargo"
+    },
+    "split": {
+      "payment_between_recipients": "Dividir pago entre destinatarios",
+      "verify_distribution": "Verificar distribución de pago dividido",
+      "payment_failure": "Manejar falla de pago dividido"
+    },
+    "sandbox": {
+      "execute_test_payment": "Ejecutar pago de prueba en sandbox",
+      "data_isolation": "Verificar aislamiento de datos en sandbox",
+      "environment_switching": "Probar cambio de entorno sandbox"
+    }
+  }
+} 

@@ -1,0 +1,84 @@
+{
+  "testcase": {
+    "country": {
+      "process_payment_supported": "Processar pagamento em país suportado",
+      "reject_unsupported": "Verificar rejeição de pagamento em país não suportado",
+      "specific_availability": "Testar disponibilidade específica de método de pagamento por país"
+    },
+    "verify": {
+      "valid_payment_method": "Verificar método de pagamento válido",
+      "invalid_payment_method": "Verificar método de pagamento inválido",
+      "response_handling": "Testar tratamento de resposta de verificação"
+    },
+    "authorize": {
+      "successful": "Autorizar pagamento com sucesso",
+      "failure": "Tratar falha de autorização",
+      "expiration": "Testar expiração de autorização"
+    },
+    "capture": {
+      "full_amount": "Capturar valor autorizado completo",
+      "partial_amount": "Capturar valor autorizado parcial",
+      "expired_authorization": "Tentar captura em autorização expirada"
+    },
+    "cancel": {
+      "authorized_payment": "Cancelar pagamento autorizado",
+      "captured_payment": "Tentar cancelar pagamento já capturado",
+      "confirmation": "Testar confirmação de cancelamento"
+    },
+    "refund": {
+      "full": "Processar reembolso total",
+      "partial": "Processar reembolso parcial",
+      "failure": "Tratar cenários de falha de reembolso"
+    },
+    "currency": {
+      "supported": "Processar pagamento em moeda suportada",
+      "unsupported": "Verificar rejeição de moeda não suportada",
+      "conversion": "Testar tratamento de conversão de moeda"
+    },
+    "recurring": {
+      "create_subscription": "Criar assinatura de pagamento recorrente",
+      "process_scheduled": "Processar pagamento recorrente agendado",
+      "cancel_subscription": "Cancelar assinatura de pagamento recorrente"
+    },
+    "installments": {
+      "create_plan": "Criar plano de parcelamento",
+      "process_payment": "Processar pagamento de parcela",
+      "failed_payment": "Tratar falha de pagamento de parcela"
+    },
+    "3ds": {
+      "successful_auth": "Completar autenticação 3DS com sucesso",
+      "failed_auth": "Tratar falha de autenticação 3DS",
+      "challenge_flow": "Testar fluxo de desafio 3DS"
+    },
+    "webhook": {
+      "receive_notification": "Receber notificação webhook",
+      "verify_signature": "Verificar assinatura de webhook",
+      "retry_mechanism": "Tratar mecanismo de retry de webhook"
+    },
+    "paymentlink": {
+      "generate": "Gerar link de pagamento",
+      "complete_payment": "Completar pagamento através do link",
+      "expired": "Testar link de pagamento expirado"
+    },
+    "tokenvault": {
+      "store_token": "Armazenar token de método de pagamento",
+      "use_stored_token": "Processar pagamento usando token armazenado",
+      "delete_token": "Deletar token de método de pagamento"
+    },
+    "chargeback": {
+      "receive_notification": "Receber notificação de chargeback",
+      "submit_defense": "Enviar defesa de chargeback",
+      "resolution": "Tratar resolução de chargeback"
+    },
+    "split": {
+      "payment_between_recipients": "Dividir pagamento entre destinatários",
+      "verify_distribution": "Verificar distribuição de pagamento dividido",
+      "payment_failure": "Tratar falha de pagamento dividido"
+    },
+    "sandbox": {
+      "execute_test_payment": "Executar pagamento de teste no sandbox",
+      "data_isolation": "Verificar isolamento de dados no sandbox",
+      "environment_switching": "Testar mudança de ambiente sandbox"
+    }
+  }
+} 

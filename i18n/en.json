@@ -1,0 +1,84 @@
+{
+  "testcase": {
+    "country": {
+      "process_payment_supported": "Process payment in supported country",
+      "reject_unsupported": "Verify payment rejection in unsupported country",
+      "specific_availability": "Test country-specific payment method availability"
+    },
+    "verify": {
+      "valid_payment_method": "Verify valid payment method",
+      "invalid_payment_method": "Verify invalid payment method",
+      "response_handling": "Test verification response handling"
+    },
+    "authorize": {
+      "successful": "Authorize payment successfully",
+      "failure": "Handle authorization failure",
+      "expiration": "Test authorization expiration"
+    },
+    "capture": {
+      "full_amount": "Capture full authorized amount",
+      "partial_amount": "Capture partial authorized amount",
+      "expired_authorization": "Attempt capture on expired authorization"
+    },
+    "cancel": {
+      "authorized_payment": "Cancel authorized payment",
+      "captured_payment": "Attempt cancel on already captured payment",
+      "confirmation": "Test cancellation confirmation"
+    },
+    "refund": {
+      "full": "Process full refund",
+      "partial": "Process partial refund",
+      "failure": "Handle refund failure scenarios"
+    },
+    "currency": {
+      "supported": "Process payment in supported currency",
+      "unsupported": "Verify rejection of unsupported currency",
+      "conversion": "Test currency conversion handling"
+    },
+    "recurring": {
+      "create_subscription": "Create recurring payment subscription",
+      "process_scheduled": "Process scheduled recurring payment",
+      "cancel_subscription": "Cancel recurring payment subscription"
+    },
+    "installments": {
+      "create_plan": "Create installment payment plan",
+      "process_payment": "Process installment payment",
+      "failed_payment": "Handle failed installment payment"
+    },
+    "3ds": {
+      "successful_auth": "Complete 3DS authentication successfully",
+      "failed_auth": "Handle 3DS authentication failure",
+      "challenge_flow": "Test 3DS challenge flow"
+    },
+    "webhook": {
+      "receive_notification": "Receive webhook notification",
+      "verify_signature": "Verify webhook signature",
+      "retry_mechanism": "Handle webhook retry mechanism"
+    },
+    "paymentlink": {
+      "generate": "Generate payment link",
+      "complete_payment": "Complete payment via link",
+      "expired": "Test expired payment link"
+    },
+    "tokenvault": {
+      "store_token": "Store payment method token",
+      "use_stored_token": "Process payment using stored token",
+      "delete_token": "Delete stored payment token"
+    },
+    "chargeback": {
+      "receive_notification": "Receive chargeback notification",
+      "submit_defense": "Submit chargeback defense",
+      "resolution": "Handle chargeback resolution"
+    },
+    "split": {
+      "payment_between_recipients": "Split payment between recipients",
+      "verify_distribution": "Verify split payment distribution",
+      "payment_failure": "Handle split payment failure"
+    },
+    "sandbox": {
+      "execute_test_payment": "Execute test payment in sandbox",
+      "data_isolation": "Verify sandbox data isolation",
+      "environment_switching": "Test sandbox environment switching"
+    }
+  }
+} 

@@ -1,87 +1,359 @@
 {
-  "version": "1.0",
+  "version": "2.0",
   "description": "Feature documentation rules for dynamic documentation generation",
-  "last_updated": "2024-01-01",
+  "last_updated": "2025-07-23",
   "rules": {
     "Country": {
       "feature_name": "Country",
       "documentation_url": "https://docs.company.com/integration/country-support",
-      "comment": "Specifies the country where this provider + payment method combination is available. Essential for geographic implementation planning."
+      "comment": "Specifies the country where this provider + payment method combination is available. Essential for geographic implementation planning.",
+      "testcases": [
+        {
+          "id": "CTR0001",
+          "description_key": "testcase.country.process_payment_supported",
+          "type": "happy path"
+        },
+        {
+          "id": "CTR0002",
+          "description_key": "testcase.country.reject_unsupported",
+          "type": "unhappy path"
+        },
+        {
+          "id": "CTR0003",
+          "description_key": "testcase.country.specific_availability",
+          "type": "corner case"
+        }
+      ]
     },
     "Verify": {
       "feature_name": "Verify",
       "documentation_url": "https://docs.company.com/integration/verification",
-      "comment": "Indicates whether payment verification is supported. Critical for transaction security and compliance requirements."
+      "comment": "Indicates whether payment verification is supported. Critical for transaction security and compliance requirements.",
+      "testcases": [
+        {
+          "id": "VRF0001",
+          "description_key": "testcase.verify.valid_payment_method",
+          "type": "happy path"
+        },
+        {
+          "id": "VRF0002",
+          "description_key": "testcase.verify.invalid_payment_method",
+          "type": "unhappy path"
+        },
+        {
+          "id": "VRF0003",
+          "description_key": "testcase.verify.response_handling",
+          "type": "corner case"
+        }
+      ]
     },
     "Authorize": {
       "feature_name": "Authorize",
       "documentation_url": "https://docs.company.com/integration/authorization",
-      "comment": "Supports payment authorization functionality. Required for holding funds before capture in two-step payment flows."
+      "comment": "Supports payment authorization functionality. Required for holding funds before capture in two-step payment flows.",
+      "testcases": [
+        {
+          "id": "ATH0001",
+          "description_key": "testcase.authorize.successful",
+          "type": "happy path"
+        },
+        {
+          "id": "ATH0002",
+          "description_key": "testcase.authorize.failure",
+          "type": "unhappy path"
+        },
+        {
+          "id": "ATH0003",
+          "description_key": "testcase.authorize.expiration",
+          "type": "corner case"
+        }
+      ]
     },
     "Capture": {
       "feature_name": "Capture",
       "documentation_url": "https://docs.company.com/integration/capture",
-      "comment": "Enables capturing previously authorized payments. Essential for completing two-step payment transactions."
+      "comment": "Enables capturing previously authorized payments. Essential for completing two-step payment transactions.",
+      "testcases": [
+        {
+          "id": "CPT0001",
+          "description_key": "testcase.capture.full_amount",
+          "type": "happy path"
+        },
+        {
+          "id": "CPT0002",
+          "description_key": "testcase.capture.partial_amount",
+          "type": "happy path"
+        },
+        {
+          "id": "CPT0003",
+          "description_key": "testcase.capture.expired_authorization",
+          "type": "corner case"
+        }
+      ]
     },
     "Cancel": {
       "feature_name": "Cancel",
       "documentation_url": "https://docs.company.com/integration/cancellation",
-      "comment": "Allows canceling authorized but not yet captured payments. Important for inventory management and customer service."
+      "comment": "Allows canceling authorized but not yet captured payments. Important for inventory management and customer service.",
+      "testcases": [
+        {
+          "id": "CNC0001",
+          "description_key": "testcase.cancel.authorized_payment",
+          "type": "happy path"
+        },
+        {
+          "id": "CNC0002",
+          "description_key": "testcase.cancel.captured_payment",
+          "type": "corner case"
+        },
+        {
+          "id": "CNC0003",
+          "description_key": "testcase.cancel.confirmation",
+          "type": "happy path"
+        }
+      ]
     },
     "Refund": {
       "feature_name": "Refund",
       "documentation_url": "https://docs.company.com/integration/refunds",
-      "comment": "Supports full or partial refunds of completed payments. Critical for customer service and dispute resolution."
+      "comment": "Supports full or partial refunds of completed payments. Critical for customer service and dispute resolution.",
+      "testcases": [
+        {
+          "id": "RFD0001",
+          "description_key": "testcase.refund.full",
+          "type": "happy path"
+        },
+        {
+          "id": "RFD0002",
+          "description_key": "testcase.refund.partial",
+          "type": "happy path"
+        },
+        {
+          "id": "RFD0003",
+          "description_key": "testcase.refund.failure",
+          "type": "unhappy path"
+        }
+      ]
     },
     "Currency": {
       "feature_name": "Currency",
       "documentation_url": "https://docs.company.com/integration/currency-support",
-      "comment": "Defines supported currencies for this provider + payment method. Essential for multi-currency implementations."
+      "comment": "Defines supported currencies for this provider + payment method. Essential for multi-currency implementations.",
+      "testcases": [
+        {
+          "id": "CUR0001",
+          "description_key": "testcase.currency.supported",
+          "type": "happy path"
+        },
+        {
+          "id": "CUR0002",
+          "description_key": "testcase.currency.unsupported",
+          "type": "unhappy path"
+        },
+        {
+          "id": "CUR0003",
+          "description_key": "testcase.currency.conversion",
+          "type": "corner case"
+        }
+      ]
     },
     "Recurring": {
       "feature_name": "Recurring",
       "documentation_url": "https://docs.company.com/integration/recurring-payments",
-      "comment": "Enables recurring payment functionality for subscriptions and installments. Required for subscription-based business models."
+      "comment": "Enables recurring payment functionality for subscriptions and installments. Required for subscription-based business models.",
+      "testcases": [
+        {
+          "id": "RCR0001",
+          "description_key": "testcase.recurring.create_subscription",
+          "type": "happy path"
+        },
+        {
+          "id": "RCR0002",
+          "description_key": "testcase.recurring.process_scheduled",
+          "type": "happy path"
+        },
+        {
+          "id": "RCR0003",
+          "description_key": "testcase.recurring.cancel_subscription",
+          "type": "happy path"
+        }
+      ]
     },
     "Installments": {
       "feature_name": "Installments",
       "documentation_url": "https://docs.company.com/integration/installments",
-      "comment": "Supports installment payments split across multiple charges. Popular in Latin American markets."
+      "comment": "Supports installment payments split across multiple charges. Popular in Latin American markets.",
+      "testcases": [
+        {
+          "id": "INS0001",
+          "description_key": "testcase.installments.create_plan",
+          "type": "happy path"
+        },
+        {
+          "id": "INS0002",
+          "description_key": "testcase.installments.process_payment",
+          "type": "happy path"
+        },
+        {
+          "id": "INS0003",
+          "description_key": "testcase.installments.failed_payment",
+          "type": "unhappy path"
+        }
+      ]
     },
     "3DS": {
       "feature_name": "3DS",
       "documentation_url": "https://docs.company.com/integration/3d-secure",
-      "comment": "3D Secure authentication support for enhanced card payment security. Required for SCA compliance in Europe."
+      "comment": "3D Secure authentication support for enhanced card payment security. Required for SCA compliance in Europe.",
+      "testcases": [
+        {
+          "id": "TDS0001",
+          "description_key": "testcase.3ds.successful_auth",
+          "type": "happy path"
+        },
+        {
+          "id": "TDS0002",
+          "description_key": "testcase.3ds.failed_auth",
+          "type": "unhappy path"
+        },
+        {
+          "id": "TDS0003",
+          "description_key": "testcase.3ds.challenge_flow",
+          "type": "corner case"
+        }
+      ]
     },
     "Webhook": {
       "feature_name": "Webhook",
       "documentation_url": "https://docs.company.com/integration/webhooks",
-      "comment": "Webhook notification support for real-time payment status updates. Essential for reliable payment status tracking."
+      "comment": "Webhook notification support for real-time payment status updates. Essential for reliable payment status tracking.",
+      "testcases": [
+        {
+          "id": "WHK0001",
+          "description_key": "testcase.webhook.receive_notification",
+          "type": "happy path"
+        },
+        {
+          "id": "WHK0002",
+          "description_key": "testcase.webhook.verify_signature",
+          "type": "corner case"
+        },
+        {
+          "id": "WHK0003",
+          "description_key": "testcase.webhook.retry_mechanism",
+          "type": "corner case"
+        }
+      ]
     },
     "PaymentLink": {
       "feature_name": "PaymentLink",
       "documentation_url": "https://docs.company.com/integration/payment-links",
-      "comment": "Support for generating shareable payment links. Useful for invoice payments and remote transactions."
+      "comment": "Support for generating shareable payment links. Useful for invoice payments and remote transactions.",
+      "testcases": [
+        {
+          "id": "PLK0001",
+          "description_key": "testcase.paymentlink.generate",
+          "type": "happy path"
+        },
+        {
+          "id": "PLK0002",
+          "description_key": "testcase.paymentlink.complete_payment",
+          "type": "happy path"
+        },
+        {
+          "id": "PLK0003",
+          "description_key": "testcase.paymentlink.expired",
+          "type": "corner case"
+        }
+      ]
     },
     "TokenVault": {
       "feature_name": "TokenVault",
       "documentation_url": "https://docs.company.com/integration/token-vault",
-      "comment": "Secure token storage for saved payment methods. Required for one-click payments and recurring transactions."
+      "comment": "Secure token storage for saved payment methods. Required for one-click payments and recurring transactions.",
+      "testcases": [
+        {
+          "id": "TVT0001",
+          "description_key": "testcase.tokenvault.store_token",
+          "type": "happy path"
+        },
+        {
+          "id": "TVT0002",
+          "description_key": "testcase.tokenvault.use_stored_token",
+          "type": "happy path"
+        },
+        {
+          "id": "TVT0003",
+          "description_key": "testcase.tokenvault.delete_token",
+          "type": "happy path"
+        }
+      ]
     },
     "Chargeback": {
       "feature_name": "Chargeback",
       "documentation_url": "https://docs.company.com/integration/chargeback-handling",
-      "comment": "Chargeback notification and management capabilities. Important for dispute resolution and merchant protection."
+      "comment": "Chargeback notification and management capabilities. Important for dispute resolution and merchant protection.",
+      "testcases": [
+        {
+          "id": "CHB0001",
+          "description_key": "testcase.chargeback.receive_notification",
+          "type": "unhappy path"
+        },
+        {
+          "id": "CHB0002",
+          "description_key": "testcase.chargeback.submit_defense",
+          "type": "happy path"
+        },
+        {
+          "id": "CHB0003",
+          "description_key": "testcase.chargeback.resolution",
+          "type": "corner case"
+        }
+      ]
     },
     "Split": {
       "feature_name": "Split",
       "documentation_url": "https://docs.company.com/integration/split-payments",
-      "comment": "Support for splitting payments between multiple recipients. Essential for marketplace and platform implementations."
+      "comment": "Support for splitting payments between multiple recipients. Essential for marketplace and platform implementations.",
+      "testcases": [
+        {
+          "id": "SPL0001",
+          "description_key": "testcase.split.payment_between_recipients",
+          "type": "happy path"
+        },
+        {
+          "id": "SPL0002",
+          "description_key": "testcase.split.verify_distribution",
+          "type": "corner case"
+        },
+        {
+          "id": "SPL0003",
+          "description_key": "testcase.split.payment_failure",
+          "type": "unhappy path"
+        }
+      ]
     },
     "Sandbox": {
       "feature_name": "Sandbox",
       "documentation_url": "https://docs.company.com/integration/sandbox-testing",
-      "comment": "Testing environment availability for safe integration development. Critical for development and QA processes."
+      "comment": "Testing environment availability for safe integration development. Critical for development and QA processes.",
+      "testcases": [
+        {
+          "id": "SBX0001",
+          "description_key": "testcase.sandbox.execute_test_payment",
+          "type": "happy path"
+        },
+        {
+          "id": "SBX0002",
+          "description_key": "testcase.sandbox.data_isolation",
+          "type": "corner case"
+        },
+        {
+          "id": "SBX0003",
+          "description_key": "testcase.sandbox.environment_switching",
+          "type": "corner case"
+        }
+      ]
     }
   },
   "metadata": {
@@ -92,6 +364,16 @@
       "Customer Experience",
       "Development & Testing"
     ],
-    "usage_instructions": "This file contains documentation rules that map feature names to their corresponding documentation URLs and explanatory comments. Update URLs and comments as needed without requiring code changes."
+    "testcase_types": [
+      "happy path",
+      "unhappy path", 
+      "corner case"
+    ],
+    "i18n": {
+      "supported_locales": ["en", "es", "pt"],
+      "default_locale": "en",
+      "structure": "Testcase descriptions use i18n keys (description_key) that reference translations in i18n/{locale}.json files"
+    },
+    "usage_instructions": "This file contains documentation rules that map feature names to their corresponding documentation URLs and explanatory comments. Testcase descriptions are internationalized using i18n keys. Use the i18n_helper.py utility to load translations."
   }
 } 
