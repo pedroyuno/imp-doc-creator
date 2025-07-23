@@ -63,14 +63,14 @@ class TestIntegration:
         # Step 1: Access main page
         response = client.get('/')
         assert response.status_code == 200
-        assert b'CSV Provider Parser' in response.data
+        assert b'Implementation Scoping Parser' in response.data
         
-        # Step 2: Upload valid CSV file
+                # Step 2: Upload valid CSV file
         data = {'file': (BytesIO(sample_csv_content), 'integration_test.csv')}
         response = client.post('/upload', data=data)
-        
+
         assert response.status_code == 200
-        assert b'Parsing Results' in response.data
+        assert b'Implementation Analysis Results' in response.data
         
         # Step 3: Verify results structure
         assert b'PROVIDER_A' in response.data
@@ -185,12 +185,12 @@ class TestIntegration:
         
         sample_content = response.data
         
-        # Step 2: Re-upload the downloaded sample
+                # Step 2: Re-upload the downloaded sample
         data = {'file': (BytesIO(sample_content), 'downloaded_sample.csv')}
         response = client.post('/upload', data=data)
-        
+
         assert response.status_code == 200
-        assert b'Parsing Results' in response.data
+        assert b'Implementation Analysis Results' in response.data
         
         # Step 3: Verify it parses correctly
         assert b'REDE' in response.data or b'PAGARME' in response.data
@@ -226,7 +226,7 @@ class TestIntegration:
             
             if case['should_succeed']:
                 # Should show results or handle gracefully
-                assert b'Parsing Results' in response.data or b'No valid' in response.data
+                assert b'Implementation Analysis Results' in response.data or b'No valid' in response.data
             else:
                 # Should show "no valid combinations" message
                 assert b'No valid' in response.data or b'Error' in response.data
@@ -281,7 +281,7 @@ class TestIntegration:
             
             # For large files, verify it still processes correctly
             if size_label == "large":
-                assert b'Parsing Results' in response.data or b'No valid' in response.data
+                assert b'Implementation Analysis Results' in response.data or b'No valid' in response.data
 
 
 class TestRegressionScenarios:

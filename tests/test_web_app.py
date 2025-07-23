@@ -58,10 +58,10 @@ class TestFlaskApp:
     def test_index_route(self, client):
         """Test the main index page"""
         response = client.get('/')
-        
+
         assert response.status_code == 200
-        assert b'CSV Provider Parser' in response.data
-        assert b'Drag & Drop your CSV file here' in response.data
+        assert b'Implementation Scoping Document Parser' in response.data
+        assert b'Drag & Drop your implementation document here' in response.data
         assert b'Choose File' in response.data
 
     def test_example_route(self, client):
@@ -69,7 +69,7 @@ class TestFlaskApp:
         response = client.get('/example')
         
         assert response.status_code == 200
-        assert b'CSV Format Example' in response.data
+        assert b'Implementation Document Format Guide' in response.data
         assert b'Valid Columns' in response.data
         assert b'Invalid Columns' in response.data
 
@@ -111,9 +111,9 @@ class TestFlaskApp:
         """Test successful CSV upload and processing"""
         data = {'file': (BytesIO(valid_csv_content), 'test.csv')}
         response = client.post('/upload', data=data)
-        
+
         assert response.status_code == 200
-        assert b'Parsing Results' in response.data
+        assert b'Implementation Analysis Results' in response.data
         assert b'REDE' in response.data
         assert b'PAGARME' in response.data
         assert b'Valid Combinations' in response.data
@@ -215,7 +215,7 @@ class TestFlaskApp:
         assert response.status_code == 200
         
         # Check for key elements in results page
-        assert b'Parsing Results' in response.data
+        assert b'Implementation Analysis Results' in response.data
         assert b'Valid Combinations' in response.data
         assert b'Features per Provider' in response.data
         assert b'Filter by feature value' in response.data
