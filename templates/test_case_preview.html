@@ -1,0 +1,226 @@
+{% extends "base.html" %}
+
+{% block title %}Test Case Preview - {{ super() }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="fw-bold text-dark mb-1">👁️ Test Case Preview</h2>
+                <p class="text-muted mb-0">
+                    <strong>Merchant:</strong> {{ merchant_name }} | 
+                    <strong>Language:</strong> {{ language.upper() }} | 
+                    <strong>Format:</strong> {{ request.args.get('output_format', 'html').upper() }} |
+                    <strong>Source:</strong> {{ filename }}
+                </p>
+            </div>
+            <div>
+                <button class="btn btn-outline-secondary" onclick="window.close()">
+                    ✕ Close Preview
+                </button>
+            </div>
+        </div>
+
+        <!-- Summary Statistics -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-number">{{ statistics.total_providers }}</div>
+                    <div class="stats-label">Provider Combinations</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-number">{{ statistics.total_test_cases }}</div>
+                    <div class="stats-label">Total Test Cases</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-number">{{ statistics.total_implemented_features }}</div>
+                    <div class="stats-label">Implemented Features</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-number">{{ language.upper() }}</div>
+                    <div class="stats-label">Document Language</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Test Case Types Breakdown -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">📊 Test Case Distribution</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-4">
+                        <div class="text-success">
+                            <strong class="fs-4">{{ statistics.test_case_types['happy path'] }}</strong>
+                            <p class="text-muted mb-0">Happy Path Cases</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-danger">
+                            <strong class="fs-4">{{ statistics.test_case_types['unhappy path'] }}</strong>
+                            <p class="text-muted mb-0">Unhappy Path Cases</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-warning">
+                            <strong class="fs-4">{{ statistics.test_case_types['corner case'] }}</strong>
+                            <p class="text-muted mb-0">Corner Cases</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Test Cases Preview -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">📝 Test Cases Preview</h5>
+                <small class="text-muted">This is how the document will appear</small>
+            </div>
+            <div class="card-body">
+                {% for provider_key, provider_info in test_cases_data.items() %}
+                <div class="provider-section mb-4">
+                    <!-- Provider Header -->
+                    <h4 class="border-bottom pb-2 mb-3">
+                        🏢 {{ provider_info.provider }} + {{ provider_info.payment_method }}
+                        <small class="text-muted">({{ provider_info.test_cases|length }} test cases)</small>
+                    </h4>
+                    
+                    <!-- Group test cases by feature -->
+                    {% set features_dict = {} %}
+                    {% for test_case in provider_info.test_cases %}
+                        {% set feature_name = test_case.feature_name %}
+                        {% if feature_name not in features_dict %}
+                            {% set _ = features_dict.update({feature_name: []}) %}
+                        {% endif %}
+                        {% set _ = features_dict[feature_name].append(test_case) %}
+                    {% endfor %}
+                    
+                    <!-- Display test cases by feature -->
+                    {% for feature_name, feature_test_cases in features_dict.items() %}
+                    <div class="feature-section mb-3">
+                        <h6 class="text-primary mb-2">🔧 {{ feature_name }} Feature</h6>
+                        <div class="test-cases-list">
+                            {% for test_case in feature_test_cases %}
+                            <div class="test-case-item mb-1 p-2 rounded 
+                                {% if test_case.type == 'happy path' %}bg-light border-start border-success border-3
+                                {% elif test_case.type == 'unhappy path' %}bg-light border-start border-danger border-3
+                                {% else %}bg-light border-start border-warning border-3{% endif %}">
+                                <strong>{{ test_case.id }}</strong> 
+                                <span class="badge 
+                                    {% if test_case.type == 'happy path' %}bg-success
+                                    {% elif test_case.type == 'unhappy path' %}bg-danger
+                                    {% else %}bg-warning text-dark{% endif %}">
+                                    {{ test_case.type }}
+                                </span>: 
+                                {{ test_case.description }}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                {% if not loop.last %}
+                <hr class="my-4">
+                {% endif %}
+                {% endfor %}
+                
+                {% if test_cases_data|length == 0 %}
+                <div class="text-center py-5">
+                    <div class="text-muted">
+                        <i class="fas fa-exclamation-circle fa-3x mb-3"></i>
+                        <h4>No Test Cases Found</h4>
+                        <p>No implemented features were detected in the parsed data.</p>
+                        <p>Make sure your CSV file contains features marked as "TRUE", "Implemented", or similar values.</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Download Actions -->
+        <div class="text-center mt-4 mb-4">
+            <p class="text-muted">Ready to download your test case document?</p>
+            <form method="POST" action="{{ url_for('generate_test_cases') }}" class="d-inline">
+                <input type="hidden" name="merchant_name" value="{{ merchant_name }}">
+                <input type="hidden" name="language" value="{{ language }}">
+                <input type="hidden" name="output_format" value="{{ request.args.get('output_format', 'html') }}">
+                <input type="hidden" name="include_metadata" value="on">
+                <button type="submit" class="btn btn-success btn-lg">
+                    📥 Download {{ request.args.get('output_format', 'HTML').upper() }} Document
+                </button>
+            </form>
+            <button class="btn btn-outline-secondary btn-lg ms-2" onclick="window.close()">
+                ← Go Back
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.provider-section {
+    border-left: 4px solid #0d6efd;
+    padding-left: 1rem;
+}
+
+.feature-section {
+    margin-left: 1rem;
+}
+
+.test-case-item {
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.stats-card {
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    text-align: center;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.stats-number {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #0d6efd;
+    line-height: 1;
+}
+
+.stats-label {
+    color: #6c757d;
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+}
+
+@media print {
+    .btn, .card-header {
+        display: none !important;
+    }
+    
+    .test-case-item {
+        break-inside: avoid;
+        margin-bottom: 0.25rem;
+    }
+    
+    .provider-section {
+        break-inside: avoid;
+        margin-bottom: 2rem;
+    }
+}
+</style>
+{% endblock %} 

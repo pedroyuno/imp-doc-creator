@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Implementation Test Cases for Sample Merchant Implementation</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; margin: 40px; }
+        h1 { color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 10px; }
+        h2 { color: #34495e; border-bottom: 2px solid #ecf0f1; padding-bottom: 8px; margin-top: 30px; }
+        h3 { color: #7f8c8d; margin-top: 25px; margin-bottom: 15px; }
+        .metadata { background-color: #f8f9fa; padding: 15px; border-left: 4px solid #3498db; margin-bottom: 20px; }
+        .test-case { margin: 8px 0; padding: 8px; background-color: #f9f9f9; border-left: 3px solid #27ae60; }
+        .test-case.unhappy { border-left-color: #e74c3c; }
+        .test-case.corner { border-left-color: #f39c12; }
+        .test-id { font-weight: bold; color: #2c3e50; }
+        .test-type { font-style: italic; color: #7f8c8d; }
+        .summary { background-color: #ecf0f1; padding: 20px; border-radius: 5px; margin-top: 30px; }
+        .notes { background-color: #fff3cd; padding: 15px; border: 1px solid #ffeaa7; border-radius: 5px; margin-top: 20px; }
+        hr { border: none; border-top: 1px solid #bdc3c7; margin: 25px 0; }
+    </style>
+</head>
+<body>
+    <h1>Implementation Test Cases for Sample Merchant Implementation</h1>
+    <div class="metadata">
+        <p><strong>Generated on:</strong> 2025-07-23 15:52:54</p>
+        <p><strong>Language:</strong> EN</p>
+        <p><strong>Total Provider Combinations:</strong> 2</p>
+    </div>
+    <h2>Test Case Documentation</h2>
+    <p>This document contains test cases for your payment integration implementation. Each test case should be executed to ensure proper functionality of the implemented features. Test cases are organized by provider and payment method combinations.</p>
+    <h3>Test Case Types</h3>
+    <ul>
+        <li><strong>Happy Path:</strong> Normal flow test cases</li>
+        <li><strong>Unhappy Path:</strong> Error handling test cases</li>
+        <li><strong>Corner Case:</strong> Edge case and boundary test cases</li>
+    </ul>
+    <hr>
+    <h2>REDE + CARD</h2>
+    <p><strong>Total Test Cases:</strong> 15</p>
+    <h3>Verify Feature</h3>
+    <div class="test-case"><span class="test-id">VRF0001</span> <span class="test-type">(happy path)</span>: Verify valid payment method</div>
+    <div class="test-case unhappy"><span class="test-id">VRF0002</span> <span class="test-type">(unhappy path)</span>: Verify invalid payment method</div>
+    <div class="test-case corner"><span class="test-id">VRF0003</span> <span class="test-type">(corner case)</span>: Test verification response handling</div>
+    <h3>Authorize Feature</h3>
+    <div class="test-case"><span class="test-id">ATH0001</span> <span class="test-type">(happy path)</span>: Authorize payment successfully</div>
+    <div class="test-case unhappy"><span class="test-id">ATH0002</span> <span class="test-type">(unhappy path)</span>: Handle authorization failure</div>
+    <div class="test-case corner"><span class="test-id">ATH0003</span> <span class="test-type">(corner case)</span>: Test authorization expiration</div>
+    <h3>Capture Feature</h3>
+    <div class="test-case"><span class="test-id">CPT0001</span> <span class="test-type">(happy path)</span>: Capture full authorized amount</div>
+    <div class="test-case"><span class="test-id">CPT0002</span> <span class="test-type">(happy path)</span>: Capture partial authorized amount</div>
+    <div class="test-case corner"><span class="test-id">CPT0003</span> <span class="test-type">(corner case)</span>: Attempt capture on expired authorization</div>
+    <h3>Refund Feature</h3>
+    <div class="test-case"><span class="test-id">RFD0001</span> <span class="test-type">(happy path)</span>: Process full refund</div>
+    <div class="test-case"><span class="test-id">RFD0002</span> <span class="test-type">(happy path)</span>: Process partial refund</div>
+    <div class="test-case unhappy"><span class="test-id">RFD0003</span> <span class="test-type">(unhappy path)</span>: Handle refund failure scenarios</div>
+    <h3>Cancel Feature</h3>
+    <div class="test-case"><span class="test-id">CNC0001</span> <span class="test-type">(happy path)</span>: Cancel authorized payment</div>
+    <div class="test-case corner"><span class="test-id">CNC0002</span> <span class="test-type">(corner case)</span>: Attempt cancel on already captured payment</div>
+    <div class="test-case"><span class="test-id">CNC0003</span> <span class="test-type">(happy path)</span>: Test cancellation confirmation</div>
+    <hr>
+    <h2>PAGARME + CARD</h2>
+    <p><strong>Total Test Cases:</strong> 15</p>
+    <h3>Verify Feature</h3>
+    <div class="test-case"><span class="test-id">VRF0001</span> <span class="test-type">(happy path)</span>: Verify valid payment method</div>
+    <div class="test-case unhappy"><span class="test-id">VRF0002</span> <span class="test-type">(unhappy path)</span>: Verify invalid payment method</div>
+    <div class="test-case corner"><span class="test-id">VRF0003</span> <span class="test-type">(corner case)</span>: Test verification response handling</div>
+    <h3>Authorize Feature</h3>
+    <div class="test-case"><span class="test-id">ATH0001</span> <span class="test-type">(happy path)</span>: Authorize payment successfully</div>
+    <div class="test-case unhappy"><span class="test-id">ATH0002</span> <span class="test-type">(unhappy path)</span>: Handle authorization failure</div>
+    <div class="test-case corner"><span class="test-id">ATH0003</span> <span class="test-type">(corner case)</span>: Test authorization expiration</div>
+    <h3>Capture Feature</h3>
+    <div class="test-case"><span class="test-id">CPT0001</span> <span class="test-type">(happy path)</span>: Capture full authorized amount</div>
+    <div class="test-case"><span class="test-id">CPT0002</span> <span class="test-type">(happy path)</span>: Capture partial authorized amount</div>
+    <div class="test-case corner"><span class="test-id">CPT0003</span> <span class="test-type">(corner case)</span>: Attempt capture on expired authorization</div>
+    <h3>Refund Feature</h3>
+    <div class="test-case"><span class="test-id">RFD0001</span> <span class="test-type">(happy path)</span>: Process full refund</div>
+    <div class="test-case"><span class="test-id">RFD0002</span> <span class="test-type">(happy path)</span>: Process partial refund</div>
+    <div class="test-case unhappy"><span class="test-id">RFD0003</span> <span class="test-type">(unhappy path)</span>: Handle refund failure scenarios</div>
+    <h3>Cancel Feature</h3>
+    <div class="test-case"><span class="test-id">CNC0001</span> <span class="test-type">(happy path)</span>: Cancel authorized payment</div>
+    <div class="test-case corner"><span class="test-id">CNC0002</span> <span class="test-type">(corner case)</span>: Attempt cancel on already captured payment</div>
+    <div class="test-case"><span class="test-id">CNC0003</span> <span class="test-type">(happy path)</span>: Test cancellation confirmation</div>
+    <hr>
+    <div class="summary">
+        <h2>Summary</h2>
+        <ul>
+            <li><strong>Total Providers:</strong> 2</li>
+            <li><strong>Total Test Cases:</strong> 30</li>
+            <li><strong>Document Language:</strong> EN</li>
+        </ul>
+    </div>
+    <div class="notes">
+        <h3>Implementation Notes</h3>
+        <ul>
+            <li>Execute all test cases in your test environment before going live</li>
+            <li>Document any failures or unexpected behaviors</li>
+            <li>Ensure all happy path scenarios work correctly</li>
+            <li>Test error handling for unhappy path scenarios</li>
+            <li>Validate edge cases and boundary conditions</li>
+        </ul>
+    </div>
+    <hr>
+    <p><em>This document was automatically generated from your implementation scope.</em></p>
+</body>
+</html>

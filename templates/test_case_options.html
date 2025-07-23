@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+
+{% block title %}Generate Test Cases - {{ super() }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <!-- Header -->
+        <div class="text-center mb-4">
+            <h2 class="fw-bold text-dark mb-1">📝 Generate Test Case Document</h2>
+            <p class="text-muted">Create merchant-facing test case documentation for implementation validation</p>
+            <p class="text-muted"><strong>Source File:</strong> {{ filename }}</p>
+        </div>
+
+        <!-- Options Form -->
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">🛠️ Document Configuration</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('generate_test_cases') }}">
+                    <div class="row">
+                        <!-- Merchant Name -->
+                        <div class="col-md-6 mb-3">
+                            <label for="merchant_name" class="form-label">
+                                <strong>Merchant Name</strong>
+                                <span class="text-muted">(for document header)</span>
+                            </label>
+                            <input type="text" class="form-control" id="merchant_name" name="merchant_name" 
+                                   value="Merchant" placeholder="Enter merchant name">
+                        </div>
+
+                        <!-- Language -->
+                        <div class="col-md-6 mb-3">
+                            <label for="language" class="form-label">
+                                <strong>Language</strong>
+                                <span class="text-muted">(for test case descriptions)</span>
+                            </label>
+                            <select class="form-select" id="language" name="language">
+                                <option value="en" selected>English</option>
+                                <option value="es">Español (Spanish)</option>
+                                <option value="pt">Português (Portuguese)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- Output Format -->
+                        <div class="col-md-6 mb-3">
+                            <label for="output_format" class="form-label">
+                                <strong>Output Format</strong>
+                                <span class="text-muted">(recommended: HTML for Google Docs)</span>
+                            </label>
+                            <select class="form-select" id="output_format" name="output_format">
+                                <option value="html" selected>HTML (Google Docs compatible)</option>
+                                <option value="markdown">Markdown (for technical documentation)</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Spacer for alignment -->
+                        <div class="col-md-6 mb-3"></div>
+                    </div>
+
+                    <!-- Options -->
+                    <div class="mb-4">
+                        <label class="form-label"><strong>Document Options</strong></label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="include_metadata" 
+                                   name="include_metadata" checked>
+                            <label class="form-check-label" for="include_metadata">
+                                Include document metadata and summary statistics
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- What will be included -->
+                    <div class="alert alert-info">
+                        <h6 class="alert-heading">📋 What will be included:</h6>
+                        <ul class="mb-0">
+                            <li><strong>Implemented Features Only:</strong> Test cases for features marked as TRUE, Implemented, or similar values</li>
+                            <li><strong>Organized by Provider:</strong> Test cases grouped by provider + payment method combinations</li>
+                            <li><strong>Test Case Types:</strong> Happy path, unhappy path, and corner case scenarios</li>
+                            <li><strong>Google Docs Compatible:</strong> HTML format can be imported directly into Google Docs with formatting</li>
+                            <li><strong>Professional Layout:</strong> Styled document with proper headings, colors, and structure</li>
+                            <li><strong>Multiple Formats:</strong> Choose between HTML (recommended) or Markdown</li>
+                        </ul>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">
+                            ← Back to Results
+                        </a>
+                        <div>
+                            <button type="button" class="btn btn-outline-primary me-2" onclick="previewTestCases()">
+                                👁️ Preview
+                            </button>
+                            <button type="submit" class="btn btn-success">
+                                📥 Download Document
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Information Section -->
+        <div class="mt-4">
+            <div class="card border-0 bg-light">
+                <div class="card-body">
+                    <h6 class="card-title">📖 About Test Case Generation</h6>
+                    <p class="card-text text-muted">
+                        This feature generates comprehensive test case documentation for merchants based on your 
+                        implementation scope analysis. The document includes test scenarios for all implemented 
+                        features and can be imported directly into Google Docs for merchant testing validation.
+                    </p>
+                    <p class="card-text text-muted mb-0">
+                        <strong>Formats:</strong> HTML (Google Docs compatible) or Markdown (.md) for technical docs<br>
+                        <strong>Coverage:</strong> Only features marked as implemented (TRUE, Implemented, etc.)<br>
+                        <strong>Languages:</strong> English, Spanish, and Portuguese supported<br>
+                        <strong>Import:</strong> HTML files can be opened directly in Google Docs with preserved formatting
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function previewTestCases() {
+    const form = document.querySelector('form');
+    const formData = new FormData(form);
+    
+    // Build preview URL with parameters
+    const params = new URLSearchParams();
+    for (let [key, value] of formData.entries()) {
+        if (key === 'include_metadata') {
+            params.append(key, 'true');
+        } else {
+            params.append(key, value);
+        }
+    }
+    
+    // Handle unchecked checkbox
+    if (!formData.has('include_metadata')) {
+        params.append('include_metadata', 'false');
+    }
+    
+    // Open preview in new tab
+    window.open('{{ url_for("test_case_preview") }}?' + params.toString(), '_blank');
+}
+
+// Update button text based on format selection
+document.addEventListener('DOMContentLoaded', function() {
+    const formatSelect = document.getElementById('output_format');
+    const submitButton = document.querySelector('button[type="submit"]');
+    
+    function updateButtonText() {
+        const format = formatSelect.value;
+        if (format === 'html') {
+            submitButton.innerHTML = '📥 Download HTML Document';
+        } else {
+            submitButton.innerHTML = '📥 Download Markdown Document';
+        }
+    }
+    
+    formatSelect.addEventListener('change', updateButtonText);
+    updateButtonText(); // Set initial text
+});
+
+// Form validation
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const merchantName = document.getElementById('merchant_name');
+    
+    form.addEventListener('submit', function(e) {
+        if (merchantName.value.trim() === '') {
+            merchantName.value = 'Merchant';
+        }
+    });
+});
+</script>
+{% endblock %} 
