@@ -7,7 +7,7 @@
       "feature_name": "Country",
       "integration_steps": [
         {
-          "documentation_url": "https://docs.company.com/integration/country-support",
+          "documentation_url": "https://docs.y.uno/reference/retrieve-payment-by-merchant-order-id",
           "comment": "Specifies the country where this provider + payment method combination is available. Essential for geographic implementation planning."
         }
       ],
@@ -33,7 +33,7 @@
       "feature_name": "Verify",
       "integration_steps": [
         {
-          "documentation_url": "https://docs.company.com/integration/verification",
+          "documentation_url": "https://docs.y.uno/docs/step-1-set-up-your-account",
           "comment": "Indicates whether payment verification is supported. Critical for transaction security and compliance requirements."
         }
       ],
@@ -59,7 +59,7 @@
       "feature_name": "Authorize",
       "integration_steps": [
         {
-          "documentation_url": "https://docs.company.com/integration/authorization",
+          "documentation_url": "https://docs.y.uno/reference/authorize-payment",
           "comment": "Supports payment authorization functionality. Required for holding funds before capture in two-step payment flows."
         }
       ],
@@ -85,7 +85,7 @@
       "feature_name": "Capture",
       "integration_steps": [
         {
-          "documentation_url": "https://docs.company.com/integration/capture",
+          "documentation_url": "https://docs.y.uno/reference/capture-authorization",
           "comment": "Enables capturing previously authorized payments. Essential for completing two-step payment transactions."
         }
       ],
@@ -111,7 +111,7 @@
       "feature_name": "Cancel",
       "integration_steps": [
         {
-          "documentation_url": "https://docs.company.com/integration/cancellation",
+          "documentation_url": "https://docs.y.uno/reference/cancel-payment",
           "comment": "Allows canceling authorized but not yet captured payments. Important for inventory management and customer service."
         }
       ],
@@ -137,7 +137,7 @@
       "feature_name": "Refund",
       "integration_steps": [
         {
-          "documentation_url": "https://docs.company.com/integration/refunds",
+          "documentation_url": "https://docs.y.uno/reference/refund-payment",
           "comment": "Supports full or partial refunds of completed payments. Critical for customer service and dispute resolution."
         }
       ],
@@ -163,7 +163,7 @@
       "feature_name": "Currency",
       "integration_steps": [
         {
-          "documentation_url": "https://docs.company.com/integration/currency-support",
+          "documentation_url": "https://docs.y.uno/reference/get-conversion-rate",
           "comment": "Defines supported currencies for this provider + payment method. Essential for multi-currency implementations."
         }
       ],
@@ -189,7 +189,7 @@
       "feature_name": "Recurring",
       "integration_steps": [
         {
-          "documentation_url": "https://docs.company.com/integration/recurring-payments",
+          "documentation_url": "https://docs.y.uno/docs/subscriptions",
           "comment": "Enables recurring payment functionality for subscriptions and installments. Required for subscription-based business models."
         }
       ],
@@ -215,7 +215,7 @@
       "feature_name": "Installments",
       "integration_steps": [
         {
-          "documentation_url": "https://docs.company.com/integration/installments",
+          "documentation_url": "https://docs.y.uno/reference/create-installments-plan",
           "comment": "Supports installment payments split across multiple charges. Popular in Latin American markets."
         }
       ],
@@ -241,7 +241,7 @@
       "feature_name": "3DS",
       "integration_steps": [
         {
-          "documentation_url": "https://docs.company.com/integration/3d-secure",
+          "documentation_url": "https://docs.y.uno/reference/eci-indicators-list",
           "comment": "3D Secure authentication support for enhanced card payment security. Required for SCA compliance in Europe."
         }
       ],
@@ -267,7 +267,7 @@
       "feature_name": "Webhook",
       "integration_steps": [
         {
-          "documentation_url": "https://docs.company.com/integration/webhooks",
+          "documentation_url": "https://docs.y.uno/docs/webhooks-overview",
           "comment": "Webhook notification support for real-time payment status updates. Essential for reliable payment status tracking."
         }
       ],
@@ -293,7 +293,7 @@
       "feature_name": "PaymentLink",
       "integration_steps": [
         {
-          "documentation_url": "https://docs.company.com/integration/payment-links",
+          "documentation_url": "https://docs.y.uno/reference/create-payment-link",
           "comment": "Support for generating shareable payment links. Useful for invoice payments and remote transactions."
         }
       ],
@@ -319,7 +319,7 @@
       "feature_name": "TokenVault",
       "integration_steps": [
         {
-          "documentation_url": "https://docs.company.com/integration/token-vault",
+          "documentation_url": "https://docs.y.uno/docs/step-1-set-up-your-account",
           "comment": "Secure token storage for saved payment methods. Required for one-click payments and recurring transactions."
         }
       ],
@@ -345,7 +345,7 @@
       "feature_name": "Chargeback",
       "integration_steps": [
         {
-          "documentation_url": "https://docs.company.com/integration/chargeback-handling",
+          "documentation_url": "https://docs.y.uno/docs/step-1-set-up-your-account",
           "comment": "Chargeback notification and management capabilities. Important for dispute resolution and merchant protection."
         }
       ],
@@ -371,7 +371,7 @@
       "feature_name": "Split",
       "integration_steps": [
         {
-          "documentation_url": "https://docs.company.com/integration/split-payments",
+          "documentation_url": "https://docs.y.uno/docs/step-1-set-up-your-account",
           "comment": "Support for splitting payments between multiple recipients. Essential for marketplace and platform implementations."
         }
       ],
@@ -397,7 +397,7 @@
       "feature_name": "Sandbox",
       "integration_steps": [
         {
-          "documentation_url": "https://docs.company.com/integration/sandbox-testing",
+          "documentation_url": "https://docs.y.uno/docs/step-1-set-up-your-account",
           "comment": "Testing environment availability for safe integration development. Critical for development and QA processes."
         }
       ],
