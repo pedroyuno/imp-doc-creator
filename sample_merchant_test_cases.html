@@ -11,7 +11,7 @@
         .metadata { background-color: #f8f9fa; padding: 15px; border-left: 4px solid #3498db; margin-bottom: 20px; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
-        th { background-color: #3498db; color: white; font-weight: bold; }
+        th { background-color: #3498db; color: #ffffff; font-weight: bold; }
         .id-column { font-family: "Courier New", "Monaco", "Lucida Console", monospace; font-size: 14px; }
         tr:nth-child(even) { background-color: #f2f2f2; }
         tr:hover { background-color: #e8f4f8; }
@@ -23,13 +23,13 @@
 <body>
     <h1>Test Cases for Sample Merchant</h1>
     <div class="metadata">
-        <p><strong>Generated on:</strong> 2025-07-24 14:03:43</p>
+        <p><strong>Generated on:</strong> 2025-07-24 14:23:06</p>
         <p><strong>Language:</strong> EN</p>
         <p><strong>Total Test Cases:</strong> 30</p>
     </div>
     <h2>Test Case Documentation</h2>
-    <p>This document contains test cases for your payment integration implementation. Each test case should be executed to ensure proper functionality of the implemented features.</p>
-
+    <p>This document contains test cases for your payment integration implementation.</p>
+    <p>Each test case should be executed to ensure proper functionality of the implemented features.</p>
     <table>
         <thead>
             <tr>
@@ -44,52 +44,52 @@
             </tr>
         </thead>
         <tbody>
-            <tr><td class="id-column">VRF0001.2x3mf1</td><td>REDE</td><td>CARD</td><td>Verify valid payment method</td><td></td><td></td><td></td><td></td></tr>
-            <tr><td class="id-column">VRF0002.9cp2el</td><td>REDE</td><td>CARD</td><td>Verify invalid payment method</td><td></td><td></td><td></td><td></td></tr>
-            <tr><td class="id-column">VRF0003.46v3l6</td><td>REDE</td><td>CARD</td><td>Test verification response handling</td><td></td><td></td><td></td><td></td></tr>
-            <tr><td class="id-column">ATH0001.q0841t</td><td>REDE</td><td>CARD</td><td>Authorize payment successfully</td><td></td><td></td><td></td><td></td></tr>
-            <tr><td class="id-column">ATH0002.o8fl7u</td><td>REDE</td><td>CARD</td><td>Handle authorization failure</td><td></td><td></td><td></td><td></td></tr>
-            <tr><td class="id-column">ATH0003.4r8l7k</td><td>REDE</td><td>CARD</td><td>Test authorization expiration</td><td></td><td></td><td></td><td></td></tr>
-            <tr><td class="id-column">CPT0001.vv70dj</td><td>REDE</td><td>CARD</td><td>Capture full authorized amount</td><td></td><td></td><td></td><td></td></tr>
-            <tr><td class="id-column">CPT0002.9zce2j</td><td>REDE</td><td>CARD</td><td>Capture partial authorized amount</td><td></td><td></td><td></td><td></td></tr>
-            <tr><td class="id-column">CPT0003.2141jk</td><td>REDE</td><td>CARD</td><td>Attempt capture on expired authorization</td><td></td><td></td><td></td><td></td></tr>
-            <tr><td class="id-column">RFD0001.k6k1pr</td><td>REDE</td><td>CARD</td><td>Process full refund</td><td></td><td></td><td></td><td></td></tr>
-            <tr><td class="id-column">RFD0002.t8nyms</td><td>REDE</td><td>CARD</td><td>Process partial refund</td><td></td><td></td><td></td><td></td></tr>
-            <tr><td class="id-column">RFD0003.z9z9bn</td><td>REDE</td><td>CARD</td><td>Handle refund failure scenarios</td><td></td><td></td><td></td><td></td></tr>
-            <tr><td class="id-column">SBX0001.no7gi0</td><td>REDE</td><td>CARD</td><td>Execute test payment in sandbox</td><td></td><td></td><td></td><td></td></tr>
-            <tr><td class="id-column">SBX0002.ho9qec</td><td>REDE</td><td>CARD</td><td>Verify sandbox data isolation</td><td></td><td></td><td></td><td></td></tr>
-            <tr><td class="id-column">SBX0003.uoiqs3</td><td>REDE</td><td>CARD</td><td>Test sandbox environment switching</td><td></td><td></td><td></td><td></td></tr>
-            <tr><td class="id-column">VRF0001.b3m24a</td><td>PAGARME</td><td>CARD</td><td>Verify valid payment method</td><td></td><td></td><td></td><td></td></tr>
-            <tr><td class="id-column">VRF0002.6c97c0</td><td>PAGARME</td><td>CARD</td><td>Verify invalid payment method</td><td></td><td></td><td></td><td></td></tr>
-            <tr><td class="id-column">VRF0003.yzi5kg</td><td>PAGARME</td><td>CARD</td><td>Test verification response handling</td><td></td><td></td><td></td><td></td></tr>
-            <tr><td class="id-column">ATH0001.bu057u</td><td>PAGARME</td><td>CARD</td><td>Authorize payment successfully</td><td></td><td></td><td></td><td></td></tr>
-            <tr><td class="id-column">ATH0002.1cd0np</td><td>PAGARME</td><td>CARD</td><td>Handle authorization failure</td><td></td><td></td><td></td><td></td></tr>
-            <tr><td class="id-column">ATH0003.0dwt4g</td><td>PAGARME</td><td>CARD</td><td>Test authorization expiration</td><td></td><td></td><td></td><td></td></tr>
-            <tr><td class="id-column">RFD0001.64xa4u</td><td>PAGARME</td><td>CARD</td><td>Process full refund</td><td></td><td></td><td></td><td></td></tr>
-            <tr><td class="id-column">RFD0002.8am7ia</td><td>PAGARME</td><td>CARD</td><td>Process partial refund</td><td></td><td></td><td></td><td></td></tr>
-            <tr><td class="id-column">RFD0003.q4xfbi</td><td>PAGARME</td><td>CARD</td><td>Handle refund failure scenarios</td><td></td><td></td><td></td><td></td></tr>
-            <tr><td class="id-column">TDS0001.3wrlag</td><td>PAGARME</td><td>CARD</td><td>Complete 3DS authentication successfully</td><td></td><td></td><td></td><td></td></tr>
-            <tr><td class="id-column">TDS0002.ftf98g</td><td>PAGARME</td><td>CARD</td><td>Handle 3DS authentication failure</td><td></td><td></td><td></td><td></td></tr>
-            <tr><td class="id-column">TDS0003.g0qw07</td><td>PAGARME</td><td>CARD</td><td>Test 3DS challenge flow</td><td></td><td></td><td></td><td></td></tr>
-            <tr><td class="id-column">WHK0001.uqw63u</td><td>PAGARME</td><td>CARD</td><td>Receive webhook notification</td><td></td><td></td><td></td><td></td></tr>
-            <tr><td class="id-column">WHK0002.lm9396</td><td>PAGARME</td><td>CARD</td><td>Verify webhook signature</td><td></td><td></td><td></td><td></td></tr>
-            <tr><td class="id-column">WHK0003.x8vgz4</td><td>PAGARME</td><td>CARD</td><td>Handle webhook retry mechanism</td><td></td><td></td><td></td><td></td></tr>
+            <tr><td class="id-column">VRF0001.dyuyiy</td><td>REDE</td><td>CARD</td><td>Verify valid payment method</td><td></td><td></td><td></td><td></td></tr>
+            <tr><td class="id-column">VRF0002.bhp6ue</td><td>REDE</td><td>CARD</td><td>Verify invalid payment method</td><td></td><td></td><td></td><td></td></tr>
+            <tr><td class="id-column">VRF0003.qr5ck2</td><td>REDE</td><td>CARD</td><td>Test verification response handling</td><td></td><td></td><td></td><td></td></tr>
+            <tr><td class="id-column">ATH0001.ax4cjp</td><td>REDE</td><td>CARD</td><td>Authorize payment successfully</td><td></td><td></td><td></td><td></td></tr>
+            <tr><td class="id-column">ATH0002.ial4gu</td><td>REDE</td><td>CARD</td><td>Handle authorization failure</td><td></td><td></td><td></td><td></td></tr>
+            <tr><td class="id-column">ATH0003.5104vl</td><td>REDE</td><td>CARD</td><td>Test authorization expiration</td><td></td><td></td><td></td><td></td></tr>
+            <tr><td class="id-column">CPT0001.kyt1db</td><td>REDE</td><td>CARD</td><td>Capture full authorized amount</td><td></td><td></td><td></td><td></td></tr>
+            <tr><td class="id-column">CPT0002.i5ychf</td><td>REDE</td><td>CARD</td><td>Capture partial authorized amount</td><td></td><td></td><td></td><td></td></tr>
+            <tr><td class="id-column">CPT0003.aqm4o9</td><td>REDE</td><td>CARD</td><td>Attempt capture on expired authorization</td><td></td><td></td><td></td><td></td></tr>
+            <tr><td class="id-column">RFD0001.bo36fp</td><td>REDE</td><td>CARD</td><td>Process full refund</td><td></td><td></td><td></td><td></td></tr>
+            <tr><td class="id-column">RFD0002.w8b2yy</td><td>REDE</td><td>CARD</td><td>Process partial refund</td><td></td><td></td><td></td><td></td></tr>
+            <tr><td class="id-column">RFD0003.fv1ecb</td><td>REDE</td><td>CARD</td><td>Handle refund failure scenarios</td><td></td><td></td><td></td><td></td></tr>
+            <tr><td class="id-column">SBX0001.zjrn2p</td><td>REDE</td><td>CARD</td><td>Execute test payment in sandbox</td><td></td><td></td><td></td><td></td></tr>
+            <tr><td class="id-column">SBX0002.1g5hrc</td><td>REDE</td><td>CARD</td><td>Verify sandbox data isolation</td><td></td><td></td><td></td><td></td></tr>
+            <tr><td class="id-column">SBX0003.8g68if</td><td>REDE</td><td>CARD</td><td>Test sandbox environment switching</td><td></td><td></td><td></td><td></td></tr>
+            <tr><td class="id-column">VRF0001.w4lb1p</td><td>PAGARME</td><td>CARD</td><td>Verify valid payment method</td><td></td><td></td><td></td><td></td></tr>
+            <tr><td class="id-column">VRF0002.8w5t4h</td><td>PAGARME</td><td>CARD</td><td>Verify invalid payment method</td><td></td><td></td><td></td><td></td></tr>
+            <tr><td class="id-column">VRF0003.g1rufb</td><td>PAGARME</td><td>CARD</td><td>Test verification response handling</td><td></td><td></td><td></td><td></td></tr>
+            <tr><td class="id-column">ATH0001.y9j55z</td><td>PAGARME</td><td>CARD</td><td>Authorize payment successfully</td><td></td><td></td><td></td><td></td></tr>
+            <tr><td class="id-column">ATH0002.bypkd5</td><td>PAGARME</td><td>CARD</td><td>Handle authorization failure</td><td></td><td></td><td></td><td></td></tr>
+            <tr><td class="id-column">ATH0003.zjxjo7</td><td>PAGARME</td><td>CARD</td><td>Test authorization expiration</td><td></td><td></td><td></td><td></td></tr>
+            <tr><td class="id-column">RFD0001.hsw2dm</td><td>PAGARME</td><td>CARD</td><td>Process full refund</td><td></td><td></td><td></td><td></td></tr>
+            <tr><td class="id-column">RFD0002.oqczop</td><td>PAGARME</td><td>CARD</td><td>Process partial refund</td><td></td><td></td><td></td><td></td></tr>
+            <tr><td class="id-column">RFD0003.xk9rt5</td><td>PAGARME</td><td>CARD</td><td>Handle refund failure scenarios</td><td></td><td></td><td></td><td></td></tr>
+            <tr><td class="id-column">TDS0001.wzdw56</td><td>PAGARME</td><td>CARD</td><td>Complete 3DS authentication successfully</td><td></td><td></td><td></td><td></td></tr>
+            <tr><td class="id-column">TDS0002.as5mey</td><td>PAGARME</td><td>CARD</td><td>Handle 3DS authentication failure</td><td></td><td></td><td></td><td></td></tr>
+            <tr><td class="id-column">TDS0003.wrjlac</td><td>PAGARME</td><td>CARD</td><td>Test 3DS challenge flow</td><td></td><td></td><td></td><td></td></tr>
+            <tr><td class="id-column">WHK0001.f0xmuv</td><td>PAGARME</td><td>CARD</td><td>Receive webhook notification</td><td></td><td></td><td></td><td></td></tr>
+            <tr><td class="id-column">WHK0002.e50079</td><td>PAGARME</td><td>CARD</td><td>Verify webhook signature</td><td></td><td></td><td></td><td></td></tr>
+            <tr><td class="id-column">WHK0003.3f7dwv</td><td>PAGARME</td><td>CARD</td><td>Handle webhook retry mechanism</td><td></td><td></td><td></td><td></td></tr>
         </tbody>
     </table>
+    <h2>Summary</h2>
     <div class="summary">
-        <h2>Summary</h2>
         <ul>
-            <li><strong>Total Test Cases:</strong> 30</li>
-            <li><strong>Document Language:</strong> EN</li>
+            <li><strong>Total Test Cases: 30</strong></li>
+            <li><strong>Document Language: EN</strong></li>
         </ul>
     </div>
+    <h3>Instructions</h3>
     <div class="notes">
-        <h3>Instructions</h3>
         <ul>
-            <li>Fill in the "Passed" column with Yes/No after executing each test case</li>
-            <li>Record the execution date in the "Date" column</li>
-            <li>Add the name of the person who executed the test in the "Executer" column</li>
-            <li>Provide evidence (screenshots, logs, etc.) in the "Evidence" column</li>
+            <li>Fill in the 'Passed' column with Yes/No after executing each test case</li>
+            <li>Record the execution date in the 'Date' column</li>
+            <li>Add the name of the person who executed the test in the 'Executer' column</li>
+            <li>Provide evidence (screenshots, logs, etc.) in the 'Evidence' column</li>
         </ul>
     </div>
     <hr>
