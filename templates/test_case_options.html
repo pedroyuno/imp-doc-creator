@@ -52,7 +52,8 @@
                                 <span class="text-muted">(recommended: HTML for Google Docs)</span>
                             </label>
                             <select class="form-select" id="output_format" name="output_format">
-                                <option value="html" selected>HTML (Google Docs compatible)</option>
+                                <option value="html">HTML (Google Docs compatible)</option>
+                                <option value="docx" selected>DOCX (Microsoft Word compatible)</option>
                                 <option value="markdown">Markdown (for technical documentation)</option>
                             </select>
                         </div>
@@ -115,10 +116,10 @@
                         features and can be imported directly into Google Docs for merchant testing validation.
                     </p>
                     <p class="card-text text-muted mb-0">
-                        <strong>Formats:</strong> HTML (Google Docs compatible) or Markdown (.md) for technical docs<br>
+                        <strong>Formats:</strong> HTML (Google Docs compatible), DOCX (Microsoft Word), or Markdown (.md) for technical docs<br>
                         <strong>Coverage:</strong> Only features marked as implemented (TRUE, Implemented, etc.)<br>
                         <strong>Languages:</strong> English, Spanish, and Portuguese supported<br>
-                        <strong>Import:</strong> HTML files can be opened directly in Google Docs with preserved formatting
+                        <strong>Import:</strong> HTML files can be opened directly in Google Docs, DOCX files open in Microsoft Word/Google Docs
                     </p>
                 </div>
             </div>
@@ -161,6 +162,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const format = formatSelect.value;
         if (format === 'html') {
             submitButton.innerHTML = '📥 Download HTML Document';
+        } else if (format === 'docx') {
+            submitButton.innerHTML = '📥 Download DOCX Document';
         } else {
             submitButton.innerHTML = '📥 Download Markdown Document';
         }

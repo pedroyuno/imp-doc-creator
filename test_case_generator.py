@@ -12,6 +12,11 @@ import json
 from datetime import datetime
 from typing import Dict, List, Any, Optional
 from i18n_helper import I18nHelper
+from docx import Document
+from docx.shared import Inches, RGBColor
+from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.enum.section import WD_ORIENT
+from docx.oxml.shared import OxmlElement, qn
 
 
 class TestCaseGenerator:
@@ -54,7 +59,9 @@ class TestCaseGenerator:
                     for test_case in feature_test_cases:
                         table_test_case = {
                             'id': f"TC-{test_case_counter:03d}",
-                            'description': f"{provider} + {payment_method}: {test_case['description']}",
+                            'provider': provider,
+                            'payment_method': payment_method,
+                            'description': test_case['description'],  # Remove provider + payment method from description
                             'passed': '',  # Empty field for manual completion
                             'date': '',    # Empty field for manual completion
                             'executer': '',  # Empty field for manual completion
@@ -109,13 +116,13 @@ class TestCaseGenerator:
         
         # Generate table header
         markdown_lines.extend([
-            "| ID | Description | Passed | Date | Executer | Evidence |",
-            "|----|-----------|---------|----- |----------|----------|"
+            "| ID | Provider | Payment Method | Description | Passed | Date | Executer | Evidence |",
+            "|----|----------|----------------|-------------|--------|------|----------|----------|"
         ])
         
         # Generate table rows
         for test_case in test_cases_data:
-            row = f"| {test_case['id']} | {test_case['description']} | {test_case['passed']} | {test_case['date']} | {test_case['executer']} | {test_case['evidence']} |"
+            row = f"| {test_case['id']} | {test_case['provider']} | {test_case['payment_method']} | {test_case['description']} | {test_case['passed']} | {test_case['date']} | {test_case['executer']} | {test_case['evidence']} |"
             markdown_lines.append(row)
         
         # Summary section
@@ -214,6 +221,8 @@ class TestCaseGenerator:
             '        <thead>',
             '            <tr>',
             '                <th>ID</th>',
+            '                <th>Provider</th>',
+            '                <th>Payment Method</th>',
             '                <th>Description</th>',
             '                <th>Passed</th>',
             '                <th>Date</th>',
@@ -229,6 +238,8 @@ class TestCaseGenerator:
             html_parts.append(
                 f'            <tr>'
                 f'<td>{test_case["id"]}</td>'
+                f'<td>{test_case["provider"]}</td>'
+                f'<td>{test_case["payment_method"]}</td>'
                 f'<td>{test_case["description"]}</td>'
                 f'<td>{test_case["passed"]}</td>'
                 f'<td>{test_case["date"]}</td>'
@@ -273,6 +284,178 @@ class TestCaseGenerator:
         
         return '\n'.join(html_parts)
     
+    def generate_docx_document(self, parsed_features: Dict[str, Any], 
+                             merchant_name: str = "Merchant", 
+                             include_metadata: bool = True) -> Document:
+        """
+        Generate a complete DOCX document with test cases in table format.
+        DOCX format provides professional styling and is compatible with Microsoft Word.
+        
+        Args:
+            parsed_features: Dictionary of parsed features from CSV parser
+            merchant_name: Name of the merchant for document header
+            include_metadata: Whether to include document metadata
+            
+        Returns:
+            python-docx Document object ready for saving
+        """
+        test_cases_data = self.generate_test_cases_for_features(parsed_features)
+        
+        # Create a new document
+        doc = Document()
+        
+        # Set page orientation to landscape and adjust margins for better table fit
+        section = doc.sections[0]
+        section.orientation = WD_ORIENT.LANDSCAPE
+        section.page_width = Inches(11)    # Standard letter height becomes width in landscape
+        section.page_height = Inches(8.5)  # Standard letter width becomes height in landscape
+        
+        # Set margins for better table fit
+        section.left_margin = Inches(0.75)
+        section.right_margin = Inches(0.75)
+        section.top_margin = Inches(1)
+        section.bottom_margin = Inches(1)
+        
+        # Document header
+        if include_metadata:
+            title = doc.add_heading(f'Test Cases for {merchant_name}', 0)
+            title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            
+            # Metadata paragraph
+            metadata_para = doc.add_paragraph()
+            metadata_para.add_run(f"Generated on: ").bold = True
+            metadata_para.add_run(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+            metadata_para.add_run(f"Language: ").bold = True
+            metadata_para.add_run(f"{self.locale.upper()}\n")
+            metadata_para.add_run(f"Total Test Cases: ").bold = True
+            metadata_para.add_run(f"{len(test_cases_data)}")
+        else:
+            title = doc.add_heading(f'Test Cases for {merchant_name}', 0)
+            title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        
+        # Add a line break
+        doc.add_paragraph()
+        
+        # Introduction section
+        intro_heading = doc.add_heading('Test Case Documentation', level=1)
+        intro_para = doc.add_paragraph(
+            'This document contains test cases for your payment integration implementation. '
+            'Each test case should be executed to ensure proper functionality of the implemented features.'
+        )
+        
+        # Create table with explicit width settings
+        table = doc.add_table(rows=1, cols=8)
+        table.style = 'Table Grid'
+        
+        # Set table to use fixed column widths
+        table.autofit = False
+        table.allow_autofit = False
+        
+        # Apply column width settings at XML level
+        self._set_table_column_widths(table)
+        
+        # Header row
+        hdr_cells = table.rows[0].cells
+        hdr_cells[0].text = 'ID'
+        hdr_cells[1].text = 'Provider'
+        hdr_cells[2].text = 'Payment Method'
+        hdr_cells[3].text = 'Description'
+        hdr_cells[4].text = 'Passed'
+        hdr_cells[5].text = 'Date'
+        hdr_cells[6].text = 'Executer'
+        hdr_cells[7].text = 'Evidence'
+        
+        # Format header row with styling
+        for cell in hdr_cells:
+            # Set background color to blue
+            self._set_cell_background_color(cell, "366092")  # Professional blue (hex: 54, 96, 146)
+            
+            # Make text bold, white, and centered
+            for paragraph in cell.paragraphs:
+                paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                for run in paragraph.runs:
+                    run.font.bold = True
+                    run.font.color.rgb = RGBColor(255, 255, 255)  # White text
+                    run.font.size = Inches(0.11)  # Slightly larger font
+        
+        # Add test case rows with alternating colors
+        for i, test_case in enumerate(test_cases_data):
+            row_cells = table.add_row().cells
+            row_cells[0].text = test_case['id']
+            row_cells[1].text = test_case['provider']
+            row_cells[2].text = test_case['payment_method']
+            row_cells[3].text = test_case['description']
+            row_cells[4].text = test_case['passed']
+            row_cells[5].text = test_case['date']
+            row_cells[6].text = test_case['executer']
+            row_cells[7].text = test_case['evidence']
+            
+            # Add alternating row colors (light gray for even rows)
+            if i % 2 == 0:
+                for cell in row_cells:
+                    self._set_cell_background_color(cell, "F8F9FA")  # Light gray
+            
+            # Center align smaller columns for better presentation
+            for j, cell in enumerate(row_cells):
+                if j in [0, 4, 5]:  # ID, Passed, Date columns
+                    for paragraph in cell.paragraphs:
+                        paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        
+        # Set column widths optimized for landscape orientation (total ~9.0")
+        # Use table-level column width settings for better reliability
+        table.columns[0].width = Inches(0.5)   # ID column (smallest)
+        table.columns[1].width = Inches(0.8)   # Provider column (small)
+        table.columns[2].width = Inches(1.0)   # Payment Method column (small)
+        table.columns[3].width = Inches(4.8)   # Description column (LARGEST - main content)
+        table.columns[4].width = Inches(0.6)   # Passed column (small)
+        table.columns[5].width = Inches(0.7)   # Date column (small)
+        table.columns[6].width = Inches(0.8)   # Executer column (small)
+        table.columns[7].width = Inches(1.0)   # Evidence column (small)
+        
+        # Also set individual cell widths as backup
+        for row in table.rows:
+            row.cells[0].width = Inches(0.5)   # ID
+            row.cells[1].width = Inches(0.8)   # Provider
+            row.cells[2].width = Inches(1.0)   # Payment Method
+            row.cells[3].width = Inches(4.8)   # Description (LARGEST)
+            row.cells[4].width = Inches(0.6)   # Passed
+            row.cells[5].width = Inches(0.7)   # Date
+            row.cells[6].width = Inches(0.8)   # Executer
+            row.cells[7].width = Inches(1.0)   # Evidence
+        
+        # Summary section
+        if include_metadata:
+            doc.add_page_break()
+            summary_heading = doc.add_heading('Summary', level=1)
+            
+            summary_para = doc.add_paragraph()
+            summary_para.add_run("Total Test Cases: ").bold = True
+            summary_para.add_run(f"{len(test_cases_data)}\n")
+            summary_para.add_run("Document Language: ").bold = True
+            summary_para.add_run(f"{self.locale.upper()}")
+            
+            # Instructions section
+            instructions_heading = doc.add_heading('Instructions', level=2)
+            instructions = [
+                'Fill in the "Passed" column with Yes/No after executing each test case',
+                'Record the execution date in the "Date" column',
+                'Add the name of the person who executed the test in the "Executer" column',
+                'Provide evidence (screenshots, logs, etc.) in the "Evidence" column'
+            ]
+            
+            for instruction in instructions:
+                para = doc.add_paragraph(instruction, style='List Bullet')
+            
+            # Footer note
+            doc.add_paragraph()
+            footer_para = doc.add_paragraph()
+            footer_run = footer_para.add_run(
+                'This document was automatically generated from your implementation scope.'
+            )
+            footer_run.italic = True
+        
+        return doc
+    
     def generate_summary_statistics(self, parsed_features: Dict[str, Any]) -> Dict[str, Any]:
         """
         Generate summary statistics for the test cases.
@@ -307,6 +490,47 @@ class TestCaseGenerator:
             'features_by_provider': features_by_provider,
             'language': self.locale
         }
+    
+    def _set_cell_background_color(self, cell, color_hex):
+        """Set the background color of a table cell.
+        
+        Args:
+            cell: Table cell object
+            color_hex: Hex color string (e.g., "366092" for blue)
+        """
+        # Create shading element using low-level XML manipulation
+        shading_elm = OxmlElement('w:shd')
+        shading_elm.set(qn('w:fill'), color_hex)
+        cell._tc.get_or_add_tcPr().append(shading_elm)
+    
+    def _set_table_column_widths(self, table):
+        """Force table to use specific column widths by setting XML properties."""
+        # Define column widths in twips (1 inch = 1440 twips)
+        column_widths = [
+            720,   # 0.5 inches - ID
+            1152,  # 0.8 inches - Provider
+            1440,  # 1.0 inches - Payment Method
+            6912,  # 4.8 inches - Description (LARGEST)
+            864,   # 0.6 inches - Passed
+            1008,  # 0.7 inches - Date
+            1152,  # 0.8 inches - Executer
+            1440   # 1.0 inches - Evidence
+        ]
+        
+        # Set table properties for fixed layout
+        tbl = table._tbl
+        tbl_pr = tbl.tblPr
+        
+        # Set table layout to fixed
+        tbl_layout = OxmlElement('w:tblLayout')
+        tbl_layout.set(qn('w:type'), 'fixed')
+        tbl_pr.append(tbl_layout)
+        
+        # Set column widths
+        tbl_grid = tbl.tblGrid
+        for i, width in enumerate(column_widths):
+            if i < len(tbl_grid.gridCol_lst):
+                tbl_grid.gridCol_lst[i].w = width  # Pass as integer, not string
     
     def _is_feature_implemented(self, feature_value: str) -> bool:
         """

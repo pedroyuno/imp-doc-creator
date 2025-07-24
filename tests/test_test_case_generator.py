@@ -107,6 +107,8 @@ class TestTestCaseGenerator:
         # Check that test cases have the expected table format columns
         for test_case in test_cases_data:
             assert 'id' in test_case
+            assert 'provider' in test_case
+            assert 'payment_method' in test_case
             assert 'description' in test_case
             assert 'passed' in test_case
             assert 'date' in test_case
@@ -116,18 +118,25 @@ class TestTestCaseGenerator:
             # Check ID format
             assert test_case['id'].startswith('TC-')
             
-            # Check description format (includes provider + payment method)
-            assert any(provider in test_case['description'] for provider in ['REDE', 'PAGARME'])
-            assert 'CARD' in test_case['description']
+            # Check provider and payment method fields (now separate from description)
+            assert test_case['provider'] in ['REDE', 'PAGARME']
+            assert test_case['payment_method'] == 'CARD'
+            
+            # Check description no longer includes provider + payment method
+            assert 'REDE' not in test_case['description']
+            assert 'PAGARME' not in test_case['description']
+            assert 'CARD:' not in test_case['description']
         
         # Should have test cases from both providers (REDE and PAGARME)
-        rede_cases = [tc for tc in test_cases_data if 'REDE' in tc['description']]
-        pagarme_cases = [tc for tc in test_cases_data if 'PAGARME' in tc['description']]
+        rede_cases = [tc for tc in test_cases_data if tc['provider'] == 'REDE']
+        pagarme_cases = [tc for tc in test_cases_data if tc['provider'] == 'PAGARME']
         assert len(rede_cases) > 0
         assert len(pagarme_cases) > 0
         
         # All test cases should have the required table format fields
         assert all('id' in tc for tc in test_cases_data)
+        assert all('provider' in tc for tc in test_cases_data)
+        assert all('payment_method' in tc for tc in test_cases_data)
         assert all('description' in tc for tc in test_cases_data)
         assert all('passed' in tc for tc in test_cases_data)
         assert all('date' in tc for tc in test_cases_data)
@@ -165,13 +174,14 @@ class TestTestCaseGenerator:
         assert "## Summary" in markdown_doc
         
         # Should have table format
-        assert "| ID | Description | Passed | Date | Executer | Evidence |" in markdown_doc
-        assert "|----|-----------|---------|----- |----------|----------|" in markdown_doc
+        assert "| ID | Provider | Payment Method | Description | Passed | Date | Executer | Evidence |" in markdown_doc
+        assert "|----|----------|----------------|-------------|--------|------|----------|----------|" in markdown_doc
         
         # Should have test cases in table rows
         assert "| TC-" in markdown_doc  # Test case IDs
-        assert "REDE + CARD:" in markdown_doc
-        assert "PAGARME + CARD:" in markdown_doc
+        assert "| REDE |" in markdown_doc
+        assert "| PAGARME |" in markdown_doc
+        assert "| CARD |" in markdown_doc
         
         # Should have instructions
         assert "Fill in the 'Passed' column" in markdown_doc
@@ -190,7 +200,7 @@ class TestTestCaseGenerator:
         
         # But should have test cases
         assert "## Test Case Documentation" in markdown_doc
-        assert "| ID | Description | Passed | Date | Executer | Evidence |" in markdown_doc
+        assert "| ID | Provider | Payment Method | Description | Passed | Date | Executer | Evidence |" in markdown_doc
         assert "| TC-" in markdown_doc
     
     def test_generate_summary_statistics(self, generator_en, sample_parsed_features):
@@ -327,6 +337,8 @@ class TestTestCaseGenerator:
         # Check table structure
         assert '<table>' in html_doc
         assert '<th>ID</th>' in html_doc
+        assert '<th>Provider</th>' in html_doc
+        assert '<th>Payment Method</th>' in html_doc
         assert '<th>Description</th>' in html_doc
         assert '<th>Passed</th>' in html_doc
         assert '<th>Date</th>' in html_doc
@@ -339,8 +351,9 @@ class TestTestCaseGenerator:
         
         # Check test case data in table rows
         assert '<td>TC-' in html_doc  # Test case IDs
-        assert 'REDE + CARD:' in html_doc
-        assert 'PAGARME + CARD:' in html_doc
+        assert '<td>REDE</td>' in html_doc
+        assert '<td>PAGARME</td>' in html_doc
+        assert '<td>CARD</td>' in html_doc
         
         # Check metadata section
         assert 'class="metadata"' in html_doc
@@ -366,4 +379,91 @@ class TestTestCaseGenerator:
         # But should have test cases and basic structure
         assert '<h2>Test Case Documentation</h2>' in html_doc
         assert '<table>' in html_doc
-        assert '<td>TC-' in html_doc 
+        assert '<td>TC-' in html_doc
+    
+    def test_generate_docx_document(self, generator_en, sample_parsed_features):
+        """Test DOCX document generation"""
+        from docx.document import Document as DocxDocument
+        from io import BytesIO
+        
+        doc = generator_en.generate_docx_document(
+            sample_parsed_features,
+            merchant_name="Test Merchant",
+            include_metadata=True
+        )
+        
+        # Check that it returns a Document object
+        assert isinstance(doc, DocxDocument)
+        
+        # Save to BytesIO to verify it's a valid document
+        doc_io = BytesIO()
+        doc.save(doc_io)
+        doc_io.seek(0)
+        
+        # Check that we can load it back
+        from docx import Document
+        loaded_doc = Document(doc_io)
+        
+        # Check document structure
+        paragraphs = [p.text for p in loaded_doc.paragraphs]
+        all_text = ' '.join(paragraphs)
+        
+        # Check title is present
+        assert 'Test Cases for Test Merchant' in all_text
+        
+        # Check metadata is included
+        assert 'Generated on:' in all_text
+        assert 'Language: EN' in all_text
+        assert 'Total Test Cases:' in all_text
+        
+        # Check introduction section
+        assert 'Test Case Documentation' in all_text
+        assert 'This document contains test cases' in all_text
+        
+        # Check that tables exist (DOCX saves tables separately from paragraphs)
+        assert len(loaded_doc.tables) > 0
+        
+        # Check table structure
+        table = loaded_doc.tables[0]
+        header_row = table.rows[0]
+        header_cells = [cell.text for cell in header_row.cells]
+        
+        expected_headers = ['ID', 'Provider', 'Payment Method', 'Description', 'Passed', 'Date', 'Executer', 'Evidence']
+        assert header_cells == expected_headers
+        
+        # Check that test case rows exist
+        assert len(table.rows) > 1  # More than just the header
+        
+        # Check test case content in table
+        test_case_found = False
+        for row in table.rows[1:]:  # Skip header row
+            cells = [cell.text for cell in row.cells]
+            if cells[0].startswith('TC-') and cells[1] in ['REDE', 'PAGARME'] and cells[2] == 'CARD':
+                test_case_found = True
+                break
+        assert test_case_found, "Expected test case content not found in table"
+    
+    def test_generate_docx_document_without_metadata(self, generator_en, sample_parsed_features):
+        """Test DOCX document generation without metadata"""
+        from docx.document import Document as DocxDocument
+        
+        doc = generator_en.generate_docx_document(
+            sample_parsed_features,
+            merchant_name="Test Merchant",
+            include_metadata=False
+        )
+        
+        # Check that it returns a Document object
+        assert isinstance(doc, DocxDocument)
+        
+        # Check document content
+        paragraphs = [p.text for p in doc.paragraphs]
+        all_text = ' '.join(paragraphs)
+        
+        # Should not have metadata
+        assert 'Generated on:' not in all_text
+        assert 'Total Test Cases:' not in all_text
+        
+        # But should have basic structure
+        assert 'Test Cases for Test Merchant' in all_text
+        assert 'Test Case Documentation' in all_text 

@@ -7,6 +7,7 @@ Handles BDM handover documents for implementation analysis
 from flask import Flask, render_template, request, flash, redirect, url_for, jsonify, session, make_response
 import os
 import tempfile
+from io import BytesIO
 from werkzeug.utils import secure_filename
 from csv_parser import ProviderPaymentParser
 from test_case_generator import TestCaseGenerator
@@ -127,7 +128,7 @@ def generate_test_cases():
     # Get form parameters
     merchant_name = request.form.get('merchant_name', 'Merchant')
     language = request.form.get('language', 'en')
-    output_format = request.form.get('output_format', 'html')  # Default to HTML
+    output_format = request.form.get('output_format', 'docx')  # Default to DOCX
     include_metadata = request.form.get('include_metadata') == 'on'
     
     try:
@@ -143,6 +144,23 @@ def generate_test_cases():
             )
             content_type = 'text/html'
             file_extension = 'html'
+            response = make_response(document_content)
+        elif output_format == 'docx':
+            # Generate DOCX document
+            doc = generator.generate_docx_document(
+                session['parsed_results'],
+                merchant_name=merchant_name,
+                include_metadata=include_metadata
+            )
+            
+            # Save document to BytesIO for download
+            doc_io = BytesIO()
+            doc.save(doc_io)
+            doc_io.seek(0)
+            
+            content_type = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+            file_extension = 'docx'
+            response = make_response(doc_io.getvalue())
         else:
             # Generate Markdown document
             document_content = generator.generate_markdown_document(
@@ -152,9 +170,7 @@ def generate_test_cases():
             )
             content_type = 'text/markdown'
             file_extension = 'md'
-        
-        # Create response with document file
-        response = make_response(document_content)
+            response = make_response(document_content)
         filename = session.get('filename', 'implementation_scope')
         safe_merchant_name = ''.join(c for c in merchant_name if c.isalnum() or c in (' ', '-', '_')).strip()
         download_filename = f"{safe_merchant_name}_test_cases_{language}.{file_extension}".replace(' ', '_')
@@ -181,7 +197,7 @@ def api_generate_test_cases():
         parsed_features = data['parsed_features']
         merchant_name = data.get('merchant_name', 'Merchant')
         language = data.get('language', 'en')
-        output_format = data.get('output_format', 'html')  # Default to HTML
+        output_format = data.get('output_format', 'docx')  # Default to DOCX
         include_metadata = data.get('include_metadata', True)
         
         # Generate test cases
@@ -194,24 +210,51 @@ def api_generate_test_cases():
                 merchant_name=merchant_name,
                 include_metadata=include_metadata
             )
+            content_base64 = None
+        elif output_format == 'docx':
+            # Generate DOCX document
+            doc = generator.generate_docx_document(
+                parsed_features,
+                merchant_name=merchant_name,
+                include_metadata=include_metadata
+            )
+            
+            # Save document to BytesIO and encode as base64
+            doc_io = BytesIO()
+            doc.save(doc_io)
+            doc_io.seek(0)
+            
+            import base64
+            content_base64 = base64.b64encode(doc_io.getvalue()).decode('utf-8')
+            document_content = None  # DOCX content is in base64 format
         else:
             document_content = generator.generate_markdown_document(
                 parsed_features,
                 merchant_name=merchant_name,
                 include_metadata=include_metadata
             )
+            content_base64 = None
         
         # Generate statistics
         statistics = generator.generate_summary_statistics(parsed_features)
         
-        return jsonify({
+        response_data = {
             'success': True,
-            'document_content': document_content,
             'output_format': output_format,
             'statistics': statistics,
             'language': language,
             'merchant_name': merchant_name
-        })
+        }
+        
+        # Include appropriate content field based on format
+        if output_format == 'docx':
+            response_data['document_content_base64'] = content_base64
+            response_data['content_type'] = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        else:
+            response_data['document_content'] = document_content
+            response_data['content_type'] = 'text/html' if output_format == 'html' else 'text/markdown'
+        
+        return jsonify(response_data)
         
     except Exception as e:
         return jsonify({'error': f'Error generating test cases: {str(e)}'}), 500
