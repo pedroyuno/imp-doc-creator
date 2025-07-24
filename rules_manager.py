@@ -16,18 +16,22 @@ from datetime import datetime
 class FeatureRule:
     """Represents a single feature rule with documentation URL and comment."""
     
-    def __init__(self, feature_name: str, documentation_url: str, comment: str):
+    def __init__(self, feature_name: str, documentation_url: str, comment: str, integration_steps: List[Dict[str, str]] = None):
         self.feature_name = feature_name
         self.documentation_url = documentation_url
         self.comment = comment
+        self.integration_steps = integration_steps or []
     
-    def to_dict(self) -> Dict[str, str]:
+    def to_dict(self) -> Dict[str, Any]:
         """Convert rule to dictionary format."""
-        return {
+        result = {
             'feature_name': self.feature_name,
             'documentation_url': self.documentation_url,
             'comment': self.comment
         }
+        if self.integration_steps:
+            result['integration_steps'] = self.integration_steps
+        return result
     
     def __repr__(self) -> str:
         return f"FeatureRule('{self.feature_name}', '{self.documentation_url[:50]}...', '{self.comment[:50]}...')"
@@ -72,18 +76,38 @@ class RulesManager:
                         print(f"⚠️  Skipping invalid rule for '{feature_name}': not a dictionary")
                     continue
                 
-                # Validate required fields
-                required_fields = ['feature_name', 'documentation_url', 'comment']
-                if not all(field in rule_data for field in required_fields):
-                    if self.verbose:
-                        print(f"⚠️  Skipping invalid rule for '{feature_name}': missing required fields")
-                    continue
-                
-                self.rules[feature_name] = FeatureRule(
-                    feature_name=rule_data['feature_name'],
-                    documentation_url=rule_data['documentation_url'],
-                    comment=rule_data['comment']
-                )
+                # Check for new format with integration_steps array
+                if 'integration_steps' in rule_data:
+                    integration_steps = rule_data.get('integration_steps', [])
+                    if isinstance(integration_steps, list) and len(integration_steps) > 0:
+                        # Use first integration step for backward compatibility
+                        first_step = integration_steps[0]
+                        documentation_url = first_step.get('documentation_url', '')
+                        comment = first_step.get('comment', '')
+                        
+                        self.rules[feature_name] = FeatureRule(
+                            feature_name=rule_data['feature_name'],
+                            documentation_url=documentation_url,
+                            comment=comment,
+                            integration_steps=integration_steps
+                        )
+                    else:
+                        if self.verbose:
+                            print(f"⚠️  Skipping rule for '{feature_name}': empty integration_steps")
+                        continue
+                else:
+                    # Legacy format - validate required fields
+                    required_fields = ['feature_name', 'documentation_url', 'comment']
+                    if not all(field in rule_data for field in required_fields):
+                        if self.verbose:
+                            print(f"⚠️  Skipping invalid rule for '{feature_name}': missing required fields")
+                        continue
+                    
+                    self.rules[feature_name] = FeatureRule(
+                        feature_name=rule_data['feature_name'],
+                        documentation_url=rule_data['documentation_url'],
+                        comment=rule_data['comment']
+                    )
             
             self.last_loaded = datetime.now()
             
@@ -144,7 +168,8 @@ class RulesManager:
             'has_value': bool(feature_value.strip()) if feature_value else False,
             'documentation_url': None,
             'comment': None,
-            'has_rule': False
+            'has_rule': False,
+            'integration_steps': []
         }
         
         rule = self.get_rule(feature_name)
@@ -152,7 +177,8 @@ class RulesManager:
             enriched_data.update({
                 'documentation_url': rule.documentation_url,
                 'comment': rule.comment,
-                'has_rule': True
+                'has_rule': True,
+                'integration_steps': rule.integration_steps
             })
         
         return enriched_data
@@ -195,20 +221,56 @@ class RulesManager:
                     invalid_rules += 1
                     continue
                 
-                required_fields = ['feature_name', 'documentation_url', 'comment']
-                missing_fields = [field for field in required_fields if field not in rule_data]
-                
-                if missing_fields:
-                    validation_results['errors'].append(f"Rule '{feature_name}' missing fields: {missing_fields}")
-                    invalid_rules += 1
-                    continue
-                
-                # Check for empty values
-                empty_fields = [field for field in required_fields if not rule_data[field].strip()]
-                if empty_fields:
-                    validation_results['warnings'].append(f"Rule '{feature_name}' has empty fields: {empty_fields}")
-                
-                valid_rules += 1
+                # Check for new format with integration_steps
+                if 'integration_steps' in rule_data:
+                    integration_steps = rule_data.get('integration_steps', [])
+                    if not isinstance(integration_steps, list):
+                        validation_results['errors'].append(f"Rule '{feature_name}': integration_steps must be an array")
+                        invalid_rules += 1
+                        continue
+                    
+                    if len(integration_steps) == 0:
+                        validation_results['errors'].append(f"Rule '{feature_name}': integration_steps array is empty")
+                        invalid_rules += 1
+                        continue
+                    
+                    # Validate each integration step
+                    for i, step in enumerate(integration_steps):
+                        if not isinstance(step, dict):
+                            validation_results['errors'].append(f"Rule '{feature_name}': integration_steps[{i}] is not a dictionary")
+                            invalid_rules += 1
+                            break
+                        
+                        step_required_fields = ['documentation_url', 'comment']
+                        missing_fields = [field for field in step_required_fields if field not in step]
+                        if missing_fields:
+                            validation_results['errors'].append(f"Rule '{feature_name}': integration_steps[{i}] missing fields: {missing_fields}")
+                            invalid_rules += 1
+                            break
+                        
+                        # Check for empty values
+                        empty_fields = [field for field in step_required_fields if not step[field].strip()]
+                        if empty_fields:
+                            validation_results['warnings'].append(f"Rule '{feature_name}': integration_steps[{i}] has empty fields: {empty_fields}")
+                    else:
+                        # All steps are valid
+                        valid_rules += 1
+                else:
+                    # Legacy format validation
+                    required_fields = ['feature_name', 'documentation_url', 'comment']
+                    missing_fields = [field for field in required_fields if field not in rule_data]
+                    
+                    if missing_fields:
+                        validation_results['errors'].append(f"Rule '{feature_name}' missing fields: {missing_fields}")
+                        invalid_rules += 1
+                        continue
+                    
+                    # Check for empty values
+                    empty_fields = [field for field in required_fields if not rule_data[field].strip()]
+                    if empty_fields:
+                        validation_results['warnings'].append(f"Rule '{feature_name}' has empty fields: {empty_fields}")
+                    
+                    valid_rules += 1
             
             validation_results['stats'] = {
                 'total_rules': len(data['rules']),
@@ -255,6 +317,8 @@ def main():
             print(f"  ✓ {feature}:")
             print(f"    URL: {rule.documentation_url}")
             print(f"    Comment: {rule.comment[:100]}...")
+            if rule.integration_steps:
+                print(f"    Integration Steps: {len(rule.integration_steps)}")
         else:
             print(f"  ✗ {feature}: No rule found")
     

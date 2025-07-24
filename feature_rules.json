@@ -5,8 +5,12 @@
   "rules": {
     "Country": {
       "feature_name": "Country",
-      "documentation_url": "https://docs.company.com/integration/country-support",
-      "comment": "Specifies the country where this provider + payment method combination is available. Essential for geographic implementation planning.",
+      "integration_steps": [
+        {
+          "documentation_url": "https://docs.company.com/integration/country-support",
+          "comment": "Specifies the country where this provider + payment method combination is available. Essential for geographic implementation planning."
+        }
+      ],
       "testcases": [
         {
           "id": "CTR0001",
@@ -27,8 +31,12 @@
     },
     "Verify": {
       "feature_name": "Verify",
-      "documentation_url": "https://docs.company.com/integration/verification",
-      "comment": "Indicates whether payment verification is supported. Critical for transaction security and compliance requirements.",
+      "integration_steps": [
+        {
+          "documentation_url": "https://docs.company.com/integration/verification",
+          "comment": "Indicates whether payment verification is supported. Critical for transaction security and compliance requirements."
+        }
+      ],
       "testcases": [
         {
           "id": "VRF0001",
@@ -49,8 +57,12 @@
     },
     "Authorize": {
       "feature_name": "Authorize",
-      "documentation_url": "https://docs.company.com/integration/authorization",
-      "comment": "Supports payment authorization functionality. Required for holding funds before capture in two-step payment flows.",
+      "integration_steps": [
+        {
+          "documentation_url": "https://docs.company.com/integration/authorization",
+          "comment": "Supports payment authorization functionality. Required for holding funds before capture in two-step payment flows."
+        }
+      ],
       "testcases": [
         {
           "id": "ATH0001",
@@ -71,8 +83,12 @@
     },
     "Capture": {
       "feature_name": "Capture",
-      "documentation_url": "https://docs.company.com/integration/capture",
-      "comment": "Enables capturing previously authorized payments. Essential for completing two-step payment transactions.",
+      "integration_steps": [
+        {
+          "documentation_url": "https://docs.company.com/integration/capture",
+          "comment": "Enables capturing previously authorized payments. Essential for completing two-step payment transactions."
+        }
+      ],
       "testcases": [
         {
           "id": "CPT0001",
@@ -93,8 +109,12 @@
     },
     "Cancel": {
       "feature_name": "Cancel",
-      "documentation_url": "https://docs.company.com/integration/cancellation",
-      "comment": "Allows canceling authorized but not yet captured payments. Important for inventory management and customer service.",
+      "integration_steps": [
+        {
+          "documentation_url": "https://docs.company.com/integration/cancellation",
+          "comment": "Allows canceling authorized but not yet captured payments. Important for inventory management and customer service."
+        }
+      ],
       "testcases": [
         {
           "id": "CNC0001",
@@ -115,8 +135,12 @@
     },
     "Refund": {
       "feature_name": "Refund",
-      "documentation_url": "https://docs.company.com/integration/refunds",
-      "comment": "Supports full or partial refunds of completed payments. Critical for customer service and dispute resolution.",
+      "integration_steps": [
+        {
+          "documentation_url": "https://docs.company.com/integration/refunds",
+          "comment": "Supports full or partial refunds of completed payments. Critical for customer service and dispute resolution."
+        }
+      ],
       "testcases": [
         {
           "id": "RFD0001",
@@ -137,8 +161,12 @@
     },
     "Currency": {
       "feature_name": "Currency",
-      "documentation_url": "https://docs.company.com/integration/currency-support",
-      "comment": "Defines supported currencies for this provider + payment method. Essential for multi-currency implementations.",
+      "integration_steps": [
+        {
+          "documentation_url": "https://docs.company.com/integration/currency-support",
+          "comment": "Defines supported currencies for this provider + payment method. Essential for multi-currency implementations."
+        }
+      ],
       "testcases": [
         {
           "id": "CUR0001",
@@ -159,8 +187,12 @@
     },
     "Recurring": {
       "feature_name": "Recurring",
-      "documentation_url": "https://docs.company.com/integration/recurring-payments",
-      "comment": "Enables recurring payment functionality for subscriptions and installments. Required for subscription-based business models.",
+      "integration_steps": [
+        {
+          "documentation_url": "https://docs.company.com/integration/recurring-payments",
+          "comment": "Enables recurring payment functionality for subscriptions and installments. Required for subscription-based business models."
+        }
+      ],
       "testcases": [
         {
           "id": "RCR0001",
@@ -181,8 +213,12 @@
     },
     "Installments": {
       "feature_name": "Installments",
-      "documentation_url": "https://docs.company.com/integration/installments",
-      "comment": "Supports installment payments split across multiple charges. Popular in Latin American markets.",
+      "integration_steps": [
+        {
+          "documentation_url": "https://docs.company.com/integration/installments",
+          "comment": "Supports installment payments split across multiple charges. Popular in Latin American markets."
+        }
+      ],
       "testcases": [
         {
           "id": "INS0001",
@@ -203,8 +239,12 @@
     },
     "3DS": {
       "feature_name": "3DS",
-      "documentation_url": "https://docs.company.com/integration/3d-secure",
-      "comment": "3D Secure authentication support for enhanced card payment security. Required for SCA compliance in Europe.",
+      "integration_steps": [
+        {
+          "documentation_url": "https://docs.company.com/integration/3d-secure",
+          "comment": "3D Secure authentication support for enhanced card payment security. Required for SCA compliance in Europe."
+        }
+      ],
       "testcases": [
         {
           "id": "TDS0001",
@@ -225,8 +265,12 @@
     },
     "Webhook": {
       "feature_name": "Webhook",
-      "documentation_url": "https://docs.company.com/integration/webhooks",
-      "comment": "Webhook notification support for real-time payment status updates. Essential for reliable payment status tracking.",
+      "integration_steps": [
+        {
+          "documentation_url": "https://docs.company.com/integration/webhooks",
+          "comment": "Webhook notification support for real-time payment status updates. Essential for reliable payment status tracking."
+        }
+      ],
       "testcases": [
         {
           "id": "WHK0001",
@@ -247,8 +291,12 @@
     },
     "PaymentLink": {
       "feature_name": "PaymentLink",
-      "documentation_url": "https://docs.company.com/integration/payment-links",
-      "comment": "Support for generating shareable payment links. Useful for invoice payments and remote transactions.",
+      "integration_steps": [
+        {
+          "documentation_url": "https://docs.company.com/integration/payment-links",
+          "comment": "Support for generating shareable payment links. Useful for invoice payments and remote transactions."
+        }
+      ],
       "testcases": [
         {
           "id": "PLK0001",
@@ -269,8 +317,12 @@
     },
     "TokenVault": {
       "feature_name": "TokenVault",
-      "documentation_url": "https://docs.company.com/integration/token-vault",
-      "comment": "Secure token storage for saved payment methods. Required for one-click payments and recurring transactions.",
+      "integration_steps": [
+        {
+          "documentation_url": "https://docs.company.com/integration/token-vault",
+          "comment": "Secure token storage for saved payment methods. Required for one-click payments and recurring transactions."
+        }
+      ],
       "testcases": [
         {
           "id": "TVT0001",
@@ -291,8 +343,12 @@
     },
     "Chargeback": {
       "feature_name": "Chargeback",
-      "documentation_url": "https://docs.company.com/integration/chargeback-handling",
-      "comment": "Chargeback notification and management capabilities. Important for dispute resolution and merchant protection.",
+      "integration_steps": [
+        {
+          "documentation_url": "https://docs.company.com/integration/chargeback-handling",
+          "comment": "Chargeback notification and management capabilities. Important for dispute resolution and merchant protection."
+        }
+      ],
       "testcases": [
         {
           "id": "CHB0001",
@@ -313,8 +369,12 @@
     },
     "Split": {
       "feature_name": "Split",
-      "documentation_url": "https://docs.company.com/integration/split-payments",
-      "comment": "Support for splitting payments between multiple recipients. Essential for marketplace and platform implementations.",
+      "integration_steps": [
+        {
+          "documentation_url": "https://docs.company.com/integration/split-payments",
+          "comment": "Support for splitting payments between multiple recipients. Essential for marketplace and platform implementations."
+        }
+      ],
       "testcases": [
         {
           "id": "SPL0001",
@@ -335,8 +395,12 @@
     },
     "Sandbox": {
       "feature_name": "Sandbox",
-      "documentation_url": "https://docs.company.com/integration/sandbox-testing",
-      "comment": "Testing environment availability for safe integration development. Critical for development and QA processes.",
+      "integration_steps": [
+        {
+          "documentation_url": "https://docs.company.com/integration/sandbox-testing",
+          "comment": "Testing environment availability for safe integration development. Critical for development and QA processes."
+        }
+      ],
       "testcases": [
         {
           "id": "SBX0001",
@@ -374,6 +438,6 @@
       "default_locale": "en",
       "structure": "Testcase descriptions use i18n keys (description_key) that reference translations in i18n/{locale}.json files"
     },
-    "usage_instructions": "This file contains documentation rules that map feature names to their corresponding documentation URLs and explanatory comments. Testcase descriptions are internationalized using i18n keys. Use the i18n_helper.py utility to load translations."
+    "usage_instructions": "This file contains documentation rules that map feature names to their corresponding documentation URLs and explanatory comments. Integration steps are an array of objects, each containing documentation_url and comment, allowing multiple integration steps per feature. Testcase descriptions are internationalized using i18n keys. Use the i18n_helper.py utility to load translations."
   }
 } 
