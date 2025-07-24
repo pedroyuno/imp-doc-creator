@@ -133,13 +133,13 @@ class TestCaseGenerator:
         
         # Generate table header
         markdown_lines.extend([
-            "| ID | Provider | Payment Method | Description | Passed | Date | Executer | Evidence |",
+            "| `ID` | Provider | Payment Method | Description | Passed | Date | Executer | Evidence |",
             "|----|----------|----------------|-------------|--------|------|----------|----------|"
         ])
         
         # Generate table rows
         for test_case in test_cases_data:
-            row = f"| {test_case['id']} | {test_case['provider']} | {test_case['payment_method']} | {test_case['description']} | {test_case['passed']} | {test_case['date']} | {test_case['executer']} | {test_case['evidence']} |"
+            row = f"| `{test_case['id']}` | {test_case['provider']} | {test_case['payment_method']} | {test_case['description']} | {test_case['passed']} | {test_case['date']} | {test_case['executer']} | {test_case['evidence']} |"
             markdown_lines.append(row)
         
         # Summary section
@@ -202,6 +202,7 @@ class TestCaseGenerator:
             '        table { width: 100%; border-collapse: collapse; margin-top: 20px; }',
             '        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }',
             '        th { background-color: #3498db; color: white; font-weight: bold; }',
+            '        .id-column { font-family: "Courier New", "Monaco", "Lucida Console", monospace; font-size: 14px; }',
             '        tr:nth-child(even) { background-color: #f2f2f2; }',
             '        tr:hover { background-color: #e8f4f8; }',
             '        .summary { background-color: #ecf0f1; padding: 20px; border-radius: 5px; margin-top: 30px; }',
@@ -237,7 +238,7 @@ class TestCaseGenerator:
             '    <table>',
             '        <thead>',
             '            <tr>',
-            '                <th>ID</th>',
+            '                <th class="id-column">ID</th>',
             '                <th>Provider</th>',
             '                <th>Payment Method</th>',
             '                <th>Description</th>',
@@ -254,7 +255,7 @@ class TestCaseGenerator:
         for test_case in test_cases_data:
             html_parts.append(
                 f'            <tr>'
-                f'<td>{test_case["id"]}</td>'
+                f'<td class="id-column">{test_case["id"]}</td>'
                 f'<td>{test_case["provider"]}</td>'
                 f'<td>{test_case["payment_method"]}</td>'
                 f'<td>{test_case["description"]}</td>'
@@ -383,7 +384,7 @@ class TestCaseGenerator:
         hdr_cells[7].text = 'Evidence'
         
         # Format header row with styling
-        for cell in hdr_cells:
+        for i, cell in enumerate(hdr_cells):
             # Set background color to blue
             self._set_cell_background_color(cell, "366092")  # Professional blue (hex: 54, 96, 146)
             
@@ -394,6 +395,8 @@ class TestCaseGenerator:
                     run.font.bold = True
                     run.font.color.rgb = RGBColor(255, 255, 255)  # White text
                     run.font.size = Inches(0.11)  # Slightly larger font
+                    if i == 0:  # ID column header - apply monospace font
+                        run.font.name = 'Courier New'
         
         # Add test case rows with alternating colors
         for i, test_case in enumerate(test_cases_data):
@@ -412,9 +415,14 @@ class TestCaseGenerator:
                 for cell in row_cells:
                     self._set_cell_background_color(cell, "F8F9FA")  # Light gray
             
-            # Center align smaller columns for better presentation
+            # Apply monospace font to ID column and center align smaller columns
             for j, cell in enumerate(row_cells):
-                if j in [0, 4, 5]:  # ID, Passed, Date columns
+                if j == 0:  # ID column - apply monospace font
+                    for paragraph in cell.paragraphs:
+                        paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                        for run in paragraph.runs:
+                            run.font.name = 'Courier New'
+                elif j in [4, 5]:  # Passed, Date columns
                     for paragraph in cell.paragraphs:
                         paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
         

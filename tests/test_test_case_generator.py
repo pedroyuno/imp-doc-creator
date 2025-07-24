@@ -177,7 +177,7 @@ class TestTestCaseGenerator:
         assert "## Summary" in markdown_doc
         
         # Should have table format
-        assert "| ID | Provider | Payment Method | Description | Passed | Date | Executer | Evidence |" in markdown_doc
+        assert "| `ID` | Provider | Payment Method | Description | Passed | Date | Executer | Evidence |" in markdown_doc
         assert "|----|----------|----------------|-------------|--------|------|----------|----------|" in markdown_doc
         
         # Should have test cases in table rows
@@ -203,7 +203,7 @@ class TestTestCaseGenerator:
         
         # But should have test cases
         assert "## Test Case Documentation" in markdown_doc
-        assert "| ID | Provider | Payment Method | Description | Passed | Date | Executer | Evidence |" in markdown_doc
+        assert "| `ID` | Provider | Payment Method | Description | Passed | Date | Executer | Evidence |" in markdown_doc
         assert "0001." in markdown_doc  # Test case IDs with salt format
     
     def test_generate_summary_statistics(self, generator_en, sample_parsed_features):
@@ -346,7 +346,7 @@ class TestTestCaseGenerator:
         
         # Check table structure
         assert '<table>' in html_doc
-        assert '<th>ID</th>' in html_doc
+        assert '<th class="id-column">ID</th>' in html_doc
         assert '<th>Provider</th>' in html_doc
         assert '<th>Payment Method</th>' in html_doc
         assert '<th>Description</th>' in html_doc
