@@ -25,48 +25,43 @@ class TestCaseGenerator:
         self.locale = locale
         self.i18n = I18nHelper(default_locale=locale)
         
-    def generate_test_cases_for_features(self, parsed_features: Dict[str, Any]) -> Dict[str, List[Dict]]:
+    def generate_test_cases_for_features(self, parsed_features: Dict[str, Any]) -> List[Dict]:
         """
         Generate test cases for all implemented features from parsed data.
+        Returns a flat list of test cases for table format.
         
         Args:
             parsed_features: Dictionary of parsed features from CSV parser
             
         Returns:
-            Dictionary with provider combinations as keys and test cases as values
+            List of test cases with table columns: id, description, passed, date, executer, evidence
         """
-        all_test_cases = {}
+        all_test_cases = []
+        test_case_counter = 1
         
         for provider_key, provider_data in parsed_features.items():
             provider = provider_data['provider']
             payment_method = provider_data['payment_method']
             features = provider_data['features']
             
-            # Get test cases for implemented features only
-            test_cases = []
-            
+            # Generate test cases for implemented features only
             for feature_name, feature_value in features.items():
                 # Only include test cases for implemented features
                 if self._is_feature_implemented(feature_value):
                     feature_test_cases = self.i18n.get_test_cases_for_feature(feature_name, self.locale)
                     
-                    # Add provider and payment method context to each test case
+                    # Convert each test case to table format
                     for test_case in feature_test_cases:
-                        test_case_with_context = test_case.copy()
-                        test_case_with_context.update({
-                            'provider': provider,
-                            'payment_method': payment_method,
-                            'feature_name': feature_name,
-                            'feature_value': feature_value
-                        })
-                        test_cases.append(test_case_with_context)
-            
-            if test_cases:  # Only add if there are test cases
-                all_test_cases[provider_key] = {
-                    'provider': provider,
-                    'payment_method': payment_method,
-                    'test_cases': test_cases
-                }
+                        table_test_case = {
+                            'id': f"TC-{test_case_counter:03d}",
+                            'description': f"{provider} + {payment_method}: {test_case['description']}",
+                            'passed': '',  # Empty field for manual completion
+                            'date': '',    # Empty field for manual completion
+                            'executer': '',  # Empty field for manual completion
+                            'evidence': ''   # Empty field for manual completion
+                        }
+                        all_test_cases.append(table_test_case)
+                        test_case_counter += 1
         
         return all_test_cases
     
@@ -74,7 +69,7 @@ class TestCaseGenerator:
                                  merchant_name: str = "Merchant", 
                                  include_metadata: bool = True) -> str:
         """
-        Generate a complete markdown document with test cases for merchants.
+        Generate a complete markdown document with test cases in table format.
         
         Args:
             parsed_features: Dictionary of parsed features from CSV parser
@@ -82,7 +77,7 @@ class TestCaseGenerator:
             include_metadata: Whether to include document metadata
             
         Returns:
-            Complete markdown document as string
+            Complete markdown document as string with table format
         """
         test_cases_data = self.generate_test_cases_for_features(parsed_features)
         
@@ -92,11 +87,11 @@ class TestCaseGenerator:
         # Document header
         if include_metadata:
             markdown_lines.extend([
-                f"# Implementation Test Cases for {merchant_name}",
+                f"# Test Cases for {merchant_name}",
                 "",
                 f"**Generated on:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
                 f"**Language:** {self.locale.upper()}",
-                f"**Total Provider Combinations:** {len(test_cases_data)}",
+                f"**Total Test Cases:** {len(test_cases_data)}",
                 "",
                 "---",
                 ""
@@ -108,72 +103,37 @@ class TestCaseGenerator:
             "",
             "This document contains test cases for your payment integration implementation.",
             "Each test case should be executed to ensure proper functionality of the implemented features.",
-            "Test cases are organized by provider and payment method combinations.",
             "",
-            "### Test Case Types",
-            "- **Happy Path:** Normal flow test cases",
-            "- **Unhappy Path:** Error handling test cases", 
-            "- **Corner Case:** Edge case and boundary test cases",
-            "",
-            "---",
             ""
         ])
         
-        # Generate test cases for each provider combination
-        for provider_key, provider_info in test_cases_data.items():
-            provider = provider_info['provider']
-            payment_method = provider_info['payment_method']
-            test_cases = provider_info['test_cases']
-            
-            # Provider section header
-            markdown_lines.extend([
-                f"## {provider} + {payment_method}",
-                "",
-                f"**Total Test Cases:** {len(test_cases)}",
-                ""
-            ])
-            
-            # Group test cases by feature for better organization
-            features_dict = {}
-            for test_case in test_cases:
-                feature_name = test_case['feature_name']
-                if feature_name not in features_dict:
-                    features_dict[feature_name] = []
-                features_dict[feature_name].append(test_case)
-            
-            # Generate test cases for each feature
-            for feature_name, feature_test_cases in features_dict.items():
-                markdown_lines.extend([
-                    f"### {feature_name} Feature",
-                    ""
-                ])
-                
-                # Add each test case as a single line (as requested)
-                for test_case in feature_test_cases:
-                    test_line = f"**{test_case['id']}** ({test_case['type']}): {test_case['description']}"
-                    markdown_lines.append(test_line)
-                
-                markdown_lines.append("")  # Empty line after each feature
-            
-            markdown_lines.append("---")  # Separator between providers
-            markdown_lines.append("")
+        # Generate table header
+        markdown_lines.extend([
+            "| ID | Description | Passed | Date | Executer | Evidence |",
+            "|----|-----------|---------|----- |----------|----------|"
+        ])
+        
+        # Generate table rows
+        for test_case in test_cases_data:
+            row = f"| {test_case['id']} | {test_case['description']} | {test_case['passed']} | {test_case['date']} | {test_case['executer']} | {test_case['evidence']} |"
+            markdown_lines.append(row)
         
         # Summary section
         if include_metadata:
-            total_test_cases = sum(len(info['test_cases']) for info in test_cases_data.values())
             markdown_lines.extend([
+                "",
+                "---",
+                "",
                 "## Summary",
                 "",
-                f"- **Total Providers:** {len(test_cases_data)}",
-                f"- **Total Test Cases:** {total_test_cases}",
+                f"- **Total Test Cases:** {len(test_cases_data)}",
                 f"- **Document Language:** {self.locale.upper()}",
                 "",
-                "### Implementation Notes",
-                "- Execute all test cases in your test environment before going live",
-                "- Document any failures or unexpected behaviors",
-                "- Ensure all happy path scenarios work correctly",
-                "- Test error handling for unhappy path scenarios",
-                "- Validate edge cases and boundary conditions",
+                "### Instructions",
+                "- Fill in the 'Passed' column with Yes/No after executing each test case",
+                "- Record the execution date in the 'Date' column",
+                "- Add the name of the person who executed the test in the 'Executer' column",
+                "- Provide evidence (screenshots, logs, etc.) in the 'Evidence' column",
                 "",
                 "---",
                 "",
@@ -186,7 +146,7 @@ class TestCaseGenerator:
                              merchant_name: str = "Merchant", 
                              include_metadata: bool = True) -> str:
         """
-        Generate a complete HTML document with test cases for merchants.
+        Generate a complete HTML document with test cases in table format.
         Google Docs can import HTML files directly while preserving formatting.
         
         Args:
@@ -195,7 +155,7 @@ class TestCaseGenerator:
             include_metadata: Whether to include document metadata
             
         Returns:
-            Complete HTML document as string
+            Complete HTML document as string with table format
         """
         test_cases_data = self.generate_test_cases_for_features(parsed_features)
         
@@ -209,18 +169,17 @@ class TestCaseGenerator:
             '<head>',
             '    <meta charset="UTF-8">',
             '    <meta name="viewport" content="width=device-width, initial-scale=1.0">',
-            f'    <title>Implementation Test Cases for {merchant_name}</title>',
+            f'    <title>Test Cases for {merchant_name}</title>',
             '    <style>',
             '        body { font-family: Arial, sans-serif; line-height: 1.6; margin: 40px; }',
             '        h1 { color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 10px; }',
             '        h2 { color: #34495e; border-bottom: 2px solid #ecf0f1; padding-bottom: 8px; margin-top: 30px; }',
-            '        h3 { color: #7f8c8d; margin-top: 25px; margin-bottom: 15px; }',
             '        .metadata { background-color: #f8f9fa; padding: 15px; border-left: 4px solid #3498db; margin-bottom: 20px; }',
-            '        .test-case { margin: 8px 0; padding: 8px; background-color: #f9f9f9; border-left: 3px solid #27ae60; }',
-            '        .test-case.unhappy { border-left-color: #e74c3c; }',
-            '        .test-case.corner { border-left-color: #f39c12; }',
-            '        .test-id { font-weight: bold; color: #2c3e50; }',
-            '        .test-type { font-style: italic; color: #7f8c8d; }',
+            '        table { width: 100%; border-collapse: collapse; margin-top: 20px; }',
+            '        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }',
+            '        th { background-color: #3498db; color: white; font-weight: bold; }',
+            '        tr:nth-child(even) { background-color: #f2f2f2; }',
+            '        tr:hover { background-color: #e8f4f8; }',
             '        .summary { background-color: #ecf0f1; padding: 20px; border-radius: 5px; margin-top: 30px; }',
             '        .notes { background-color: #fff3cd; padding: 15px; border: 1px solid #ffeaa7; border-radius: 5px; margin-top: 20px; }',
             '        hr { border: none; border-top: 1px solid #bdc3c7; margin: 25px 0; }',
@@ -232,93 +191,74 @@ class TestCaseGenerator:
         # Document header
         if include_metadata:
             html_parts.extend([
-                f'    <h1>Implementation Test Cases for {merchant_name}</h1>',
+                f'    <h1>Test Cases for {merchant_name}</h1>',
                 '    <div class="metadata">',
                 f'        <p><strong>Generated on:</strong> {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}</p>',
                 f'        <p><strong>Language:</strong> {self.locale.upper()}</p>',
-                f'        <p><strong>Total Provider Combinations:</strong> {len(test_cases_data)}</p>',
+                f'        <p><strong>Total Test Cases:</strong> {len(test_cases_data)}</p>',
                 '    </div>'
             ])
         else:
-            html_parts.append(f'    <h1>Implementation Test Cases for {merchant_name}</h1>')
+            html_parts.append(f'    <h1>Test Cases for {merchant_name}</h1>')
         
         # Introduction
         html_parts.extend([
             '    <h2>Test Case Documentation</h2>',
-            '    <p>This document contains test cases for your payment integration implementation. Each test case should be executed to ensure proper functionality of the implemented features. Test cases are organized by provider and payment method combinations.</p>',
-            '    <h3>Test Case Types</h3>',
-            '    <ul>',
-            '        <li><strong>Happy Path:</strong> Normal flow test cases</li>',
-            '        <li><strong>Unhappy Path:</strong> Error handling test cases</li>',
-            '        <li><strong>Corner Case:</strong> Edge case and boundary test cases</li>',
-            '    </ul>',
-            '    <hr>'
+            '    <p>This document contains test cases for your payment integration implementation. Each test case should be executed to ensure proper functionality of the implemented features.</p>',
+            ''
         ])
         
-        # Generate test cases for each provider combination
-        for provider_key, provider_info in test_cases_data.items():
-            provider = provider_info['provider']
-            payment_method = provider_info['payment_method']
-            test_cases = provider_info['test_cases']
-            
-            # Provider section header
-            html_parts.extend([
-                f'    <h2>{provider} + {payment_method}</h2>',
-                f'    <p><strong>Total Test Cases:</strong> {len(test_cases)}</p>'
-            ])
-            
-            # Group test cases by feature for better organization
-            features_dict = {}
-            for test_case in test_cases:
-                feature_name = test_case['feature_name']
-                if feature_name not in features_dict:
-                    features_dict[feature_name] = []
-                features_dict[feature_name].append(test_case)
-            
-            # Generate test cases for each feature
-            for feature_name, feature_test_cases in features_dict.items():
-                html_parts.extend([
-                    f'    <h3>{feature_name} Feature</h3>'
-                ])
-                
-                # Add each test case as a formatted div
-                for test_case in feature_test_cases:
-                    test_type = test_case['type']
-                    css_class = 'test-case'
-                    if test_type == 'unhappy path':
-                        css_class += ' unhappy'
-                    elif test_type == 'corner case':
-                        css_class += ' corner'
-                    
-                    html_parts.append(
-                        f'    <div class="{css_class}">'
-                        f'<span class="test-id">{test_case["id"]}</span> '
-                        f'<span class="test-type">({test_case["type"]})</span>: '
-                        f'{test_case["description"]}</div>'
-                    )
-            
-            html_parts.append('    <hr>')
+        # Generate table
+        html_parts.extend([
+            '    <table>',
+            '        <thead>',
+            '            <tr>',
+            '                <th>ID</th>',
+            '                <th>Description</th>',
+            '                <th>Passed</th>',
+            '                <th>Date</th>',
+            '                <th>Executer</th>',
+            '                <th>Evidence</th>',
+            '            </tr>',
+            '        </thead>',
+            '        <tbody>'
+        ])
+        
+        # Generate table rows
+        for test_case in test_cases_data:
+            html_parts.append(
+                f'            <tr>'
+                f'<td>{test_case["id"]}</td>'
+                f'<td>{test_case["description"]}</td>'
+                f'<td>{test_case["passed"]}</td>'
+                f'<td>{test_case["date"]}</td>'
+                f'<td>{test_case["executer"]}</td>'
+                f'<td>{test_case["evidence"]}</td>'
+                f'</tr>'
+            )
+        
+        html_parts.extend([
+            '        </tbody>',
+            '    </table>'
+        ])
         
         # Summary section
         if include_metadata:
-            total_test_cases = sum(len(info['test_cases']) for info in test_cases_data.values())
             html_parts.extend([
                 '    <div class="summary">',
                 '        <h2>Summary</h2>',
                 '        <ul>',
-                f'            <li><strong>Total Providers:</strong> {len(test_cases_data)}</li>',
-                f'            <li><strong>Total Test Cases:</strong> {total_test_cases}</li>',
+                f'            <li><strong>Total Test Cases:</strong> {len(test_cases_data)}</li>',
                 f'            <li><strong>Document Language:</strong> {self.locale.upper()}</li>',
                 '        </ul>',
                 '    </div>',
                 '    <div class="notes">',
-                '        <h3>Implementation Notes</h3>',
+                '        <h3>Instructions</h3>',
                 '        <ul>',
-                '            <li>Execute all test cases in your test environment before going live</li>',
-                '            <li>Document any failures or unexpected behaviors</li>',
-                '            <li>Ensure all happy path scenarios work correctly</li>',
-                '            <li>Test error handling for unhappy path scenarios</li>',
-                '            <li>Validate edge cases and boundary conditions</li>',
+                '            <li>Fill in the "Passed" column with Yes/No after executing each test case</li>',
+                '            <li>Record the execution date in the "Date" column</li>',
+                '            <li>Add the name of the person who executed the test in the "Executer" column</li>',
+                '            <li>Provide evidence (screenshots, logs, etc.) in the "Evidence" column</li>',
                 '        </ul>',
                 '    </div>',
                 '    <hr>',
@@ -345,33 +285,25 @@ class TestCaseGenerator:
         """
         test_cases_data = self.generate_test_cases_for_features(parsed_features)
         
-        total_test_cases = 0
-        total_features = 0
-        test_case_types = {'happy path': 0, 'unhappy path': 0, 'corner case': 0}
+        # Count implemented features per provider
         features_by_provider = {}
+        total_implemented_features = 0
         
-        for provider_key, provider_info in test_cases_data.items():
-            provider = provider_info['provider']
-            test_cases = provider_info['test_cases']
+        for provider_key, provider_data in parsed_features.items():
+            provider = provider_data['provider']
+            implemented_count = 0
             
-            total_test_cases += len(test_cases)
+            for feature_name, feature_value in provider_data['features'].items():
+                if self._is_feature_implemented(feature_value):
+                    implemented_count += 1
             
-            # Count unique features per provider
-            unique_features = set(tc['feature_name'] for tc in test_cases)
-            total_features += len(unique_features)
-            features_by_provider[provider] = len(unique_features)
-            
-            # Count test case types
-            for test_case in test_cases:
-                test_type = test_case['type']
-                if test_type in test_case_types:
-                    test_case_types[test_type] += 1
+            features_by_provider[provider] = implemented_count
+            total_implemented_features += implemented_count
         
         return {
-            'total_providers': len(test_cases_data),
-            'total_test_cases': total_test_cases,
-            'total_implemented_features': total_features,
-            'test_case_types': test_case_types,
+            'total_providers': len(parsed_features),
+            'total_test_cases': len(test_cases_data),
+            'total_implemented_features': total_implemented_features,
             'features_by_provider': features_by_provider,
             'language': self.locale
         }
@@ -462,7 +394,7 @@ def main():
     print(f"Total Providers: {stats['total_providers']}")
     print(f"Total Test Cases: {stats['total_test_cases']}")
     print(f"Total Features: {stats['total_implemented_features']}")
-    print(f"Test Case Types: {stats['test_case_types']}")
+    print(f"Features by Provider: {stats['features_by_provider']}")
 
 
 if __name__ == "__main__":

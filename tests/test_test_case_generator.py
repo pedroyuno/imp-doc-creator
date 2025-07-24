@@ -100,33 +100,39 @@ class TestTestCaseGenerator:
         """Test test case generation for features"""
         test_cases_data = generator_en.generate_test_cases_for_features(sample_parsed_features)
         
-        # Should have data for both providers
-        assert len(test_cases_data) == 2
-        assert 'REDE_CARD' in test_cases_data
-        assert 'PAGARME_CARD' in test_cases_data
+        # Should be a flat list of test cases
+        assert isinstance(test_cases_data, list)
+        assert len(test_cases_data) > 0
         
-        # Check REDE data structure
-        rede_data = test_cases_data['REDE_CARD']
-        assert rede_data['provider'] == 'REDE'
-        assert rede_data['payment_method'] == 'CARD'
-        assert 'test_cases' in rede_data
-        assert len(rede_data['test_cases']) > 0
-        
-        # Test cases should only be for implemented features
-        # REDE has: Verify, Authorize, Capture, Sandbox as TRUE (Country and Currency are not boolean)
-        feature_names = set(tc['feature_name'] for tc in rede_data['test_cases'])
-        expected_features = {'Verify', 'Authorize', 'Capture', 'Sandbox'}
-        assert feature_names == expected_features
-        
-        # Each test case should have required fields
-        for test_case in rede_data['test_cases']:
+        # Check that test cases have the expected table format columns
+        for test_case in test_cases_data:
             assert 'id' in test_case
             assert 'description' in test_case
-            assert 'type' in test_case
-            assert 'provider' in test_case
-            assert 'payment_method' in test_case
-            assert 'feature_name' in test_case
-            assert 'feature_value' in test_case
+            assert 'passed' in test_case
+            assert 'date' in test_case
+            assert 'executer' in test_case
+            assert 'evidence' in test_case
+            
+            # Check ID format
+            assert test_case['id'].startswith('TC-')
+            
+            # Check description format (includes provider + payment method)
+            assert any(provider in test_case['description'] for provider in ['REDE', 'PAGARME'])
+            assert 'CARD' in test_case['description']
+        
+        # Should have test cases from both providers (REDE and PAGARME)
+        rede_cases = [tc for tc in test_cases_data if 'REDE' in tc['description']]
+        pagarme_cases = [tc for tc in test_cases_data if 'PAGARME' in tc['description']]
+        assert len(rede_cases) > 0
+        assert len(pagarme_cases) > 0
+        
+        # All test cases should have the required table format fields
+        assert all('id' in tc for tc in test_cases_data)
+        assert all('description' in tc for tc in test_cases_data)
+        assert all('passed' in tc for tc in test_cases_data)
+        assert all('date' in tc for tc in test_cases_data)
+        assert all('executer' in tc for tc in test_cases_data)
+        assert all('evidence' in tc for tc in test_cases_data)
     
     def test_generate_test_cases_no_implemented_features(self, generator_en):
         """Test when no features are implemented"""
@@ -154,23 +160,21 @@ class TestTestCaseGenerator:
         )
         
         # Check document structure
-        assert "# Implementation Test Cases for Test Merchant" in markdown_doc
+        assert "# Test Cases for Test Merchant" in markdown_doc
         assert "## Test Case Documentation" in markdown_doc
-        assert "## REDE + CARD" in markdown_doc
-        assert "## PAGARME + CARD" in markdown_doc
         assert "## Summary" in markdown_doc
         
-        # Check test case format (one per line) - look for actual test case lines
-        lines = markdown_doc.split('\n')
-        # Test case lines should start with ** and contain test case ID pattern
-        test_case_lines = [line for line in lines if line.startswith('**') and 
-                          ('0001' in line or '0002' in line or '0003' in line)]  # Look for test case IDs
-        assert len(test_case_lines) > 0
+        # Should have table format
+        assert "| ID | Description | Passed | Date | Executer | Evidence |" in markdown_doc
+        assert "|----|-----------|---------|----- |----------|----------|" in markdown_doc
         
-        # Each test case line should have the format: **ID** (type): description
-        for line in test_case_lines:
-            assert '(' in line and ')' in line  # Test type in parentheses
-            assert ':' in line  # Separator
+        # Should have test cases in table rows
+        assert "| TC-" in markdown_doc  # Test case IDs
+        assert "REDE + CARD:" in markdown_doc
+        assert "PAGARME + CARD:" in markdown_doc
+        
+        # Should have instructions
+        assert "Fill in the 'Passed' column" in markdown_doc
     
     def test_generate_markdown_document_without_metadata(self, generator_en, sample_parsed_features):
         """Test markdown document generation without metadata"""
@@ -186,7 +190,8 @@ class TestTestCaseGenerator:
         
         # But should have test cases
         assert "## Test Case Documentation" in markdown_doc
-        assert "## REDE + CARD" in markdown_doc
+        assert "| ID | Description | Passed | Date | Executer | Evidence |" in markdown_doc
+        assert "| TC-" in markdown_doc
     
     def test_generate_summary_statistics(self, generator_en, sample_parsed_features):
         """Test summary statistics generation"""
@@ -196,7 +201,6 @@ class TestTestCaseGenerator:
         assert 'total_providers' in stats
         assert 'total_test_cases' in stats
         assert 'total_implemented_features' in stats
-        assert 'test_case_types' in stats
         assert 'features_by_provider' in stats
         assert 'language' in stats
         
@@ -205,10 +209,11 @@ class TestTestCaseGenerator:
         assert stats['total_test_cases'] > 0
         assert stats['language'] == 'en'
         
-        # Check test case types
-        assert 'happy path' in stats['test_case_types']
-        assert 'unhappy path' in stats['test_case_types']
-        assert 'corner case' in stats['test_case_types']
+        # Check features by provider
+        assert 'REDE' in stats['features_by_provider']
+        assert 'PAGARME' in stats['features_by_provider']
+        assert stats['features_by_provider']['REDE'] > 0
+        assert stats['features_by_provider']['PAGARME'] > 0
     
     def test_different_locales(self, sample_parsed_features):
         """Test test case generation in different languages"""
@@ -220,17 +225,19 @@ class TestTestCaseGenerator:
         gen_es = TestCaseGenerator(locale='es')
         test_cases_es = gen_es.generate_test_cases_for_features(sample_parsed_features)
         
-        # Should have same structure but different descriptions
+        # Should have same number of test cases but different descriptions
         assert len(test_cases_en) == len(test_cases_es)
         
         # Get first test case from each
         if test_cases_en and test_cases_es:
-            en_first = list(test_cases_en.values())[0]['test_cases'][0]
-            es_first = list(test_cases_es.values())[0]['test_cases'][0]
+            en_first = test_cases_en[0]
+            es_first = test_cases_es[0]
             
-            # Same ID and type, different description (if translations exist)
+            # Same ID format, different description (if translations exist)
             assert en_first['id'] == es_first['id']
-            assert en_first['type'] == es_first['type']
+            # Descriptions may differ based on locale if translations are available
+            assert en_first['description'] is not None
+            assert es_first['description'] is not None
     
     def test_empty_parsed_features(self, generator_en):
         """Test with empty parsed features"""
@@ -310,24 +317,30 @@ class TestTestCaseGenerator:
         # Check HTML structure
         assert html_doc.startswith('<!DOCTYPE html>')
         assert '<html lang="en">' in html_doc
-        assert '<title>Implementation Test Cases for Test Merchant</title>' in html_doc
+        assert '<title>Test Cases for Test Merchant</title>' in html_doc
         assert '</html>' in html_doc
         
         # Check CSS styling is included
         assert '<style>' in html_doc
         assert 'font-family: Arial' in html_doc
-        assert '.test-case' in html_doc
+        
+        # Check table structure
+        assert '<table>' in html_doc
+        assert '<th>ID</th>' in html_doc
+        assert '<th>Description</th>' in html_doc
+        assert '<th>Passed</th>' in html_doc
+        assert '<th>Date</th>' in html_doc
+        assert '<th>Executer</th>' in html_doc
+        assert '<th>Evidence</th>' in html_doc
         
         # Check content structure
-        assert '<h1>Implementation Test Cases for Test Merchant</h1>' in html_doc
+        assert '<h1>Test Cases for Test Merchant</h1>' in html_doc
         assert '<h2>Test Case Documentation</h2>' in html_doc
-        assert '<h2>REDE + CARD</h2>' in html_doc
-        assert '<h2>PAGARME + CARD</h2>' in html_doc
         
-        # Check test case formatting
-        assert 'class="test-case"' in html_doc
-        assert 'class="test-id"' in html_doc
-        assert 'class="test-type"' in html_doc
+        # Check test case data in table rows
+        assert '<td>TC-' in html_doc  # Test case IDs
+        assert 'REDE + CARD:' in html_doc
+        assert 'PAGARME + CARD:' in html_doc
         
         # Check metadata section
         assert 'class="metadata"' in html_doc
@@ -352,5 +365,5 @@ class TestTestCaseGenerator:
         
         # But should have test cases and basic structure
         assert '<h2>Test Case Documentation</h2>' in html_doc
-        assert '<h2>REDE + CARD</h2>' in html_doc
-        assert 'class="test-case"' in html_doc 
+        assert '<table>' in html_doc
+        assert '<td>TC-' in html_doc 
