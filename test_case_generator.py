@@ -9,6 +9,8 @@ for easy import into Google Docs and other documentation platforms.
 
 import os
 import json
+import secrets
+import string
 from datetime import datetime
 from typing import Dict, List, Any, Optional
 from i18n_helper import I18nHelper
@@ -29,6 +31,19 @@ class TestCaseGenerator:
         """
         self.locale = locale
         self.i18n = I18nHelper(default_locale=locale)
+    
+    def _generate_test_case_salt(self, length: int = 6) -> str:
+        """
+        Generate a random salt for test case IDs.
+        
+        Args:
+            length: Length of the salt string (default: 6)
+            
+        Returns:
+            Random alphanumeric string of specified length
+        """
+        alphabet = string.ascii_lowercase + string.digits
+        return ''.join(secrets.choice(alphabet) for _ in range(length))
         
     def generate_test_cases_for_features(self, parsed_features: Dict[str, Any]) -> List[Dict]:
         """
@@ -42,7 +57,6 @@ class TestCaseGenerator:
             List of test cases with table columns: id, description, passed, date, executer, evidence
         """
         all_test_cases = []
-        test_case_counter = 1
         
         for provider_key, provider_data in parsed_features.items():
             provider = provider_data['provider']
@@ -57,8 +71,12 @@ class TestCaseGenerator:
                     
                     # Convert each test case to table format
                     for test_case in feature_test_cases:
+                        # Use original ID from feature_rules.json with random salt
+                        original_id = test_case['id']
+                        salt = self._generate_test_case_salt()
+                        
                         table_test_case = {
-                            'id': f"TC-{test_case_counter:03d}",
+                            'id': f"{original_id}.{salt}",
                             'provider': provider,
                             'payment_method': payment_method,
                             'description': test_case['description'],  # Remove provider + payment method from description
@@ -68,7 +86,6 @@ class TestCaseGenerator:
                             'evidence': ''   # Empty field for manual completion
                         }
                         all_test_cases.append(table_test_case)
-                        test_case_counter += 1
         
         return all_test_cases
     

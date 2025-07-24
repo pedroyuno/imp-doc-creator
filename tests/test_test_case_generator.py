@@ -115,8 +115,11 @@ class TestTestCaseGenerator:
             assert 'executer' in test_case
             assert 'evidence' in test_case
             
-            # Check ID format
-            assert test_case['id'].startswith('TC-')
+            # Check ID format - should be feature prefix + number + salt (e.g., CTR0001.abc123)
+            assert '.' in test_case['id'], f"Test case ID should contain a salt: {test_case['id']}"
+            base_id, salt = test_case['id'].split('.', 1)
+            assert len(salt) == 6, f"Salt should be 6 characters long: {salt}"
+            assert salt.isalnum(), f"Salt should be alphanumeric: {salt}"
             
             # Check provider and payment method fields (now separate from description)
             assert test_case['provider'] in ['REDE', 'PAGARME']
@@ -178,7 +181,7 @@ class TestTestCaseGenerator:
         assert "|----|----------|----------------|-------------|--------|------|----------|----------|" in markdown_doc
         
         # Should have test cases in table rows
-        assert "| TC-" in markdown_doc  # Test case IDs
+        assert "0001." in markdown_doc  # Test case IDs with salt format
         assert "| REDE |" in markdown_doc
         assert "| PAGARME |" in markdown_doc
         assert "| CARD |" in markdown_doc
@@ -201,7 +204,7 @@ class TestTestCaseGenerator:
         # But should have test cases
         assert "## Test Case Documentation" in markdown_doc
         assert "| ID | Provider | Payment Method | Description | Passed | Date | Executer | Evidence |" in markdown_doc
-        assert "| TC-" in markdown_doc
+        assert "0001." in markdown_doc  # Test case IDs with salt format
     
     def test_generate_summary_statistics(self, generator_en, sample_parsed_features):
         """Test summary statistics generation"""
@@ -243,8 +246,15 @@ class TestTestCaseGenerator:
             en_first = test_cases_en[0]
             es_first = test_cases_es[0]
             
-            # Same ID format, different description (if translations exist)
-            assert en_first['id'] == es_first['id']
+            # Same base ID format (before the salt), but salt will be different
+            en_base_id = en_first['id'].split('.')[0]
+            es_base_id = es_first['id'].split('.')[0]
+            assert en_base_id == es_base_id, "Base IDs should be the same"
+            
+            # Both should have salt format
+            assert '.' in en_first['id'], "English ID should have salt format"
+            assert '.' in es_first['id'], "Spanish ID should have salt format"
+            
             # Descriptions may differ based on locale if translations are available
             assert en_first['description'] is not None
             assert es_first['description'] is not None
@@ -350,7 +360,7 @@ class TestTestCaseGenerator:
         assert '<h2>Test Case Documentation</h2>' in html_doc
         
         # Check test case data in table rows
-        assert '<td>TC-' in html_doc  # Test case IDs
+        assert '<td>' in html_doc and '0001.' in html_doc  # Test case IDs with salt format
         assert '<td>REDE</td>' in html_doc
         assert '<td>PAGARME</td>' in html_doc
         assert '<td>CARD</td>' in html_doc
@@ -379,7 +389,7 @@ class TestTestCaseGenerator:
         # But should have test cases and basic structure
         assert '<h2>Test Case Documentation</h2>' in html_doc
         assert '<table>' in html_doc
-        assert '<td>TC-' in html_doc
+        assert '0001.' in html_doc  # Test case IDs with salt format
     
     def test_generate_docx_document(self, generator_en, sample_parsed_features):
         """Test DOCX document generation"""
@@ -438,7 +448,8 @@ class TestTestCaseGenerator:
         test_case_found = False
         for row in table.rows[1:]:  # Skip header row
             cells = [cell.text for cell in row.cells]
-            if cells[0].startswith('TC-') and cells[1] in ['REDE', 'PAGARME'] and cells[2] == 'CARD':
+            # Check if ID has the new format (contains a dot for salt) and other expected values
+            if '.' in cells[0] and cells[1] in ['REDE', 'PAGARME'] and cells[2] == 'CARD':
                 test_case_found = True
                 break
         assert test_case_found, "Expected test case content not found in table"
