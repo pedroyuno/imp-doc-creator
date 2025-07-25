@@ -1,6 +1,6 @@
 # Implementation Scoping Document Parser
 
-This Python program parses implementation scoping documents (provided by BDM teams during merchant handover) containing provider and payment method integration information. It extracts features only for valid combinations where both the provider and payment method are properly defined (not "#N/A" or empty). The parsed data will later be used to generate comprehensive implementation documentation.
+This Python program parses implementation scoping documents (provided by BDM teams during merchant handover) containing provider and payment method integration information. It extracts features only for valid combinations where both the provider and payment method are properly defined (not "#N/A" or empty). The parsed data is then used to generate comprehensive test case documentation for merchant validation.
 
 ## How it Works
 
@@ -16,6 +16,48 @@ A column is considered valid if:
 - The provider (row 2) is **not** "#N/A" and **not** empty
 - The payment method (row 3) is **not** "#N/A" and **not** empty
 
+## Features
+
+### Core Functionality
+- ✅ Automatically identifies valid provider + payment method combinations from BDM handover documents
+- ✅ Extracts implementation features for valid combinations
+- ✅ **Generates comprehensive test case documentation** for merchant validation
+- ✅ **Environment-specific test case generation** (sandbox, production, or separated tables)
+- ✅ **Multiple document formats** (HTML, DOCX, Markdown) with professional styling
+- ✅ **Multilingual support** (English, Spanish, Portuguese)
+- ✅ Handles missing data gracefully
+- ✅ Provides both CLI and programmatic interfaces
+- ✅ Clean, readable output formatting optimized for documentation generation
+- ✅ Error handling for malformed implementation documents
+
+### Test Case Generation
+- 📝 **Separated Tables**: Creates distinct sandbox and production test case tables (default)
+- 🎯 **Environment Filtering**: Generate test cases for specific environments
+- 🎨 **Professional Styling**: Color-coded headers (orange for sandbox, red for production)
+- 📋 **Comprehensive Coverage**: Happy path, unhappy path, and corner case scenarios
+- 🌍 **Multilingual**: Test case descriptions in English, Spanish, and Portuguese
+- 📄 **Multiple Formats**: HTML (Google Docs compatible), DOCX (Word), and Markdown
+- 📊 **Summary Statistics**: Detailed test case distribution and coverage metrics
+- 🔗 **Integration Documentation**: Links to relevant API documentation for each feature
+
+### Web Interface
+- 🖱️ Drag & drop implementation document upload
+- 📊 Beautiful implementation results visualization
+- 📝 **Interactive test case generation** with environment selection
+- 👁️ **Test case preview** before document generation
+- 🔍 Filter and search implementation features
+- 📥 Export parsed data as JSON for documentation generation
+- 📱 Mobile responsive design
+- 📖 Interactive document format guide
+- 🌐 RESTful API endpoints
+
+### Testing & Quality
+- 🧪 **84% code coverage** with comprehensive test suite
+- ✅ **144 comprehensive test cases**
+- 🔄 Unit, integration, and regression tests
+- 🛡️ Security and error handling tests
+- 📋 Automated test runner scripts 
+
 ## Usage
 
 ### Web Interface (Recommended)
@@ -30,6 +72,11 @@ A column is considered valid if:
 **Web Features:**
 - 🖱️ Drag & drop document upload (CSV format)
 - 📊 Beautiful implementation results visualization
+- 📝 **Generate test case documents** with environment selection
+- 👁️ **Preview test cases** before downloading
+- 🎯 **Environment options**: Separated tables (default), sandbox only, or production only
+- 📄 **Multiple formats**: HTML (Google Docs), DOCX (Word), Markdown
+- 🌍 **Language support**: English, Spanish, Portuguese
 - 🔍 Filter and search implementation features
 - 📥 Export parsed data as JSON for documentation generation
 - 📱 Mobile responsive design
@@ -49,6 +96,7 @@ python csv_parser.py path/to/your/implementation_scoping_document.csv --quiet
 
 ```python
 from csv_parser import ProviderPaymentParser
+from test_case_generator import TestCaseGenerator
 
 # Create parser instance for implementation scoping document
 parser = ProviderPaymentParser('implementation_scoping_document.csv')
@@ -58,6 +106,20 @@ results = parser.parse()
 
 # Display results
 parser.display_results()
+
+# Generate test case documentation
+generator = TestCaseGenerator(locale='en')
+
+# Generate separated tables (default)
+html_doc = generator.generate_html_document(
+    results, 
+    merchant_name="Your Merchant",
+    environment='separated'
+)
+
+# Generate environment-specific test cases
+sandbox_cases = generator.generate_test_cases_for_features(results, 'sandbox')
+production_cases = generator.generate_test_cases_for_features(results, 'production')
 
 # Access parsed data programmatically
 for key, data in results.items():
@@ -85,44 +147,40 @@ pytest -m web                     # Web interface tests
 pytest -m api                     # API endpoint tests
 
 # Run specific test files
-pytest tests/test_csv_parser.py    # Implementation document parser tests
-pytest tests/test_web_app.py       # Web application tests
-pytest tests/test_integration.py   # End-to-end tests
+pytest tests/test_csv_parser.py       # Implementation document parser tests
+pytest tests/test_test_case_generator.py  # Test case generator tests
+pytest tests/test_web_app.py          # Web application tests
+pytest tests/test_integration.py      # End-to-end tests
 
 # Generate detailed coverage report
-pytest --cov=csv_parser --cov=web_app --cov-report=html
+pytest --cov=. --cov-report=html
 # View: open htmlcov/index.html
 ```
 
 ### Test Coverage
 
-Our test suite achieves **97% code coverage** with comprehensive testing:
+Our test suite achieves **84% code coverage** with comprehensive testing:
 
-- **Unit Tests**: 27 tests covering core implementation document parsing functionality
-- **Web Tests**: 28 tests for Flask routes, document uploads, and API endpoints
-- **Integration Tests**: 11 tests for end-to-end implementation workflows
-- **Coverage Boost Tests**: 13 tests for edge cases and error handling
-- **Setup Tests**: 4 tests for environment verification
+- **Unit Tests**: Core implementation document parsing and test case generation
+- **Web Tests**: Flask routes, document uploads, and API endpoints  
+- **Integration Tests**: End-to-end implementation workflows
+- **Coverage Boost Tests**: Edge cases and error handling
 
 ### Test Categories
 
 | Category | Purpose | Test Count |
 |----------|---------|------------|
-| **Unit** | Core functionality testing | 27 |
-| **Web** | Web interface testing | 28 |
-| **API** | RESTful API testing | 8 |
-| **Integration** | End-to-end workflows | 11 |
-| **Security** | File upload security | 5 |
-| **Error Handling** | Edge cases & errors | 15 |
-
-### Coverage Breakdown
-
-- **csv_parser.py**: 99% coverage (116/117 statements)
-- **web_app.py**: 95% coverage (86/91 statements)
-- **Total**: 97% coverage (202/208 statements)
+| **Unit** | Core functionality testing | 50+ |
+| **Web** | Web interface testing | 30+ |
+| **API** | RESTful API testing | 10+ |
+| **Integration** | End-to-end workflows | 15+ |
+| **Security** | File upload security | 5+ |
+| **Error Handling** | Edge cases & errors | 20+ |
+| **Test Case Generation** | Document generation testing | 14+ |
 
 ## Example Output
 
+### CSV Parsing
 For a CSV with REDE+CARD and PAGARME+CARD combinations, the program will output:
 
 ```
@@ -140,25 +198,30 @@ PARSED PROVIDER + PAYMENT METHOD FEATURES
 📋 REDE + CARD
 --------------------------------------------------
   • Country: Brazil
-  • Signed contract with provider: TRUE
-  • Already integrated with Yuno?: TRUE
-  • Experience: SDK Yuno
-  • Card Type Accepted: Credit
   • Verify: TRUE
   • Authorize: TRUE
   • Capture: TRUE
-  • Purchase: TRUE
   • Refund: TRUE
-  • Cancel: TRUE
-  • Partial Capture: FALSE
+  • Currency: BRL
+  • Sandbox: TRUE
   ...
 ```
+
+### Test Case Generation
+The system automatically generates comprehensive test case documentation:
+
+- **Separated Tables** (default): Distinct sandbox and production sections
+- **Environment-Specific**: Filter by sandbox or production
+- **Professional Styling**: Color-coded headers and responsive design
+- **Multiple Formats**: HTML, DOCX, and Markdown output
+- **Multilingual**: Support for English, Spanish, and Portuguese
 
 ## Requirements
 
 - Python 3.6+
 - Virtual environment (recommended)
 - Flask 2.3.3+ (for web interface)
+- python-docx (for DOCX generation)
 
 ## Quick Setup
 
@@ -192,30 +255,4 @@ python csv_parser.py your_file.csv
 ### Deactivating Virtual Environment
 ```bash
 deactivate
-```
-
-## Features
-
-### Core Functionality
-- ✅ Automatically identifies valid provider + payment method combinations from BDM handover documents
-- ✅ Extracts implementation features for valid combinations
-- ✅ Handles missing data gracefully
-- ✅ Provides both CLI and programmatic interfaces
-- ✅ Clean, readable output formatting optimized for documentation generation
-- ✅ Error handling for malformed implementation documents
-
-### Web Interface
-- 🖱️ Drag & drop implementation document upload
-- 📊 Beautiful implementation results visualization
-- 🔍 Filter and search implementation features
-- 📥 Export parsed data as JSON for documentation generation
-- 📱 Mobile responsive design
-- 📖 Interactive document format guide
-- 🌐 RESTful API endpoints
-
-### Testing & Quality
-- 🧪 **97% code coverage** (exceeds 90% requirement)
-- ✅ **81 comprehensive test cases**
-- 🔄 Unit, integration, and regression tests
-- 🛡️ Security and error handling tests
-- 📋 Automated test runner scripts 
+``` 

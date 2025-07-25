@@ -58,8 +58,18 @@
                             </select>
                         </div>
                         
-                        <!-- Spacer for alignment -->
-                        <div class="col-md-6 mb-3"></div>
+                        <!-- Environment -->
+                        <div class="col-md-6 mb-3">
+                            <label for="environment" class="form-label">
+                                <strong>Environment</strong>
+                                <span class="text-muted">(test case filtering)</span>
+                            </label>
+                            <select class="form-select" id="environment" name="environment">
+                                <option value="separated" selected>Separated Tables (Sandbox + Production)</option>
+                                <option value="sandbox">Sandbox Only</option>
+                                <option value="production">Production Only</option>
+                            </select>
+                        </div>
                     </div>
 
                     <!-- Options -->
@@ -79,11 +89,13 @@
                         <h6 class="alert-heading">📋 What will be included:</h6>
                         <ul class="mb-0">
                             <li><strong>Implemented Features Only:</strong> Test cases for features marked as TRUE, Implemented, or similar values</li>
+                            <li><strong>Separated Tables:</strong> Creates separate tables for sandbox and production test cases</li>
+                            <li><strong>Environment Filtering:</strong> Choose specific environment or get separated tables</li>
                             <li><strong>Organized by Provider:</strong> Test cases grouped by provider + payment method combinations</li>
                             <li><strong>Test Case Types:</strong> Happy path, unhappy path, and corner case scenarios</li>
                             <li><strong>Google Docs Compatible:</strong> HTML format can be imported directly into Google Docs with formatting</li>
                             <li><strong>Professional Layout:</strong> Styled document with proper headings, colors, and structure</li>
-                            <li><strong>Multiple Formats:</strong> Choose between HTML (recommended) or Markdown</li>
+                            <li><strong>Multiple Formats:</strong> Choose between HTML (recommended), DOCX, or Markdown</li>
                         </ul>
                     </div>
 
@@ -119,6 +131,7 @@
                         <strong>Formats:</strong> HTML (Google Docs compatible), DOCX (Microsoft Word), or Markdown (.md) for technical docs<br>
                         <strong>Coverage:</strong> Only features marked as implemented (TRUE, Implemented, etc.)<br>
                         <strong>Languages:</strong> English, Spanish, and Portuguese supported<br>
+                        <strong>Environments:</strong> Separated tables by default, or filter by specific environment<br>
                         <strong>Import:</strong> HTML files can be opened directly in Google Docs, DOCX files open in Microsoft Word/Google Docs
                     </p>
                 </div>
@@ -183,6 +196,32 @@ document.addEventListener('DOMContentLoaded', function() {
             merchantName.value = 'Merchant';
         }
     });
+});
+
+// Environment selection helper text
+document.addEventListener('DOMContentLoaded', function() {
+    const environmentSelect = document.getElementById('environment');
+    const infoList = document.querySelector('.alert-info ul');
+    
+    function updateEnvironmentInfo() {
+        const environment = environmentSelect.value;
+        const environmentItem = infoList.querySelector('li:nth-child(2)');
+        
+        switch (environment) {
+            case 'sandbox':
+                environmentItem.innerHTML = '<strong>Environment Filtering:</strong> Sandbox environment test cases only';
+                break;
+            case 'production':
+                environmentItem.innerHTML = '<strong>Environment Filtering:</strong> Production environment test cases only';
+                break;
+            case 'separated':
+            default:
+                environmentItem.innerHTML = '<strong>Separated Tables:</strong> Creates separate tables for sandbox and production test cases';
+        }
+    }
+    
+    environmentSelect.addEventListener('change', updateEnvironmentInfo);
+    updateEnvironmentInfo(); // Set initial text
 });
 </script>
 {% endblock %} 

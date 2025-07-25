@@ -44,14 +44,37 @@ class TestCaseGenerator:
         """
         alphabet = string.ascii_lowercase + string.digits
         return ''.join(secrets.choice(alphabet) for _ in range(length))
+    
+    def _filter_test_cases_by_environment(self, test_cases: List[Dict], environment: str) -> List[Dict]:
+        """
+        Filter test cases based on the specified environment.
         
-    def generate_test_cases_for_features(self, parsed_features: Dict[str, Any]) -> List[Dict]:
+        Args:
+            test_cases: List of test cases to filter
+            environment: Environment to filter by ('sandbox', 'production', or 'both')
+            
+        Returns:
+            Filtered list of test cases
+        """
+        if environment == 'both':
+            return test_cases
+        
+        filtered_cases = []
+        for test_case in test_cases:
+            test_env = test_case.get('environment', 'both')
+            if test_env == 'both' or test_env == environment:
+                filtered_cases.append(test_case)
+        
+        return filtered_cases
+        
+    def generate_test_cases_for_features(self, parsed_features: Dict[str, Any], environment: str = 'both') -> List[Dict]:
         """
         Generate test cases for all implemented features from parsed data.
         Returns a flat list of test cases for table format.
         
         Args:
             parsed_features: Dictionary of parsed features from CSV parser
+            environment: Environment filter ('sandbox', 'production', or 'both')
             
         Returns:
             List of test cases with table columns: id, description, passed, date, executer, evidence
@@ -69,8 +92,11 @@ class TestCaseGenerator:
                 if self._is_feature_implemented(feature_value):
                     feature_test_cases = self.i18n.get_test_cases_for_feature(feature_name, self.locale)
                     
+                    # Filter test cases by environment
+                    filtered_test_cases = self._filter_test_cases_by_environment(feature_test_cases, environment)
+                    
                     # Convert each test case to table format
-                    for test_case in feature_test_cases:
+                    for test_case in filtered_test_cases:
                         # Use original ID from feature_rules.json with random salt
                         original_id = test_case['id']
                         salt = self._generate_test_case_salt()
@@ -83,15 +109,35 @@ class TestCaseGenerator:
                             'passed': '',  # Empty field for manual completion
                             'date': '',    # Empty field for manual completion
                             'executer': '',  # Empty field for manual completion
-                            'evidence': ''   # Empty field for manual completion
+                            'evidence': '',   # Empty field for manual completion
+                            'environment': test_case.get('environment', 'both')  # Include environment info
                         }
                         all_test_cases.append(table_test_case)
         
         return all_test_cases
     
+    def generate_environment_separated_test_cases(self, parsed_features: Dict[str, Any]) -> Dict[str, List[Dict]]:
+        """
+        Generate test cases separated by environment (sandbox and production).
+        
+        Args:
+            parsed_features: Dictionary of parsed features from CSV parser
+            
+        Returns:
+            Dictionary with 'sandbox' and 'production' keys containing their respective test cases
+        """
+        sandbox_cases = self.generate_test_cases_for_features(parsed_features, 'sandbox')
+        production_cases = self.generate_test_cases_for_features(parsed_features, 'production')
+        
+        return {
+            'sandbox': sandbox_cases,
+            'production': production_cases
+        }
+    
     def generate_markdown_document(self, parsed_features: Dict[str, Any], 
                                  merchant_name: str = "Merchant", 
-                                 include_metadata: bool = True) -> str:
+                                 include_metadata: bool = True,
+                                 environment: str = 'both') -> str:
         """
         Generate a complete markdown document with test cases in table format.
         
@@ -99,12 +145,11 @@ class TestCaseGenerator:
             parsed_features: Dictionary of parsed features from CSV parser
             merchant_name: Name of the merchant for document header
             include_metadata: Whether to include document metadata
+            environment: Environment filter ('sandbox', 'production', 'both', or 'separated')
             
         Returns:
             Complete markdown document as string with table format
         """
-        test_cases_data = self.generate_test_cases_for_features(parsed_features)
-        
         # Start building the markdown document
         markdown_lines = []
         
@@ -115,7 +160,7 @@ class TestCaseGenerator:
                 "",
                 f"**Generated on:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
                 f"**Language:** {self.locale.upper()}",
-                f"**Total Test Cases:** {len(test_cases_data)}",
+                f"**Environment:** {environment.title()}",
                 "",
                 "---",
                 ""
@@ -131,27 +176,74 @@ class TestCaseGenerator:
             ""
         ])
         
-        # Generate table header
-        markdown_lines.extend([
-            "| `ID` | Provider | Payment Method | Description | Passed | Date | Executer | Evidence |",
-            "|----|----------|----------------|-------------|--------|------|----------|----------|"
-        ])
-        
-        # Generate table rows
-        for test_case in test_cases_data:
-            row = f"| `{test_case['id']}` | {test_case['provider']} | {test_case['payment_method']} | {test_case['description']} | {test_case['passed']} | {test_case['date']} | {test_case['executer']} | {test_case['evidence']} |"
-            markdown_lines.append(row)
+        if environment == 'separated':
+            # Generate separate tables for sandbox and production
+            env_test_cases = self.generate_environment_separated_test_cases(parsed_features)
+            
+            for env_name in ['sandbox', 'production']:
+                test_cases_data = env_test_cases[env_name]
+                
+                if test_cases_data:  # Only show section if there are test cases
+                    markdown_lines.extend([
+                        f"## {env_name.title()} Environment Test Cases",
+                        "",
+                        f"Test cases specifically for the {env_name} environment.",
+                        "",
+                        "| `ID` | Provider | Payment Method | Description | Passed | Date | Executer | Evidence |",
+                        "|----|----------|----------------|-------------|--------|------|----------|----------|"
+                    ])
+                    
+                    # Generate table rows
+                    for test_case in test_cases_data:
+                        row = f"| `{test_case['id']}` | {test_case['provider']} | {test_case['payment_method']} | {test_case['description']} | {test_case['passed']} | {test_case['date']} | {test_case['executer']} | {test_case['evidence']} |"
+                        markdown_lines.append(row)
+                    
+                    markdown_lines.extend(["", ""])
+        else:
+            # Generate single table for specified environment
+            test_cases_data = self.generate_test_cases_for_features(parsed_features, environment)
+            
+            # Generate table header
+            markdown_lines.extend([
+                "| `ID` | Provider | Payment Method | Description | Passed | Date | Executer | Evidence |",
+                "|----|----------|----------------|-------------|--------|------|----------|----------|"
+            ])
+            
+            # Generate table rows
+            for test_case in test_cases_data:
+                row = f"| `{test_case['id']}` | {test_case['provider']} | {test_case['payment_method']} | {test_case['description']} | {test_case['passed']} | {test_case['date']} | {test_case['executer']} | {test_case['evidence']} |"
+                markdown_lines.append(row)
         
         # Summary section
         if include_metadata:
+            if environment == 'separated':
+                env_test_cases = self.generate_environment_separated_test_cases(parsed_features)
+                total_cases = len(env_test_cases['sandbox']) + len(env_test_cases['production'])
+                sandbox_count = len(env_test_cases['sandbox'])
+                production_count = len(env_test_cases['production'])
+            else:
+                test_cases_data = self.generate_test_cases_for_features(parsed_features, environment)
+                total_cases = len(test_cases_data)
+                sandbox_count = production_count = None
+            
             markdown_lines.extend([
                 "",
                 "---",
                 "",
                 "## Summary",
                 "",
-                f"- **Total Test Cases:** {len(test_cases_data)}",
+                f"- **Total Test Cases:** {total_cases}",
                 f"- **Document Language:** {self.locale.upper()}",
+                f"- **Environment Filter:** {environment.title()}",
+            ])
+            
+            if environment == 'separated':
+                markdown_lines.extend([
+                    f"- **Sandbox Test Cases:** {sandbox_count}",
+                    f"- **Production Test Cases:** {production_count}",
+                ])
+            
+            markdown_lines.extend([
                 "",
                 "### Instructions",
                 "- Fill in the 'Passed' column with Yes/No after executing each test case",
@@ -168,7 +260,8 @@ class TestCaseGenerator:
     
     def generate_html_document(self, parsed_features: Dict[str, Any], 
                              merchant_name: str = "Merchant", 
-                             include_metadata: bool = True) -> str:
+                             include_metadata: bool = True,
+                             environment: str = 'both') -> str:
         """
         Generate a complete HTML document with test cases in table format.
         Google Docs can import HTML files directly while preserving formatting.
@@ -177,12 +270,11 @@ class TestCaseGenerator:
             parsed_features: Dictionary of parsed features from CSV parser
             merchant_name: Name of the merchant for document header
             include_metadata: Whether to include document metadata
+            environment: Environment filter ('sandbox', 'production', 'both', or 'separated')
             
         Returns:
             Complete HTML document as string with table format
         """
-        test_cases_data = self.generate_test_cases_for_features(parsed_features)
-        
         # Start building the HTML document
         html_parts = []
         
@@ -199,9 +291,13 @@ class TestCaseGenerator:
             '        h1 { color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 10px; }',
             '        h2 { color: #34495e; border-bottom: 2px solid #ecf0f1; padding-bottom: 8px; margin-top: 30px; }',
             '        .metadata { background-color: #f8f9fa; padding: 15px; border-left: 4px solid #3498db; margin-bottom: 20px; }',
+            '        .environment-section { margin-top: 40px; }',
+            '        .environment-header { background-color: #e9ecef; padding: 10px; border-left: 4px solid #6c757d; margin-bottom: 15px; }',
             '        table { width: 100%; border-collapse: collapse; margin-top: 20px; }',
             '        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }',
             '        th { background-color: #3498db; color: white; font-weight: bold; }',
+            '        .sandbox-header { background-color: #f39c12 !important; }',
+            '        .production-header { background-color: #e74c3c !important; }',
             '        .id-column { font-family: "Courier New", "Monaco", "Lucida Console", monospace; font-size: 14px; }',
             '        tr:nth-child(even) { background-color: #f2f2f2; }',
             '        tr:hover { background-color: #e8f4f8; }',
@@ -220,7 +316,7 @@ class TestCaseGenerator:
                 '    <div class="metadata">',
                 f'        <p><strong>Generated on:</strong> {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}</p>',
                 f'        <p><strong>Language:</strong> {self.locale.upper()}</p>',
-                f'        <p><strong>Total Test Cases:</strong> {len(test_cases_data)}</p>',
+                f'        <p><strong>Environment:</strong> {environment.title()}</p>',
                 '    </div>'
             ])
         else:
@@ -233,52 +329,127 @@ class TestCaseGenerator:
             ''
         ])
         
-        # Generate table
-        html_parts.extend([
-            '    <table>',
-            '        <thead>',
-            '            <tr>',
-            '                <th class="id-column">ID</th>',
-            '                <th>Provider</th>',
-            '                <th>Payment Method</th>',
-            '                <th>Description</th>',
-            '                <th>Passed</th>',
-            '                <th>Date</th>',
-            '                <th>Executer</th>',
-            '                <th>Evidence</th>',
-            '            </tr>',
-            '        </thead>',
-            '        <tbody>'
-        ])
-        
-        # Generate table rows
-        for test_case in test_cases_data:
-            html_parts.append(
-                f'            <tr>'
-                f'<td class="id-column">{test_case["id"]}</td>'
-                f'<td>{test_case["provider"]}</td>'
-                f'<td>{test_case["payment_method"]}</td>'
-                f'<td>{test_case["description"]}</td>'
-                f'<td>{test_case["passed"]}</td>'
-                f'<td>{test_case["date"]}</td>'
-                f'<td>{test_case["executer"]}</td>'
-                f'<td>{test_case["evidence"]}</td>'
-                f'</tr>'
-            )
-        
-        html_parts.extend([
-            '        </tbody>',
-            '    </table>'
-        ])
+        if environment == 'separated':
+            # Generate separate tables for sandbox and production
+            env_test_cases = self.generate_environment_separated_test_cases(parsed_features)
+            
+            for env_name in ['sandbox', 'production']:
+                test_cases_data = env_test_cases[env_name]
+                
+                if test_cases_data:  # Only show section if there are test cases
+                    header_class = f"{env_name}-header"
+                    
+                    html_parts.extend([
+                        '    <div class="environment-section">',
+                        f'        <div class="environment-header">',
+                        f'            <h3 style="margin: 0;">{env_name.title()} Environment Test Cases</h3>',
+                        f'            <p style="margin: 5px 0 0 0; font-size: 14px;">Test cases specifically for the {env_name} environment.</p>',
+                        '        </div>',
+                        '        <table>',
+                        '            <thead>',
+                        '                <tr>',
+                        f'                    <th class="id-column {header_class}">ID</th>',
+                        f'                    <th class="{header_class}">Provider</th>',
+                        f'                    <th class="{header_class}">Payment Method</th>',
+                        f'                    <th class="{header_class}">Description</th>',
+                        f'                    <th class="{header_class}">Passed</th>',
+                        f'                    <th class="{header_class}">Date</th>',
+                        f'                    <th class="{header_class}">Executer</th>',
+                        f'                    <th class="{header_class}">Evidence</th>',
+                        '                </tr>',
+                        '            </thead>',
+                        '            <tbody>'
+                    ])
+                    
+                    # Generate table rows
+                    for test_case in test_cases_data:
+                        html_parts.append(
+                            f'                <tr>'
+                            f'<td class="id-column">{test_case["id"]}</td>'
+                            f'<td>{test_case["provider"]}</td>'
+                            f'<td>{test_case["payment_method"]}</td>'
+                            f'<td>{test_case["description"]}</td>'
+                            f'<td>{test_case["passed"]}</td>'
+                            f'<td>{test_case["date"]}</td>'
+                            f'<td>{test_case["executer"]}</td>'
+                            f'<td>{test_case["evidence"]}</td>'
+                            f'</tr>'
+                        )
+                    
+                    html_parts.extend([
+                        '            </tbody>',
+                        '        </table>',
+                        '    </div>'
+                    ])
+        else:
+            # Generate single table for specified environment
+            test_cases_data = self.generate_test_cases_for_features(parsed_features, environment)
+            
+            html_parts.extend([
+                '    <table>',
+                '        <thead>',
+                '            <tr>',
+                '                <th class="id-column">ID</th>',
+                '                <th>Provider</th>',
+                '                <th>Payment Method</th>',
+                '                <th>Description</th>',
+                '                <th>Passed</th>',
+                '                <th>Date</th>',
+                '                <th>Executer</th>',
+                '                <th>Evidence</th>',
+                '            </tr>',
+                '        </thead>',
+                '        <tbody>'
+            ])
+            
+            # Generate table rows
+            for test_case in test_cases_data:
+                html_parts.append(
+                    f'            <tr>'
+                    f'<td class="id-column">{test_case["id"]}</td>'
+                    f'<td>{test_case["provider"]}</td>'
+                    f'<td>{test_case["payment_method"]}</td>'
+                    f'<td>{test_case["description"]}</td>'
+                    f'<td>{test_case["passed"]}</td>'
+                    f'<td>{test_case["date"]}</td>'
+                    f'<td>{test_case["executer"]}</td>'
+                    f'<td>{test_case["evidence"]}</td>'
+                    f'</tr>'
+                )
+            
+            html_parts.extend([
+                '        </tbody>',
+                '    </table>'
+            ])
         
         # Summary section
         if include_metadata:
+            if environment == 'separated':
+                env_test_cases = self.generate_environment_separated_test_cases(parsed_features)
+                total_cases = len(env_test_cases['sandbox']) + len(env_test_cases['production'])
+                sandbox_count = len(env_test_cases['sandbox'])
+                production_count = len(env_test_cases['production'])
+            else:
+                test_cases_data = self.generate_test_cases_for_features(parsed_features, environment)
+                total_cases = len(test_cases_data)
+                sandbox_count = production_count = None
+            
             html_parts.extend([
                 '    <div class="summary">',
                 '        <h2>Summary</h2>',
                 '        <ul>',
-                f'            <li><strong>Total Test Cases:</strong> {len(test_cases_data)}</li>',
+                f'            <li><strong>Total Test Cases:</strong> {total_cases}</li>',
                 f'            <li><strong>Document Language:</strong> {self.locale.upper()}</li>',
+                f'            <li><strong>Environment Filter:</strong> {environment.title()}</li>',
+            ])
+            
+            if environment == 'separated':
+                html_parts.extend([
+                    f'            <li><strong>Sandbox Test Cases:</strong> {sandbox_count}</li>',
+                    f'            <li><strong>Production Test Cases:</strong> {production_count}</li>',
+                ])
+            
+            html_parts.extend([
                 '        </ul>',
                 '    </div>',
                 '    <div class="notes">',
@@ -304,7 +475,8 @@ class TestCaseGenerator:
     
     def generate_docx_document(self, parsed_features: Dict[str, Any], 
                              merchant_name: str = "Merchant", 
-                             include_metadata: bool = True) -> Document:
+                             include_metadata: bool = True,
+                             environment: str = 'both') -> Document:
         """
         Generate a complete DOCX document with test cases in table format.
         DOCX format provides professional styling and is compatible with Microsoft Word.
@@ -313,12 +485,11 @@ class TestCaseGenerator:
             parsed_features: Dictionary of parsed features from CSV parser
             merchant_name: Name of the merchant for document header
             include_metadata: Whether to include document metadata
+            environment: Environment filter ('sandbox', 'production', 'both', or 'separated')
             
         Returns:
             python-docx Document object ready for saving
         """
-        test_cases_data = self.generate_test_cases_for_features(parsed_features)
-        
         # Create a new document
         doc = Document()
         
@@ -345,8 +516,8 @@ class TestCaseGenerator:
             metadata_para.add_run(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
             metadata_para.add_run(f"Language: ").bold = True
             metadata_para.add_run(f"{self.locale.upper()}\n")
-            metadata_para.add_run(f"Total Test Cases: ").bold = True
-            metadata_para.add_run(f"{len(test_cases_data)}")
+            metadata_para.add_run(f"Environment: ").bold = True
+            metadata_para.add_run(f"{environment.title()}")
         else:
             title = doc.add_heading(f'Test Cases for {merchant_name}', 0)
             title.alignment = WD_ALIGN_PARAGRAPH.CENTER
@@ -361,6 +532,85 @@ class TestCaseGenerator:
             'Each test case should be executed to ensure proper functionality of the implemented features.'
         )
         
+        if environment == 'separated':
+            # Generate separate tables for sandbox and production
+            env_test_cases = self.generate_environment_separated_test_cases(parsed_features)
+            
+            for env_name in ['sandbox', 'production']:
+                test_cases_data = env_test_cases[env_name]
+                
+                if test_cases_data:  # Only show section if there are test cases
+                    # Add environment section header
+                    env_heading = doc.add_heading(f'{env_name.title()} Environment Test Cases', level=2)
+                    doc.add_paragraph(f'Test cases specifically for the {env_name} environment.')
+                    
+                    # Create table for this environment
+                    self._create_docx_table(doc, test_cases_data, env_name)
+        else:
+            # Generate single table for specified environment
+            test_cases_data = self.generate_test_cases_for_features(parsed_features, environment)
+            self._create_docx_table(doc, test_cases_data)
+        
+        # Summary section
+        if include_metadata:
+            if environment == 'separated':
+                env_test_cases = self.generate_environment_separated_test_cases(parsed_features)
+                total_cases = len(env_test_cases['sandbox']) + len(env_test_cases['production'])
+                sandbox_count = len(env_test_cases['sandbox'])
+                production_count = len(env_test_cases['production'])
+            else:
+                test_cases_data = self.generate_test_cases_for_features(parsed_features, environment)
+                total_cases = len(test_cases_data)
+                sandbox_count = production_count = None
+                
+            doc.add_page_break()
+            summary_heading = doc.add_heading('Summary', level=1)
+            
+            summary_para = doc.add_paragraph()
+            summary_para.add_run("Total Test Cases: ").bold = True
+            summary_para.add_run(f"{total_cases}\n")
+            summary_para.add_run("Document Language: ").bold = True
+            summary_para.add_run(f"{self.locale.upper()}\n")
+            summary_para.add_run("Environment Filter: ").bold = True
+            summary_para.add_run(f"{environment.title()}")
+            
+            if environment == 'separated':
+                summary_para.add_run("\nSandbox Test Cases: ").bold = True
+                summary_para.add_run(f"{sandbox_count}\n")
+                summary_para.add_run("Production Test Cases: ").bold = True
+                summary_para.add_run(f"{production_count}")
+            
+            # Instructions section
+            instructions_heading = doc.add_heading('Instructions', level=2)
+            instructions = [
+                'Fill in the "Passed" column with Yes/No after executing each test case',
+                'Record the execution date in the "Date" column',
+                'Add the name of the person who executed the test in the "Executer" column',
+                'Provide evidence (screenshots, logs, etc.) in the "Evidence" column'
+            ]
+            
+            for instruction in instructions:
+                para = doc.add_paragraph(instruction, style='List Bullet')
+            
+            # Footer note
+            doc.add_paragraph()
+            footer_para = doc.add_paragraph()
+            footer_run = footer_para.add_run(
+                'This document was automatically generated from your implementation scope.'
+            )
+            footer_run.italic = True
+        
+        return doc
+    
+    def _create_docx_table(self, doc, test_cases_data, environment_name=None):
+        """
+        Create a DOCX table for test cases.
+        
+        Args:
+            doc: Document object
+            test_cases_data: List of test cases
+            environment_name: Optional environment name for styling
+        """
         # Create table with explicit width settings
         table = doc.add_table(rows=1, cols=8)
         table.style = 'Table Grid'
@@ -383,10 +633,16 @@ class TestCaseGenerator:
         hdr_cells[6].text = 'Executer'
         hdr_cells[7].text = 'Evidence'
         
-        # Format header row with styling
+        # Format header row with styling based on environment
+        header_color = "366092"  # Default blue
+        if environment_name == 'sandbox':
+            header_color = "f39c12"  # Orange
+        elif environment_name == 'production':
+            header_color = "e74c3c"  # Red
+        
         for i, cell in enumerate(hdr_cells):
-            # Set background color to blue
-            self._set_cell_background_color(cell, "366092")  # Professional blue (hex: 54, 96, 146)
+            # Set background color
+            self._set_cell_background_color(cell, header_color)
             
             # Make text bold, white, and centered
             for paragraph in cell.paragraphs:
@@ -447,51 +703,27 @@ class TestCaseGenerator:
             row.cells[5].width = Inches(0.7)   # Date
             row.cells[6].width = Inches(0.8)   # Executer
             row.cells[7].width = Inches(1.0)   # Evidence
-        
-        # Summary section
-        if include_metadata:
-            doc.add_page_break()
-            summary_heading = doc.add_heading('Summary', level=1)
-            
-            summary_para = doc.add_paragraph()
-            summary_para.add_run("Total Test Cases: ").bold = True
-            summary_para.add_run(f"{len(test_cases_data)}\n")
-            summary_para.add_run("Document Language: ").bold = True
-            summary_para.add_run(f"{self.locale.upper()}")
-            
-            # Instructions section
-            instructions_heading = doc.add_heading('Instructions', level=2)
-            instructions = [
-                'Fill in the "Passed" column with Yes/No after executing each test case',
-                'Record the execution date in the "Date" column',
-                'Add the name of the person who executed the test in the "Executer" column',
-                'Provide evidence (screenshots, logs, etc.) in the "Evidence" column'
-            ]
-            
-            for instruction in instructions:
-                para = doc.add_paragraph(instruction, style='List Bullet')
-            
-            # Footer note
-            doc.add_paragraph()
-            footer_para = doc.add_paragraph()
-            footer_run = footer_para.add_run(
-                'This document was automatically generated from your implementation scope.'
-            )
-            footer_run.italic = True
-        
-        return doc
     
-    def generate_summary_statistics(self, parsed_features: Dict[str, Any]) -> Dict[str, Any]:
+    def generate_summary_statistics(self, parsed_features: Dict[str, Any], environment: str = 'both') -> Dict[str, Any]:
         """
         Generate summary statistics for the test cases.
         
         Args:
             parsed_features: Dictionary of parsed features from CSV parser
+            environment: Environment filter ('sandbox', 'production', 'both', or 'separated')
             
         Returns:
             Dictionary containing summary statistics
         """
-        test_cases_data = self.generate_test_cases_for_features(parsed_features)
+        if environment == 'separated':
+            env_test_cases = self.generate_environment_separated_test_cases(parsed_features)
+            sandbox_cases = env_test_cases['sandbox']
+            production_cases = env_test_cases['production']
+            total_test_cases = len(sandbox_cases) + len(production_cases)
+        else:
+            test_cases_data = self.generate_test_cases_for_features(parsed_features, environment)
+            total_test_cases = len(test_cases_data)
+            sandbox_cases = production_cases = None
         
         # Count implemented features per provider
         features_by_provider = {}
@@ -508,13 +740,20 @@ class TestCaseGenerator:
             features_by_provider[provider] = implemented_count
             total_implemented_features += implemented_count
         
-        return {
+        stats = {
             'total_providers': len(parsed_features),
-            'total_test_cases': len(test_cases_data),
+            'total_test_cases': total_test_cases,
             'total_implemented_features': total_implemented_features,
             'features_by_provider': features_by_provider,
-            'language': self.locale
+            'language': self.locale,
+            'environment': environment
         }
+        
+        if environment == 'separated':
+            stats['sandbox_test_cases'] = len(sandbox_cases) if sandbox_cases else 0
+            stats['production_test_cases'] = len(production_cases) if production_cases else 0
+        
+        return stats
     
     def _set_cell_background_color(self, cell, color_hex):
         """Set the background color of a table cell.

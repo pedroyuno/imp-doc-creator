@@ -129,6 +129,7 @@ def generate_test_cases():
     merchant_name = request.form.get('merchant_name', 'Merchant')
     language = request.form.get('language', 'en')
     output_format = request.form.get('output_format', 'docx')  # Default to DOCX
+    environment = request.form.get('environment', 'separated')  # New environment parameter - default to separated
     include_metadata = request.form.get('include_metadata') == 'on'
     
     try:
@@ -140,7 +141,8 @@ def generate_test_cases():
             document_content = generator.generate_html_document(
                 session['parsed_results'],
                 merchant_name=merchant_name,
-                include_metadata=include_metadata
+                include_metadata=include_metadata,
+                environment=environment
             )
             content_type = 'text/html'
             file_extension = 'html'
@@ -150,7 +152,8 @@ def generate_test_cases():
             doc = generator.generate_docx_document(
                 session['parsed_results'],
                 merchant_name=merchant_name,
-                include_metadata=include_metadata
+                include_metadata=include_metadata,
+                environment=environment
             )
             
             # Save document to BytesIO for download
@@ -166,14 +169,15 @@ def generate_test_cases():
             document_content = generator.generate_markdown_document(
                 session['parsed_results'],
                 merchant_name=merchant_name,
-                include_metadata=include_metadata
+                include_metadata=include_metadata,
+                environment=environment
             )
             content_type = 'text/markdown'
             file_extension = 'md'
             response = make_response(document_content)
         filename = session.get('filename', 'implementation_scope')
         safe_merchant_name = ''.join(c for c in merchant_name if c.isalnum() or c in (' ', '-', '_')).strip()
-        download_filename = f"{safe_merchant_name}_test_cases_{language}.{file_extension}".replace(' ', '_')
+        download_filename = f"{safe_merchant_name}_test_cases_{language}_{environment}.{file_extension}".replace(' ', '_')
         
         response.headers['Content-Type'] = content_type
         response.headers['Content-Disposition'] = f'attachment; filename="{download_filename}"'
@@ -198,6 +202,7 @@ def api_generate_test_cases():
         merchant_name = data.get('merchant_name', 'Merchant')
         language = data.get('language', 'en')
         output_format = data.get('output_format', 'docx')  # Default to DOCX
+        environment = data.get('environment', 'separated')  # New environment parameter
         include_metadata = data.get('include_metadata', True)
         
         # Generate test cases
@@ -208,7 +213,8 @@ def api_generate_test_cases():
             document_content = generator.generate_html_document(
                 parsed_features,
                 merchant_name=merchant_name,
-                include_metadata=include_metadata
+                include_metadata=include_metadata,
+                environment=environment
             )
             content_base64 = None
         elif output_format == 'docx':
@@ -216,7 +222,8 @@ def api_generate_test_cases():
             doc = generator.generate_docx_document(
                 parsed_features,
                 merchant_name=merchant_name,
-                include_metadata=include_metadata
+                include_metadata=include_metadata,
+                environment=environment
             )
             
             # Save document to BytesIO and encode as base64
@@ -231,19 +238,21 @@ def api_generate_test_cases():
             document_content = generator.generate_markdown_document(
                 parsed_features,
                 merchant_name=merchant_name,
-                include_metadata=include_metadata
+                include_metadata=include_metadata,
+                environment=environment
             )
             content_base64 = None
         
         # Generate statistics
-        statistics = generator.generate_summary_statistics(parsed_features)
+        statistics = generator.generate_summary_statistics(parsed_features, environment)
         
         response_data = {
             'success': True,
             'output_format': output_format,
             'statistics': statistics,
             'language': language,
-            'merchant_name': merchant_name
+            'merchant_name': merchant_name,
+            'environment': environment
         }
         
         # Include appropriate content field based on format
@@ -269,6 +278,7 @@ def test_case_preview():
     # Get parameters from query string
     merchant_name = request.args.get('merchant_name', 'Merchant')
     language = request.args.get('language', 'en')
+    environment = request.args.get('environment', 'separated')  # New environment parameter
     include_metadata = request.args.get('include_metadata', 'true').lower() == 'true'
     
     try:
@@ -276,14 +286,15 @@ def test_case_preview():
         generator = TestCaseGenerator(locale=language)
         
         # Get test case data for preview
-        test_cases_data = generator.generate_test_cases_for_features(session['parsed_results'])
-        statistics = generator.generate_summary_statistics(session['parsed_results'])
+        test_cases_data = generator.generate_test_cases_for_features(session['parsed_results'], environment)
+        statistics = generator.generate_summary_statistics(session['parsed_results'], environment)
         
         return render_template('test_case_preview.html',
                              test_cases_data=test_cases_data,
                              statistics=statistics,
                              merchant_name=merchant_name,
                              language=language,
+                             environment=environment,
                              filename=session.get('filename', 'Unknown'))
         
     except Exception as e:

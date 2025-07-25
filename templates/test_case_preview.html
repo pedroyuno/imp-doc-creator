@@ -12,6 +12,7 @@
                 <p class="text-muted mb-0">
                     <strong>Merchant:</strong> {{ merchant_name }} | 
                     <strong>Language:</strong> {{ language.upper() }} | 
+                    <strong>Environment:</strong> {{ environment.title() }} | 
                     <strong>Format:</strong> {{ request.args.get('output_format', 'html').upper() }} |
                     <strong>Source:</strong> {{ filename }}
                 </p>
@@ -45,10 +46,24 @@
             </div>
             <div class="col-md-3">
                 <div class="stats-card">
-                    <div class="stats-number">{{ language.upper() }}</div>
-                    <div class="stats-label">Document Language</div>
+                    <div class="stats-number">{{ environment.title() }}</div>
+                    <div class="stats-label">Environment Filter</div>
                 </div>
             </div>
+            {% if environment == 'separated' and statistics.sandbox_test_cases is defined and statistics.production_test_cases is defined %}
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-number">{{ statistics.sandbox_test_cases }}</div>
+                    <div class="stats-label">Sandbox Test Cases</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-number">{{ statistics.production_test_cases }}</div>
+                    <div class="stats-label">Production Test Cases</div>
+                </div>
+            </div>
+            {% endif %}
         </div>
 
         <!-- Test Case Types Breakdown -->

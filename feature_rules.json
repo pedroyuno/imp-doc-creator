@@ -15,17 +15,20 @@
         {
           "id": "CTR0001",
           "description_key": "testcase.country.process_payment_supported",
-          "type": "happy path"
+          "type": "happy path",
+          "environment": "both"
         },
         {
           "id": "CTR0002",
           "description_key": "testcase.country.reject_unsupported",
-          "type": "unhappy path"
+          "type": "unhappy path",
+          "environment": "both"
         },
         {
           "id": "CTR0003",
           "description_key": "testcase.country.specific_availability",
-          "type": "corner case"
+          "type": "corner case",
+          "environment": "both"
         }
       ]
     },
@@ -41,17 +44,20 @@
         {
           "id": "VRF0001",
           "description_key": "testcase.verify.valid_payment_method",
-          "type": "happy path"
+          "type": "happy path",
+          "environment": "both"
         },
         {
           "id": "VRF0002",
           "description_key": "testcase.verify.invalid_payment_method",
-          "type": "unhappy path"
+          "type": "unhappy path",
+          "environment": "both"
         },
         {
           "id": "VRF0003",
           "description_key": "testcase.verify.response_handling",
-          "type": "corner case"
+          "type": "corner case",
+          "environment": "both"
         }
       ]
     },
@@ -67,17 +73,20 @@
         {
           "id": "ATH0001",
           "description_key": "testcase.authorize.successful",
-          "type": "happy path"
+          "type": "happy path",
+          "environment": "both"
         },
         {
           "id": "ATH0002",
           "description_key": "testcase.authorize.failure",
-          "type": "unhappy path"
+          "type": "unhappy path",
+          "environment": "both"
         },
         {
           "id": "ATH0003",
           "description_key": "testcase.authorize.expiration",
-          "type": "corner case"
+          "type": "corner case",
+          "environment": "both"
         }
       ]
     },
@@ -93,17 +102,20 @@
         {
           "id": "CPT0001",
           "description_key": "testcase.capture.full_amount",
-          "type": "happy path"
+          "type": "happy path",
+          "environment": "both"
         },
         {
           "id": "CPT0002",
           "description_key": "testcase.capture.partial_amount",
-          "type": "happy path"
+          "type": "happy path",
+          "environment": "both"
         },
         {
           "id": "CPT0003",
           "description_key": "testcase.capture.expired_authorization",
-          "type": "corner case"
+          "type": "corner case",
+          "environment": "both"
         }
       ]
     },
@@ -119,17 +131,20 @@
         {
           "id": "CNC0001",
           "description_key": "testcase.cancel.authorized_payment",
-          "type": "happy path"
+          "type": "happy path",
+          "environment": "both"
         },
         {
           "id": "CNC0002",
           "description_key": "testcase.cancel.captured_payment",
-          "type": "corner case"
+          "type": "corner case",
+          "environment": "both"
         },
         {
           "id": "CNC0003",
           "description_key": "testcase.cancel.confirmation",
-          "type": "happy path"
+          "type": "happy path",
+          "environment": "both"
         }
       ]
     },
@@ -145,17 +160,20 @@
         {
           "id": "RFD0001",
           "description_key": "testcase.refund.full",
-          "type": "happy path"
+          "type": "happy path",
+          "environment": "both"
         },
         {
           "id": "RFD0002",
           "description_key": "testcase.refund.partial",
-          "type": "happy path"
+          "type": "happy path",
+          "environment": "both"
         },
         {
           "id": "RFD0003",
           "description_key": "testcase.refund.failure",
-          "type": "unhappy path"
+          "type": "unhappy path",
+          "environment": "both"
         }
       ]
     },
@@ -171,17 +189,20 @@
         {
           "id": "CUR0001",
           "description_key": "testcase.currency.supported",
-          "type": "happy path"
+          "type": "happy path",
+          "environment": "both"
         },
         {
           "id": "CUR0002",
           "description_key": "testcase.currency.unsupported",
-          "type": "unhappy path"
+          "type": "unhappy path",
+          "environment": "both"
         },
         {
           "id": "CUR0003",
           "description_key": "testcase.currency.conversion",
-          "type": "corner case"
+          "type": "corner case",
+          "environment": "both"
         }
       ]
     },
@@ -197,17 +218,20 @@
         {
           "id": "RCR0001",
           "description_key": "testcase.recurring.create_subscription",
-          "type": "happy path"
+          "type": "happy path",
+          "environment": "both"
         },
         {
           "id": "RCR0002",
           "description_key": "testcase.recurring.process_scheduled",
-          "type": "happy path"
+          "type": "happy path",
+          "environment": "both"
         },
         {
           "id": "RCR0003",
           "description_key": "testcase.recurring.cancel_subscription",
-          "type": "happy path"
+          "type": "happy path",
+          "environment": "both"
         }
       ]
     },
@@ -223,17 +247,20 @@
         {
           "id": "INS0001",
           "description_key": "testcase.installments.create_plan",
-          "type": "happy path"
+          "type": "happy path",
+          "environment": "both"
         },
         {
           "id": "INS0002",
           "description_key": "testcase.installments.process_payment",
-          "type": "happy path"
+          "type": "happy path",
+          "environment": "both"
         },
         {
           "id": "INS0003",
           "description_key": "testcase.installments.failed_payment",
-          "type": "unhappy path"
+          "type": "unhappy path",
+          "environment": "both"
         }
       ]
     },
@@ -249,17 +276,20 @@
         {
           "id": "TDS0001",
           "description_key": "testcase.3ds.successful_auth",
-          "type": "happy path"
+          "type": "happy path",
+          "environment": "both"
         },
         {
           "id": "TDS0002",
           "description_key": "testcase.3ds.failed_auth",
-          "type": "unhappy path"
+          "type": "unhappy path",
+          "environment": "both"
         },
         {
           "id": "TDS0003",
           "description_key": "testcase.3ds.challenge_flow",
-          "type": "corner case"
+          "type": "corner case",
+          "environment": "both"
         }
       ]
     },
@@ -275,17 +305,20 @@
         {
           "id": "WHK0001",
           "description_key": "testcase.webhook.receive_notification",
-          "type": "happy path"
+          "type": "happy path",
+          "environment": "both"
         },
         {
           "id": "WHK0002",
           "description_key": "testcase.webhook.verify_signature",
-          "type": "corner case"
+          "type": "corner case",
+          "environment": "both"
         },
         {
           "id": "WHK0003",
           "description_key": "testcase.webhook.retry_mechanism",
-          "type": "corner case"
+          "type": "corner case",
+          "environment": "both"
         }
       ]
     },
@@ -301,17 +334,20 @@
         {
           "id": "PLK0001",
           "description_key": "testcase.paymentlink.generate",
-          "type": "happy path"
+          "type": "happy path",
+          "environment": "both"
         },
         {
           "id": "PLK0002",
           "description_key": "testcase.paymentlink.complete_payment",
-          "type": "happy path"
+          "type": "happy path",
+          "environment": "both"
         },
         {
           "id": "PLK0003",
           "description_key": "testcase.paymentlink.expired",
-          "type": "corner case"
+          "type": "corner case",
+          "environment": "both"
         }
       ]
     },
@@ -327,17 +363,20 @@
         {
           "id": "TVT0001",
           "description_key": "testcase.tokenvault.store_token",
-          "type": "happy path"
+          "type": "happy path",
+          "environment": "both"
         },
         {
           "id": "TVT0002",
           "description_key": "testcase.tokenvault.use_stored_token",
-          "type": "happy path"
+          "type": "happy path",
+          "environment": "both"
         },
         {
           "id": "TVT0003",
           "description_key": "testcase.tokenvault.delete_token",
-          "type": "happy path"
+          "type": "happy path",
+          "environment": "both"
         }
       ]
     },
@@ -353,17 +392,20 @@
         {
           "id": "CHB0001",
           "description_key": "testcase.chargeback.receive_notification",
-          "type": "unhappy path"
+          "type": "unhappy path",
+          "environment": "both"
         },
         {
           "id": "CHB0002",
           "description_key": "testcase.chargeback.submit_defense",
-          "type": "happy path"
+          "type": "happy path",
+          "environment": "both"
         },
         {
           "id": "CHB0003",
           "description_key": "testcase.chargeback.resolution",
-          "type": "corner case"
+          "type": "corner case",
+          "environment": "both"
         }
       ]
     },
@@ -379,17 +421,20 @@
         {
           "id": "SPL0001",
           "description_key": "testcase.split.payment_between_recipients",
-          "type": "happy path"
+          "type": "happy path",
+          "environment": "both"
         },
         {
           "id": "SPL0002",
           "description_key": "testcase.split.verify_distribution",
-          "type": "corner case"
+          "type": "corner case",
+          "environment": "both"
         },
         {
           "id": "SPL0003",
           "description_key": "testcase.split.payment_failure",
-          "type": "unhappy path"
+          "type": "unhappy path",
+          "environment": "both"
         }
       ]
     },
@@ -405,17 +450,20 @@
         {
           "id": "SBX0001",
           "description_key": "testcase.sandbox.execute_test_payment",
-          "type": "happy path"
+          "type": "happy path",
+          "environment": "both"
         },
         {
           "id": "SBX0002",
           "description_key": "testcase.sandbox.data_isolation",
-          "type": "corner case"
+          "type": "corner case",
+          "environment": "both"
         },
         {
           "id": "SBX0003",
           "description_key": "testcase.sandbox.environment_switching",
-          "type": "corner case"
+          "type": "corner case",
+          "environment": "both"
         }
       ]
     }
@@ -433,11 +481,16 @@
       "unhappy path", 
       "corner case"
     ],
+    "environments": [
+      "sandbox",
+      "production",
+      "both"
+    ],
     "i18n": {
       "supported_locales": ["en", "es", "pt"],
       "default_locale": "en",
       "structure": "Testcase descriptions use i18n keys (description_key) that reference translations in i18n/{locale}.json files"
     },
-    "usage_instructions": "This file contains documentation rules that map feature names to their corresponding documentation URLs and explanatory comments. Integration steps are an array of objects, each containing documentation_url and comment, allowing multiple integration steps per feature. Testcase descriptions are internationalized using i18n keys. Use the i18n_helper.py utility to load translations."
+    "usage_instructions": "This file contains documentation rules that map feature names to their corresponding documentation URLs and explanatory comments. Integration steps are an array of objects, each containing documentation_url and comment, allowing multiple integration steps per feature. Testcase descriptions are internationalized using i18n keys. Each testcase now includes an environment field specifying whether it applies to 'sandbox', 'production', or 'both' environments. Use the i18n_helper.py utility to load translations."
   }
 } 
