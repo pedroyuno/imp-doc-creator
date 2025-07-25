@@ -66,6 +66,64 @@ class TestCaseGenerator:
                 filtered_cases.append(test_case)
         
         return filtered_cases
+    
+    def _get_implemented_features(self, parsed_features: Dict[str, Any]) -> List[str]:
+        """
+        Extract list of implemented features from parsed data.
+        
+        Args:
+            parsed_features: Dictionary of parsed features from CSV parser
+            
+        Returns:
+            List of feature names that are implemented
+        """
+        implemented_features = []
+        
+        for provider_key, provider_data in parsed_features.items():
+            features = provider_data['features']
+            
+            for feature_name, feature_value in features.items():
+                if self._is_feature_implemented(feature_value) and feature_name not in implemented_features:
+                    implemented_features.append(feature_name)
+        
+        return implemented_features
+    
+    def generate_integration_steps(self, parsed_features: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """
+        Generate integration steps for implemented features based on feature_rules.json.
+        
+        Args:
+            parsed_features: Dictionary of parsed features from CSV parser
+            
+        Returns:
+            List of integration steps with step number, comment, and documentation URL
+        """
+        # Get implemented features
+        implemented_features = self._get_implemented_features(parsed_features)
+        
+        # Get integration steps from rules in the order they appear in feature_rules.json
+        integration_steps = []
+        step_number = 1
+        
+        # Use the feature order from feature_rules.json (via i18n helper)
+        feature_order = list(self.i18n.feature_rules.keys())
+        
+        for feature_name in feature_order:
+            if feature_name in implemented_features:
+                feature_rule = self.i18n.feature_rules.get(feature_name, {})
+                integration_step_list = feature_rule.get('integration_steps', [])
+                
+                if integration_step_list:
+                    for step in integration_step_list:
+                        integration_steps.append({
+                            'step_number': step_number,
+                            'feature_name': feature_name,
+                            'comment': step['comment'],
+                            'documentation_url': step['documentation_url']
+                        })
+                        step_number += 1
+        
+        return integration_steps
         
     def generate_test_cases_for_features(self, parsed_features: Dict[str, Any], environment: str = 'both') -> List[Dict]:
         """
@@ -162,6 +220,31 @@ class TestCaseGenerator:
                 f"**Language:** {self.locale.upper()}",
                 f"**Environment:** {environment.title()}",
                 "",
+                "---",
+                ""
+            ])
+        
+        # Integration Steps Section
+        integration_steps = self.generate_integration_steps(parsed_features)
+        if integration_steps:
+            markdown_lines.extend([
+                "## Integration Steps",
+                "",
+                "Follow these integration steps in sequential order to implement the required features for your payment integration:",
+                ""
+            ])
+            
+            for step in integration_steps:
+                step_title = f"### Step {step['step_number']}: {step['feature_name']} Implementation"
+                markdown_lines.extend([
+                    step_title,
+                    "",
+                    f"**Description:** {step['comment']}",
+                    f"**Documentation:** [{step['documentation_url']}]({step['documentation_url']})",
+                    ""
+                ])
+            
+            markdown_lines.extend([
                 "---",
                 ""
             ])
@@ -304,6 +387,12 @@ class TestCaseGenerator:
             '        .summary { background-color: #ecf0f1; padding: 20px; border-radius: 5px; margin-top: 30px; }',
             '        .notes { background-color: #fff3cd; padding: 15px; border: 1px solid #ffeaa7; border-radius: 5px; margin-top: 20px; }',
             '        hr { border: none; border-top: 1px solid #bdc3c7; margin: 25px 0; }',
+            '        .integration-steps { margin: 20px 0; }',
+            '        .integration-step { background-color: #f8f9fa; padding: 15px; margin-bottom: 15px; border-left: 4px solid #28a745; border-radius: 5px; }',
+            '        .integration-step h3 { color: #155724; margin-top: 0; margin-bottom: 10px; }',
+            '        .integration-step p { margin: 5px 0; }',
+            '        .integration-step a { color: #007bff; text-decoration: none; }',
+            '        .integration-step a:hover { text-decoration: underline; }',
             '    </style>',
             '</head>',
             '<body>'
@@ -321,6 +410,31 @@ class TestCaseGenerator:
             ])
         else:
             html_parts.append(f'    <h1>Test Cases for {merchant_name}</h1>')
+        
+        # Integration Steps Section
+        integration_steps = self.generate_integration_steps(parsed_features)
+        if integration_steps:
+            html_parts.extend([
+                '    <h2>Integration Steps</h2>',
+                '    <p>Follow these integration steps in sequential order to implement the required features for your payment integration:</p>',
+                '    <div class="integration-steps">',
+            ])
+            
+            for step in integration_steps:
+                step_title = f"Step {step['step_number']}: {step['feature_name']} Implementation"
+                html_parts.extend([
+                    f'        <div class="integration-step">',
+                    f'            <h3>{step_title}</h3>',
+                    f'            <p><strong>Description:</strong> {step["comment"]}</p>',
+                    f'            <p><strong>Documentation:</strong> <a href="{step["documentation_url"]}" target="_blank">{step["documentation_url"]}</a></p>',
+                    '        </div>'
+                ])
+            
+            html_parts.extend([
+                '    </div>',
+                '    <hr>',
+                ''
+            ])
         
         # Introduction
         html_parts.extend([
@@ -524,6 +638,26 @@ class TestCaseGenerator:
         
         # Add a line break
         doc.add_paragraph()
+        
+        # Integration Steps Section
+        integration_steps = self.generate_integration_steps(parsed_features)
+        if integration_steps:
+            steps_heading = doc.add_heading('Integration Steps', level=1)
+            steps_intro = doc.add_paragraph(
+                'Follow these integration steps in sequential order to implement the required features for your payment integration:'
+            )
+            
+            for step in integration_steps:
+                step_heading = doc.add_heading(f"Step {step['step_number']}: {step['feature_name']} Implementation", level=2)
+                
+                desc_para = doc.add_paragraph()
+                desc_para.add_run("Description: ").bold = True
+                desc_para.add_run(step['comment'])
+                
+                doc_para = doc.add_paragraph()
+                doc_para.add_run("Documentation: ").bold = True
+                doc_run = doc_para.add_run(step['documentation_url'])
+                doc_run.font.color.rgb = RGBColor(0, 0, 255)  # Blue color for links
         
         # Introduction section
         intro_heading = doc.add_heading('Test Case Documentation', level=1)
