@@ -1,0 +1,290 @@
+{% extends "base.html" %}
+
+{% block title %}Feature Rules Management{% endblock %}
+
+{% block extra_css %}
+<style>
+    .rule-card {
+        border-left: 4px solid #007bff;
+        margin-bottom: 1rem;
+    }
+    .rule-card.missing-rule {
+        border-left-color: #dc3545;
+    }
+    .feature-name {
+        font-weight: bold;
+        color: #007bff;
+    }
+    .documentation-url {
+        color: #6c757d;
+        font-size: 0.9em;
+        word-break: break-all;
+    }
+    .rule-comment {
+        margin-top: 0.5rem;
+        font-style: italic;
+    }
+    .stats-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 10px;
+    }
+    .btn-action {
+        margin-right: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h1 class="mb-4">🔧 Feature Rules Management</h1>
+        
+        <!-- Summary Statistics -->
+        <div class="card stats-card mb-4">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 text-center">
+                        <h3>{{ summary.total_rules }}</h3>
+                        <p class="mb-0">Total Rules</p>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <h3>{{ rules_data.version }}</h3>
+                        <p class="mb-0">Version</p>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <h3>{{ rules_data.last_updated }}</h3>
+                        <p class="mb-0">Last Updated</p>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <h3>{{ rules_data.metadata.total_rules }}</h3>
+                        <p class="mb-0">Configured Features</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="mb-4">
+            <a href="{{ url_for('add_feature_rule') }}" class="btn btn-success btn-action">
+                <i class="fas fa-plus"></i> Add New Feature Rule
+            </a>
+            <button class="btn btn-info btn-action" onclick="location.reload()">
+                <i class="fas fa-refresh"></i> Reload Rules
+            </button>
+        </div>
+
+        <!-- Reordering Instructions -->
+        <div class="alert alert-info mb-4">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>Tip:</strong> You can reorder feature rules by dragging the <span style="color: #6c757d;">⋮⋮</span> handle next to each feature name. The order affects integration step sequence.
+            </div>
+        </div>
+
+        <!-- Feature Rules List -->
+        <div class="row" id="feature-rules-container">
+            {% for feature_name, rule in rules_data.rules.items() %}
+            <div class="col-md-6 mb-3" data-feature="{{ feature_name }}">
+                <div class="card rule-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div class="d-flex align-items-center">
+                                <div class="drag-handle me-2" style="cursor: move;" title="Drag to reorder">
+                                    <span style="font-size: 14px; color: #6c757d;">⋮⋮</span>
+                                </div>
+                                <h5 class="feature-name mb-0">{{ feature_name }}</h5>
+                            </div>
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                    Actions
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="{{ url_for('edit_feature_rule', feature_name=feature_name) }}">
+                                        <i class="fas fa-edit"></i> Edit Rule
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('manage_testcases', feature_name=feature_name) }}">
+                                        <i class="fas fa-vial"></i> Manage Test Cases
+                                    </a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <form method="POST" action="{{ url_for('delete_feature_rule', feature_name=feature_name) }}" 
+                                              onsubmit="return confirm('Are you sure you want to delete this feature rule?')" style="margin: 0;">
+                                            <button type="submit" class="dropdown-item text-danger">
+                                                <i class="fas fa-trash"></i> Delete
+                                            </button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        {% if rule.integration_steps and rule.integration_steps|length > 0 %}
+                            <div class="documentation-url">
+                                <i class="fas fa-link"></i> 
+                                <a href="{{ rule.integration_steps[0].documentation_url }}" target="_blank">
+                                    {{ rule.integration_steps[0].documentation_url }}
+                                </a>
+                            </div>
+                            <div class="rule-comment">
+                                "{{ rule.integration_steps[0].comment }}"
+                            </div>
+                        {% else %}
+                            <div class="documentation-url">
+                                <i class="fas fa-link"></i> 
+                                <a href="{{ rule.documentation_url }}" target="_blank">
+                                    {{ rule.documentation_url }}
+                                </a>
+                            </div>
+                            <div class="rule-comment">
+                                "{{ rule.comment }}"
+                            </div>
+                        {% endif %}
+                        
+                        {% if rule.testcases %}
+                        <div class="mt-2">
+                            <small class="text-muted">
+                                <i class="fas fa-vial"></i> {{ rule.testcases|length }} test cases configured
+                            </small>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% if rules_data.rules|length == 0 %}
+        <div class="alert alert-info">
+            <h4>No Feature Rules Found</h4>
+            <p>There are currently no feature rules configured. Start by adding your first feature rule.</p>
+            <a href="{{ url_for('add_feature_rule') }}" class="btn btn-primary">Add First Feature Rule</a>
+        </div>
+        {% endif %}
+        
+        <!-- Metadata Information -->
+        <div class="mt-5">
+            <h3>Configuration Details</h3>
+            <div class="card">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Supported Categories:</h6>
+                            <ul>
+                                {% for category in rules_data.metadata.categories %}
+                                <li>{{ category }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Test Case Types:</h6>
+                            <ul>
+                                {% for type in rules_data.metadata.testcase_types %}
+                                <li>{{ type }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-md-12">
+                            <h6>Usage Instructions:</h6>
+                            <p class="text-muted">{{ rules_data.metadata.usage_instructions }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize drag and drop functionality
+    const container = document.getElementById('feature-rules-container');
+    
+    if (container) {
+        const sortable = Sortable.create(container, {
+            animation: 150,
+            handle: '.drag-handle',
+            ghostClass: 'sortable-ghost',
+            chosenClass: 'sortable-chosen',
+            onEnd: function(evt) {
+                // Get the new order
+                const order = Array.from(container.children).map(el => el.dataset.feature);
+                
+                // Send the new order to the server
+                fetch('{{ url_for("reorder_feature_rules") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ order: order })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Show success message
+                        showToast('Rules reordered successfully!', 'success');
+                    } else {
+                        // Show error message
+                        showToast('Error reordering rules: ' + data.error, 'error');
+                        // Revert the change
+                        location.reload();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showToast('Error reordering rules', 'error');
+                    // Revert the change
+                    location.reload();
+                });
+            }
+        });
+    }
+    
+    // Simple toast notification function
+    function showToast(message, type) {
+        const toast = document.createElement('div');
+        toast.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show position-fixed`;
+        toast.style.cssText = 'top: 20px; right: 20px; z-index: 1050; min-width: 300px;';
+        toast.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        document.body.appendChild(toast);
+        
+        // Auto-remove after 3 seconds
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.parentNode.removeChild(toast);
+            }
+        }, 3000);
+    }
+});
+</script>
+<style>
+.sortable-ghost {
+    opacity: 0.5;
+}
+.sortable-chosen {
+    opacity: 0.8;
+}
+.drag-handle:hover {
+    color: #007bff !important;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    padding: 2px 4px;
+}
+.drag-handle {
+    transition: all 0.2s ease;
+    border-radius: 4px;
+    padding: 2px 4px;
+}
+</style>
+{% endblock %} 

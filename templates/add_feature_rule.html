@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}Add New Feature Rule{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4>➕ Add New Feature Rule</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('add_feature_rule') }}">
+                    <div class="mb-3">
+                        <label for="feature_name" class="form-label">Feature Name</label>
+                        <input type="text" class="form-control" id="feature_name" 
+                               name="feature_name" required 
+                               pattern="[A-Za-z0-9_-]+" 
+                               value="{{ request.form.get('feature_name', '') }}">
+                        <div class="form-text">
+                            Enter the feature name (e.g., "Country", "Verify", "3DS"). 
+                            Use only letters, numbers, underscores, and hyphens.
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="documentation_url" class="form-label">Documentation URL</label>
+                        <input type="url" class="form-control" id="documentation_url" 
+                               name="documentation_url" required 
+                               placeholder="https://docs.y.uno/..."
+                               value="{{ request.form.get('documentation_url', '') }}">
+                        <div class="form-text">Enter the complete URL to the documentation for this feature.</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="comment" class="form-label">Comment</label>
+                        <textarea class="form-control" id="comment" name="comment" rows="4" required 
+                                  placeholder="Describe what this feature does and its purpose...">{{ request.form.get('comment', '') }}</textarea>
+                        <div class="form-text">Provide a detailed description of the feature and its purpose.</div>
+                    </div>
+                    
+                    <!-- Information about automatic test case generation -->
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-info-circle"></i> Automatic Test Case Generation</h6>
+                        <p class="mb-0">
+                            A basic test case will be automatically generated for this feature. 
+                            You can add more test cases by editing the feature_rules.json file directly 
+                            or through future enhancements to this interface.
+                        </p>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('feature_rules') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Back to Rules
+                        </a>
+                        <div>
+                            <button type="reset" class="btn btn-outline-secondary me-2">
+                                <i class="fas fa-undo"></i> Reset
+                            </button>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-plus"></i> Add Feature Rule
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Examples Section -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h6>📝 Examples</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Payment Features:</h6>
+                        <ul class="small">
+                            <li><strong>Authorize</strong> - Payment authorization functionality</li>
+                            <li><strong>Capture</strong> - Capturing authorized payments</li>
+                            <li><strong>Refund</strong> - Full or partial refunds</li>
+                            <li><strong>Cancel</strong> - Canceling authorized payments</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Security Features:</h6>
+                        <ul class="small">
+                            <li><strong>3DS</strong> - 3D Secure authentication</li>
+                            <li><strong>Verify</strong> - Payment verification</li>
+                            <li><strong>TokenVault</strong> - Secure token storage</li>
+                            <li><strong>Webhook</strong> - Real-time notifications</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

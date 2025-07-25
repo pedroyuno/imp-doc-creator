@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block title %}Add Test Case - {{ feature_name }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4>➕ Add Test Case to {{ feature_name }}</h4>
+            </div>
+            <div class="card-body">
+                <!-- Navigation Breadcrumb -->
+                <nav aria-label="breadcrumb" class="mb-4">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{{ url_for('feature_rules') }}">Feature Rules</a></li>
+                        <li class="breadcrumb-item"><a href="{{ url_for('edit_feature_rule', feature_name=feature_name) }}">{{ feature_name }}</a></li>
+                        <li class="breadcrumb-item"><a href="{{ url_for('manage_testcases', feature_name=feature_name) }}">Test Cases</a></li>
+                        <li class="breadcrumb-item active">Add Test Case</li>
+                    </ol>
+                </nav>
+                
+                <form method="POST" action="{{ url_for('add_testcase', feature_name=feature_name) }}">
+                    <div class="mb-3">
+                        <label for="testcase_id" class="form-label">Test Case ID</label>
+                        <input type="text" class="form-control" id="testcase_id" 
+                               name="testcase_id" required 
+                               pattern="[A-Za-z0-9_-]+" 
+                               placeholder="e.g., CTR0001, VRF0002"
+                               value="{{ request.form.get('testcase_id', '') }}">
+                        <div class="form-text">
+                            Unique identifier for this test case. Use format like "CTR0001" (feature prefix + number).
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description_key" class="form-label">Description Key</label>
+                        <input type="text" class="form-control" id="description_key" 
+                               name="description_key" required 
+                               placeholder="e.g., testcase.country.process_payment_supported"
+                               value="{{ request.form.get('description_key', '') }}">
+                        <div class="form-text">
+                            I18n key for the test case description. Should follow the pattern: testcase.feature.scenario
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="testcase_type" class="form-label">Test Case Type</label>
+                        <select class="form-select" id="testcase_type" name="testcase_type" required>
+                            <option value="">Select test case type...</option>
+                            {% for type in testcase_types %}
+                            <option value="{{ type }}" {% if request.form.get('testcase_type') == type %}selected{% endif %}>
+                                {{ type|title }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-text">
+                            Choose the type based on the scenario being tested.
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="environment" class="form-label">Environment</label>
+                        <select class="form-select" id="environment" name="environment" required>
+                            <option value="">Select environment...</option>
+                            {% for env in environments %}
+                            <option value="{{ env }}" {% if request.form.get('environment') == env %}selected{% endif %}>
+                                {{ env|title }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-text">
+                            Specify which environment(s) this test case applies to.
+                        </div>
+                    </div>
+                    
+                    <!-- Help Section -->
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-info-circle"></i> Test Case Guidelines</h6>
+                        <ul class="mb-0">
+                            <li><strong>Happy Path:</strong> Normal, expected scenarios that should work correctly</li>
+                            <li><strong>Unhappy Path:</strong> Error conditions and failure scenarios</li>
+                            <li><strong>Corner Case:</strong> Edge cases and boundary conditions</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('manage_testcases', feature_name=feature_name) }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Back to Test Cases
+                        </a>
+                        <div>
+                            <button type="reset" class="btn btn-outline-secondary me-2">
+                                <i class="fas fa-undo"></i> Reset
+                            </button>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-plus"></i> Add Test Case
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Examples Section -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h6>📝 Example Test Cases</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Country Feature:</h6>
+                        <ul class="small">
+                            <li><strong>CTR0001:</strong> testcase.country.process_payment_supported</li>
+                            <li><strong>CTR0002:</strong> testcase.country.reject_unsupported</li>
+                            <li><strong>CTR0003:</strong> testcase.country.specific_availability</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Verify Feature:</h6>
+                        <ul class="small">
+                            <li><strong>VRF0001:</strong> testcase.verify.valid_payment_method</li>
+                            <li><strong>VRF0002:</strong> testcase.verify.invalid_payment_method</li>
+                            <li><strong>VRF0003:</strong> testcase.verify.response_handling</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

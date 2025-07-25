@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Test Case - {{ testcase.id }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4>✏️ Edit Test Case: {{ testcase.id }}</h4>
+            </div>
+            <div class="card-body">
+                <!-- Navigation Breadcrumb -->
+                <nav aria-label="breadcrumb" class="mb-4">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{{ url_for('feature_rules') }}">Feature Rules</a></li>
+                        <li class="breadcrumb-item"><a href="{{ url_for('edit_feature_rule', feature_name=feature_name) }}">{{ feature_name }}</a></li>
+                        <li class="breadcrumb-item"><a href="{{ url_for('manage_testcases', feature_name=feature_name) }}">Test Cases</a></li>
+                        <li class="breadcrumb-item active">Edit {{ testcase.id }}</li>
+                    </ol>
+                </nav>
+                
+                <form method="POST" action="{{ url_for('edit_testcase', feature_name=feature_name, testcase_id=testcase.id) }}">
+                    <div class="mb-3">
+                        <label for="testcase_id_display" class="form-label">Test Case ID</label>
+                        <input type="text" class="form-control" id="testcase_id_display" 
+                               value="{{ testcase.id }}" disabled>
+                        <div class="form-text">Test case ID cannot be changed after creation.</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description_key" class="form-label">Description Key</label>
+                        <input type="text" class="form-control" id="description_key" 
+                               name="description_key" required 
+                               value="{{ testcase.description_key }}">
+                        <div class="form-text">
+                            I18n key for the test case description. Should follow the pattern: testcase.feature.scenario
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="testcase_type" class="form-label">Test Case Type</label>
+                        <select class="form-select" id="testcase_type" name="testcase_type" required>
+                            <option value="">Select test case type...</option>
+                            {% for type in testcase_types %}
+                            <option value="{{ type }}" {% if testcase.type == type %}selected{% endif %}>
+                                {{ type|title }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-text">
+                            Choose the type based on the scenario being tested.
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="environment" class="form-label">Environment</label>
+                        <select class="form-select" id="environment" name="environment" required>
+                            <option value="">Select environment...</option>
+                            {% for env in environments %}
+                            <option value="{{ env }}" {% if testcase.environment == env %}selected{% endif %}>
+                                {{ env|title }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-text">
+                            Specify which environment(s) this test case applies to.
+                        </div>
+                    </div>
+                    
+                    <!-- Current Values Display -->
+                    <div class="alert alert-secondary">
+                        <h6><i class="fas fa-info-circle"></i> Current Values</h6>
+                        <ul class="mb-0">
+                            <li><strong>Type:</strong> <span class="badge 
+                                {% if testcase.type == 'happy path' %}bg-success
+                                {% elif testcase.type == 'unhappy path' %}bg-danger
+                                {% else %}bg-warning{% endif %}">{{ testcase.type }}</span></li>
+                            <li><strong>Environment:</strong> <span class="badge 
+                                {% if testcase.environment == 'both' %}bg-primary
+                                {% elif testcase.environment == 'sandbox' %}bg-info
+                                {% else %}bg-secondary{% endif %}">{{ testcase.environment }}</span></li>
+                            <li><strong>Description Key:</strong> <code>{{ testcase.description_key }}</code></li>
+                        </ul>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('manage_testcases', feature_name=feature_name) }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Back to Test Cases
+                        </a>
+                        <div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Save Changes
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Danger Zone -->
+        <div class="card mt-4 border-danger">
+            <div class="card-header bg-danger text-white">
+                <h6 class="mb-0">🚨 Danger Zone</h6>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">Once you delete a test case, there is no going back. Please be certain.</p>
+                <form method="POST" action="{{ url_for('delete_testcase', feature_name=feature_name, testcase_id=testcase.id) }}" 
+                      onsubmit="return confirm('Are you sure you want to delete this test case? This action cannot be undone.')">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Delete Test Case
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,7 +1,7 @@
 {
   "version": "2.0",
   "description": "Feature documentation rules for dynamic documentation generation",
-  "last_updated": "2025-07-23",
+  "last_updated": "2025-07-25",
   "rules": {
     "Country": {
       "feature_name": "Country",
@@ -22,70 +22,6 @@
           "id": "CTR0002",
           "description_key": "testcase.country.reject_unsupported",
           "type": "unhappy path",
-          "environment": "both"
-        },
-        {
-          "id": "CTR0003",
-          "description_key": "testcase.country.specific_availability",
-          "type": "corner case",
-          "environment": "both"
-        }
-      ]
-    },
-    "Verify": {
-      "feature_name": "Verify",
-      "integration_steps": [
-        {
-          "documentation_url": "https://docs.y.uno/docs/step-1-set-up-your-account",
-          "comment": "Indicates whether payment verification is supported. Critical for transaction security and compliance requirements."
-        }
-      ],
-      "testcases": [
-        {
-          "id": "VRF0001",
-          "description_key": "testcase.verify.valid_payment_method",
-          "type": "happy path",
-          "environment": "both"
-        },
-        {
-          "id": "VRF0002",
-          "description_key": "testcase.verify.invalid_payment_method",
-          "type": "unhappy path",
-          "environment": "both"
-        },
-        {
-          "id": "VRF0003",
-          "description_key": "testcase.verify.response_handling",
-          "type": "corner case",
-          "environment": "both"
-        }
-      ]
-    },
-    "Authorize": {
-      "feature_name": "Authorize",
-      "integration_steps": [
-        {
-          "documentation_url": "https://docs.y.uno/reference/authorize-payment",
-          "comment": "Supports payment authorization functionality. Required for holding funds before capture in two-step payment flows."
-        }
-      ],
-      "testcases": [
-        {
-          "id": "ATH0001",
-          "description_key": "testcase.authorize.successful",
-          "type": "happy path",
-          "environment": "both"
-        },
-        {
-          "id": "ATH0002",
-          "description_key": "testcase.authorize.failure",
-          "type": "unhappy path",
-          "environment": "both"
-        },
-        {
-          "id": "ATH0003",
-          "description_key": "testcase.authorize.expiration",
-          "type": "corner case",
           "environment": "both"
         }
       ]
@@ -114,6 +50,66 @@
         {
           "id": "CPT0003",
           "description_key": "testcase.capture.expired_authorization",
+          "type": "corner case",
+          "environment": "both"
+        }
+      ]
+    },
+    "Verify": {
+      "feature_name": "Verify",
+      "integration_steps": [
+        {
+          "documentation_url": "https://docs.y.uno/docs/card-verification",
+          "comment": "Indicates whether payment verification is supported. Critical for transaction security and compliance requirements."
+        }
+      ],
+      "testcases": [
+        {
+          "id": "VRF0001",
+          "description_key": "testcase.verify.valid_payment_method",
+          "type": "happy path",
+          "environment": "both"
+        },
+        {
+          "id": "VRF0002",
+          "description_key": "testcase.verify.invalid_payment_method",
+          "type": "unhappy path",
+          "environment": "both"
+        },
+        {
+          "id": "VRF0003",
+          "description_key": "testcase.verify.response_handling",
+          "type": "corner case",
+          "environment": "both"
+        }
+      ],
+      "documentation_url": "https://docs.y.uno/docs/card-verification",
+      "comment": "Indicates whether payment verification is supported. Critical for transaction security and compliance requirements."
+    },
+    "Authorize": {
+      "feature_name": "Authorize",
+      "integration_steps": [
+        {
+          "documentation_url": "https://docs.y.uno/reference/authorize-payment",
+          "comment": "Supports payment authorization functionality. Required for holding funds before capture in two-step payment flows."
+        }
+      ],
+      "testcases": [
+        {
+          "id": "ATH0001",
+          "description_key": "testcase.authorize.successful",
+          "type": "happy path",
+          "environment": "both"
+        },
+        {
+          "id": "ATH0002",
+          "description_key": "testcase.authorize.failure",
+          "type": "unhappy path",
+          "environment": "both"
+        },
+        {
+          "id": "ATH0003",
+          "description_key": "testcase.authorize.expiration",
           "type": "corner case",
           "environment": "both"
         }
@@ -472,13 +468,13 @@
     "total_rules": 16,
     "categories": [
       "Payment Processing",
-      "Security & Compliance", 
+      "Security & Compliance",
       "Customer Experience",
       "Development & Testing"
     ],
     "testcase_types": [
       "happy path",
-      "unhappy path", 
+      "unhappy path",
       "corner case"
     ],
     "environments": [
@@ -487,10 +483,14 @@
       "both"
     ],
     "i18n": {
-      "supported_locales": ["en", "es", "pt"],
+      "supported_locales": [
+        "en",
+        "es",
+        "pt"
+      ],
       "default_locale": "en",
       "structure": "Testcase descriptions use i18n keys (description_key) that reference translations in i18n/{locale}.json files"
     },
     "usage_instructions": "This file contains documentation rules that map feature names to their corresponding documentation URLs and explanatory comments. Integration steps are an array of objects, each containing documentation_url and comment, allowing multiple integration steps per feature. Testcase descriptions are internationalized using i18n keys. Each testcase now includes an environment field specifying whether it applies to 'sandbox', 'production', or 'both' environments. Use the i18n_helper.py utility to load translations."
   }
-} 
+}

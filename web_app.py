@@ -11,10 +11,13 @@ from io import BytesIO
 from werkzeug.utils import secure_filename
 from csv_parser import ProviderPaymentParser
 from test_case_generator import TestCaseGenerator
+from rules_manager import RulesManager
 import json
 
 app = Flask(__name__)
 app.secret_key = 'your-secret-key-change-this'  # Change this in production
+app.config['TEMPLATES_AUTO_RELOAD'] = True
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 
 # Configuration
 UPLOAD_FOLDER = 'uploads'
@@ -358,10 +361,424 @@ def download_sample():
                      download_name='sample_integrations.csv',
                      mimetype='text/csv')
 
+@app.route('/feature-rules')
+def feature_rules():
+    """Display feature rules management interface."""
+    try:
+        rules_manager = RulesManager(verbose=False)
+        rules_manager.load_rules()
+        
+        # Get rules data for display
+        rules_data = {}
+        with open('feature_rules.json', 'r', encoding='utf-8') as f:
+            rules_data = json.load(f)
+        
+        return render_template('feature_rules.html', 
+                             rules_data=rules_data,
+                             summary=rules_manager.get_rules_summary())
+    except Exception as e:
+        flash(f'Error loading feature rules: {str(e)}')
+        return redirect(url_for('index'))
+
+@app.route('/feature-rules/edit/<feature_name>')
+def edit_feature_rule(feature_name):
+    """Edit a specific feature rule."""
+    try:
+        with open('feature_rules.json', 'r', encoding='utf-8') as f:
+            rules_data = json.load(f)
+        
+        if feature_name not in rules_data.get('rules', {}):
+            flash(f'Feature rule "{feature_name}" not found.')
+            return redirect(url_for('feature_rules'))
+        
+        rule = rules_data['rules'][feature_name]
+        return render_template('edit_feature_rule.html', 
+                             feature_name=feature_name,
+                             rule=rule)
+    except Exception as e:
+        flash(f'Error loading feature rule: {str(e)}')
+        return redirect(url_for('feature_rules'))
+
+@app.route('/feature-rules/save', methods=['POST'])
+def save_feature_rule():
+    """Save changes to a feature rule."""
+    try:
+        feature_name = request.form.get('feature_name')
+        documentation_url = request.form.get('documentation_url', '').strip()
+        comment = request.form.get('comment', '').strip()
+        
+        if not feature_name or not documentation_url or not comment:
+            flash('All fields are required.')
+            return redirect(url_for('edit_feature_rule', feature_name=feature_name))
+        
+        # Load current rules
+        with open('feature_rules.json', 'r', encoding='utf-8') as f:
+            rules_data = json.load(f)
+        
+        # Update the rule
+        if feature_name in rules_data.get('rules', {}):
+            rules_data['rules'][feature_name]['documentation_url'] = documentation_url
+            rules_data['rules'][feature_name]['comment'] = comment
+            
+            # Handle integration_steps format
+            if 'integration_steps' in rules_data['rules'][feature_name]:
+                rules_data['rules'][feature_name]['integration_steps'][0]['documentation_url'] = documentation_url
+                rules_data['rules'][feature_name]['integration_steps'][0]['comment'] = comment
+        
+        # Update last_updated timestamp
+        from datetime import datetime
+        rules_data['last_updated'] = datetime.now().strftime('%Y-%m-%d')
+        
+        # Save back to file
+        with open('feature_rules.json', 'w', encoding='utf-8') as f:
+            json.dump(rules_data, f, indent=2, ensure_ascii=False)
+        
+        flash(f'Successfully updated feature rule for "{feature_name}".')
+        return redirect(url_for('feature_rules'))
+        
+    except Exception as e:
+        flash(f'Error saving feature rule: {str(e)}')
+        return redirect(url_for('feature_rules'))
+
+@app.route('/feature-rules/add', methods=['GET', 'POST'])
+def add_feature_rule():
+    """Add a new feature rule."""
+    if request.method == 'GET':
+        return render_template('add_feature_rule.html')
+    
+    try:
+        feature_name = request.form.get('feature_name', '').strip()
+        documentation_url = request.form.get('documentation_url', '').strip()
+        comment = request.form.get('comment', '').strip()
+        
+        if not feature_name or not documentation_url or not comment:
+            flash('All fields are required.')
+            return render_template('add_feature_rule.html')
+        
+        # Load current rules
+        with open('feature_rules.json', 'r', encoding='utf-8') as f:
+            rules_data = json.load(f)
+        
+        # Check if feature already exists
+        if feature_name in rules_data.get('rules', {}):
+            flash(f'Feature rule "{feature_name}" already exists.')
+            return render_template('add_feature_rule.html')
+        
+        # Create new rule with testcases
+        new_rule = {
+            "feature_name": feature_name,
+            "integration_steps": [
+                {
+                    "documentation_url": documentation_url,
+                    "comment": comment
+                }
+            ],
+            "testcases": [
+                {
+                    "id": f"{feature_name[:3].upper()}0001",
+                    "description_key": f"testcase.{feature_name.lower()}.basic_functionality",
+                    "type": "happy path",
+                    "environment": "both"
+                }
+            ]
+        }
+        
+        # Add the new rule
+        rules_data['rules'][feature_name] = new_rule
+        
+        # Update metadata
+        from datetime import datetime
+        rules_data['last_updated'] = datetime.now().strftime('%Y-%m-%d')
+        rules_data['metadata']['total_rules'] = len(rules_data['rules'])
+        
+        # Save back to file
+        with open('feature_rules.json', 'w', encoding='utf-8') as f:
+            json.dump(rules_data, f, indent=2, ensure_ascii=False)
+        
+        flash(f'Successfully added new feature rule for "{feature_name}".')
+        return redirect(url_for('feature_rules'))
+        
+    except Exception as e:
+        flash(f'Error adding feature rule: {str(e)}')
+        return render_template('add_feature_rule.html')
+
+@app.route('/feature-rules/delete/<feature_name>', methods=['POST'])
+def delete_feature_rule(feature_name):
+    """Delete a feature rule."""
+    try:
+        # Load current rules
+        with open('feature_rules.json', 'r', encoding='utf-8') as f:
+            rules_data = json.load(f)
+        
+        if feature_name not in rules_data.get('rules', {}):
+            flash(f'Feature rule "{feature_name}" not found.')
+            return redirect(url_for('feature_rules'))
+        
+        # Delete the rule
+        del rules_data['rules'][feature_name]
+        
+        # Update metadata
+        from datetime import datetime
+        rules_data['last_updated'] = datetime.now().strftime('%Y-%m-%d')
+        rules_data['metadata']['total_rules'] = len(rules_data['rules'])
+        
+        # Save back to file
+        with open('feature_rules.json', 'w', encoding='utf-8') as f:
+            json.dump(rules_data, f, indent=2, ensure_ascii=False)
+        
+        flash(f'Successfully deleted feature rule for "{feature_name}".')
+        return redirect(url_for('feature_rules'))
+        
+    except Exception as e:
+        flash(f'Error deleting feature rule: {str(e)}')
+        return redirect(url_for('feature_rules'))
+
+@app.route('/feature-rules/reorder', methods=['POST'])
+def reorder_feature_rules():
+    """Reorder feature rules based on the new order provided."""
+    try:
+        new_order = request.json.get('order', [])
+        
+        if not new_order:
+            return jsonify({'error': 'No order provided'}), 400
+        
+        # Load current rules
+        with open('feature_rules.json', 'r', encoding='utf-8') as f:
+            rules_data = json.load(f)
+        
+        # Create new ordered rules dictionary
+        new_rules = {}
+        for feature_name in new_order:
+            if feature_name in rules_data['rules']:
+                new_rules[feature_name] = rules_data['rules'][feature_name]
+        
+        # Add any missing rules that weren't in the order (shouldn't happen, but safety)
+        for feature_name, rule in rules_data['rules'].items():
+            if feature_name not in new_rules:
+                new_rules[feature_name] = rule
+        
+        # Update rules with new order
+        rules_data['rules'] = new_rules
+        
+        # Update timestamp
+        from datetime import datetime
+        rules_data['last_updated'] = datetime.now().strftime('%Y-%m-%d')
+        
+        # Save back to file
+        with open('feature_rules.json', 'w', encoding='utf-8') as f:
+            json.dump(rules_data, f, indent=2, ensure_ascii=False)
+        
+        return jsonify({'success': True, 'message': 'Rules reordered successfully'})
+        
+    except Exception as e:
+        return jsonify({'error': f'Error reordering rules: {str(e)}'}), 500
+
+@app.route('/feature-rules/<feature_name>/testcases')
+def manage_testcases(feature_name):
+    """Manage test cases for a specific feature."""
+    try:
+        with open('feature_rules.json', 'r', encoding='utf-8') as f:
+            rules_data = json.load(f)
+        
+        if feature_name not in rules_data.get('rules', {}):
+            flash(f'Feature rule "{feature_name}" not found.')
+            return redirect(url_for('feature_rules'))
+        
+        rule = rules_data['rules'][feature_name]
+        testcases = rule.get('testcases', [])
+        
+        return render_template('manage_testcases.html', 
+                             feature_name=feature_name,
+                             testcases=testcases,
+                             testcase_types=rules_data['metadata']['testcase_types'],
+                             environments=rules_data['metadata']['environments'])
+    except Exception as e:
+        flash(f'Error loading test cases: {str(e)}')
+        return redirect(url_for('feature_rules'))
+
+@app.route('/feature-rules/<feature_name>/testcases/add', methods=['GET', 'POST'])
+def add_testcase(feature_name):
+    """Add a new test case to a feature."""
+    if request.method == 'GET':
+        try:
+            with open('feature_rules.json', 'r', encoding='utf-8') as f:
+                rules_data = json.load(f)
+            
+            return render_template('add_testcase.html', 
+                                 feature_name=feature_name,
+                                 testcase_types=rules_data['metadata']['testcase_types'],
+                                 environments=rules_data['metadata']['environments'])
+        except Exception as e:
+            flash(f'Error loading form: {str(e)}')
+            return redirect(url_for('manage_testcases', feature_name=feature_name))
+    
+    try:
+        testcase_id = request.form.get('testcase_id', '').strip()
+        description_key = request.form.get('description_key', '').strip()
+        testcase_type = request.form.get('testcase_type', '').strip()
+        environment = request.form.get('environment', '').strip()
+        
+        if not all([testcase_id, description_key, testcase_type, environment]):
+            flash('All fields are required.')
+            return redirect(url_for('add_testcase', feature_name=feature_name))
+        
+        # Load current rules
+        with open('feature_rules.json', 'r', encoding='utf-8') as f:
+            rules_data = json.load(f)
+        
+        if feature_name not in rules_data.get('rules', {}):
+            flash(f'Feature rule "{feature_name}" not found.')
+            return redirect(url_for('feature_rules'))
+        
+        # Check if testcase ID already exists
+        existing_testcases = rules_data['rules'][feature_name].get('testcases', [])
+        if any(tc['id'] == testcase_id for tc in existing_testcases):
+            flash(f'Test case ID "{testcase_id}" already exists.')
+            return redirect(url_for('add_testcase', feature_name=feature_name))
+        
+        # Create new test case
+        new_testcase = {
+            'id': testcase_id,
+            'description_key': description_key,
+            'type': testcase_type,
+            'environment': environment
+        }
+        
+        # Add to feature's test cases
+        if 'testcases' not in rules_data['rules'][feature_name]:
+            rules_data['rules'][feature_name]['testcases'] = []
+        
+        rules_data['rules'][feature_name]['testcases'].append(new_testcase)
+        
+        # Update timestamp
+        from datetime import datetime
+        rules_data['last_updated'] = datetime.now().strftime('%Y-%m-%d')
+        
+        # Save back to file
+        with open('feature_rules.json', 'w', encoding='utf-8') as f:
+            json.dump(rules_data, f, indent=2, ensure_ascii=False)
+        
+        flash(f'Successfully added test case "{testcase_id}".')
+        return redirect(url_for('manage_testcases', feature_name=feature_name))
+        
+    except Exception as e:
+        flash(f'Error adding test case: {str(e)}')
+        return redirect(url_for('add_testcase', feature_name=feature_name))
+
+@app.route('/feature-rules/<feature_name>/testcases/<testcase_id>/edit', methods=['GET', 'POST'])
+def edit_testcase(feature_name, testcase_id):
+    """Edit an existing test case."""
+    if request.method == 'GET':
+        try:
+            with open('feature_rules.json', 'r', encoding='utf-8') as f:
+                rules_data = json.load(f)
+            
+            if feature_name not in rules_data.get('rules', {}):
+                flash(f'Feature rule "{feature_name}" not found.')
+                return redirect(url_for('feature_rules'))
+            
+            # Find the test case
+            testcases = rules_data['rules'][feature_name].get('testcases', [])
+            testcase = next((tc for tc in testcases if tc['id'] == testcase_id), None)
+            
+            if not testcase:
+                flash(f'Test case "{testcase_id}" not found.')
+                return redirect(url_for('manage_testcases', feature_name=feature_name))
+            
+            return render_template('edit_testcase.html', 
+                                 feature_name=feature_name,
+                                 testcase=testcase,
+                                 testcase_types=rules_data['metadata']['testcase_types'],
+                                 environments=rules_data['metadata']['environments'])
+        except Exception as e:
+            flash(f'Error loading test case: {str(e)}')
+            return redirect(url_for('manage_testcases', feature_name=feature_name))
+    
+    try:
+        description_key = request.form.get('description_key', '').strip()
+        testcase_type = request.form.get('testcase_type', '').strip()
+        environment = request.form.get('environment', '').strip()
+        
+        if not all([description_key, testcase_type, environment]):
+            flash('All fields are required.')
+            return redirect(url_for('edit_testcase', feature_name=feature_name, testcase_id=testcase_id))
+        
+        # Load current rules
+        with open('feature_rules.json', 'r', encoding='utf-8') as f:
+            rules_data = json.load(f)
+        
+        if feature_name not in rules_data.get('rules', {}):
+            flash(f'Feature rule "{feature_name}" not found.')
+            return redirect(url_for('feature_rules'))
+        
+        # Find and update the test case
+        testcases = rules_data['rules'][feature_name].get('testcases', [])
+        for i, testcase in enumerate(testcases):
+            if testcase['id'] == testcase_id:
+                testcases[i]['description_key'] = description_key
+                testcases[i]['type'] = testcase_type
+                testcases[i]['environment'] = environment
+                break
+        else:
+            flash(f'Test case "{testcase_id}" not found.')
+            return redirect(url_for('manage_testcases', feature_name=feature_name))
+        
+        # Update timestamp
+        from datetime import datetime
+        rules_data['last_updated'] = datetime.now().strftime('%Y-%m-%d')
+        
+        # Save back to file
+        with open('feature_rules.json', 'w', encoding='utf-8') as f:
+            json.dump(rules_data, f, indent=2, ensure_ascii=False)
+        
+        flash(f'Successfully updated test case "{testcase_id}".')
+        return redirect(url_for('manage_testcases', feature_name=feature_name))
+        
+    except Exception as e:
+        flash(f'Error updating test case: {str(e)}')
+        return redirect(url_for('edit_testcase', feature_name=feature_name, testcase_id=testcase_id))
+
+@app.route('/feature-rules/<feature_name>/testcases/<testcase_id>/delete', methods=['POST'])
+def delete_testcase(feature_name, testcase_id):
+    """Delete a test case."""
+    try:
+        # Load current rules
+        with open('feature_rules.json', 'r', encoding='utf-8') as f:
+            rules_data = json.load(f)
+        
+        if feature_name not in rules_data.get('rules', {}):
+            flash(f'Feature rule "{feature_name}" not found.')
+            return redirect(url_for('feature_rules'))
+        
+        # Find and remove the test case
+        testcases = rules_data['rules'][feature_name].get('testcases', [])
+        original_count = len(testcases)
+        testcases[:] = [tc for tc in testcases if tc['id'] != testcase_id]
+        
+        if len(testcases) == original_count:
+            flash(f'Test case "{testcase_id}" not found.')
+            return redirect(url_for('manage_testcases', feature_name=feature_name))
+        
+        # Update timestamp
+        from datetime import datetime
+        rules_data['last_updated'] = datetime.now().strftime('%Y-%m-%d')
+        
+        # Save back to file
+        with open('feature_rules.json', 'w', encoding='utf-8') as f:
+            json.dump(rules_data, f, indent=2, ensure_ascii=False)
+        
+        flash(f'Successfully deleted test case "{testcase_id}".')
+        return redirect(url_for('manage_testcases', feature_name=feature_name))
+        
+    except Exception as e:
+        flash(f'Error deleting test case: {str(e)}')
+        return redirect(url_for('manage_testcases', feature_name=feature_name))
+
 if __name__ == '__main__':
     port = 5001
+    
     print(f"🌐 Starting Implementation Scoping Document Parser on http://localhost:{port}")
     print(f"📋 Open your browser and go to: http://localhost:{port}")
     print("⏹️  Press Ctrl+C to stop the server")
     
-    app.run(debug=False, host='0.0.0.0', port=port) 
+    app.run(host='0.0.0.0', port=port, debug=True) 

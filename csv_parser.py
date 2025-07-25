@@ -88,6 +88,7 @@ class ProviderPaymentParser:
             return
         
         self.parsed_features = {}
+        found_features = set()  # Track all unique features found
         
         # Start from row 5 (index 4) since rows 0-3 are headers
         feature_start_row = 4
@@ -95,6 +96,9 @@ class ProviderPaymentParser:
             if self.verbose:
                 print("✗ No feature data found in CSV")
             return
+        
+        if self.verbose:
+            print(f"\n🔍 DEBUG: Starting feature extraction from row {feature_start_row + 1}...")
         
         for col_info in self.valid_columns:
             col_idx = col_info['column_index']
@@ -108,7 +112,11 @@ class ProviderPaymentParser:
                 'features': {}
             }
             
+            if self.verbose:
+                print(f"🔍 DEBUG: Processing {provider}_{payment_method} (column {col_idx})...")
+            
             # Extract features starting from row 4
+            extracted_count = 0
             for row_idx in range(feature_start_row, len(self.data)):
                 row = self.data[row_idx]
                 
@@ -121,9 +129,40 @@ class ProviderPaymentParser:
                             feature_value = row[col_idx].strip()
                         
                         self.parsed_features[key]['features'][feature_name] = feature_value
+                        found_features.add(feature_name)
+                        extracted_count += 1
+                        
+                        if self.verbose:
+                            # Check if feature has a rule
+                            has_rule = self.rules_manager.has_rule(feature_name)
+                            rule_indicator = "✓" if has_rule else "✗"
+                            print(f"  {rule_indicator} Feature: {feature_name} = '{feature_value}' (Rule: {'Found' if has_rule else 'Missing'})")
+            
+            if self.verbose:
+                print(f"  📊 Extracted {extracted_count} features for {provider}_{payment_method}")
         
         if self.verbose:
-            print(f"✓ Extracted features for {len(self.parsed_features)} valid combinations")
+            print(f"\n📋 DEBUG: Implementation Scope Parse Summary")
+            print(f"✓ Total unique features found: {len(found_features)}")
+            print(f"✓ Features with rules: {sum(1 for f in found_features if self.rules_manager.has_rule(f))}")
+            print(f"✗ Features without rules: {sum(1 for f in found_features if not self.rules_manager.has_rule(f))}")
+            
+            # Show features without rules
+            missing_rules = [f for f in found_features if not self.rules_manager.has_rule(f)]
+            if missing_rules:
+                print(f"\n⚠️  Features without rules in feature_rules.json:")
+                for feature in sorted(missing_rules):
+                    print(f"  - {feature}")
+            
+            # Show features with rules
+            with_rules = [f for f in found_features if self.rules_manager.has_rule(f)]
+            if with_rules:
+                print(f"\n✅ Features with rules in feature_rules.json:")
+                for feature in sorted(with_rules):
+                    rule = self.rules_manager.get_rule(feature)
+                    print(f"  - {feature} -> {rule.documentation_url}")
+            
+            print(f"\n✓ Extracted features for {len(self.parsed_features)} valid combinations")
     
     def display_results(self, show_enriched: bool = False) -> None:
         """Display the parsed results in a readable format."""
@@ -146,7 +185,7 @@ class ProviderPaymentParser:
                 print("-" * 50)
                 
                 for feature_name, feature_data in data['features'].items():
-                    if feature_data['value']:  # Only show features with values
+                    if feature_data.get('value', feature_data.get('feature_value', '')):  # Only show features with values
                         print(f"  • {feature_data['name']}: {feature_data['value']}")
                         if feature_data['has_rule']:
                             print(f"    📚 Documentation: {feature_data['documentation_url']}")

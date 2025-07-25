@@ -161,25 +161,36 @@ class RulesManager:
         }
     
     def enrich_feature_data(self, feature_name: str, feature_value: str) -> Dict[str, Any]:
-        """Enrich feature data with documentation URL and comment."""
+        """Enrich feature data with documentation URL and comment from rules."""
+        rule = self.get_rule(feature_name)
+        
         enriched_data = {
             'name': feature_name,
             'value': feature_value,
             'has_value': bool(feature_value.strip()) if feature_value else False,
-            'documentation_url': None,
-            'comment': None,
-            'has_rule': False,
-            'integration_steps': []
+            'feature_name': feature_name,
+            'feature_value': feature_value,
+            'has_rule': rule is not None
         }
         
-        rule = self.get_rule(feature_name)
         if rule:
             enriched_data.update({
                 'documentation_url': rule.documentation_url,
                 'comment': rule.comment,
-                'has_rule': True,
-                'integration_steps': rule.integration_steps
+                'integration_steps': rule.integration_steps if hasattr(rule, 'integration_steps') else []
             })
+            
+            if self.verbose:
+                print(f"🔗 DEBUG: Feature '{feature_name}' matched with rule -> {rule.documentation_url}")
+        else:
+            enriched_data.update({
+                'documentation_url': None,
+                'comment': None,
+                'integration_steps': []
+            })
+            
+            if self.verbose:
+                print(f"⚠️  DEBUG: Feature '{feature_name}' has no matching rule in feature_rules.json")
         
         return enriched_data
     
