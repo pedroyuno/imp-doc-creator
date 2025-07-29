@@ -13,6 +13,7 @@ class I18nHelper:
         self.default_locale = default_locale
         self.translations: Dict[str, Dict] = {}
         self.feature_rules: Dict[str, Any] = {}
+        self.master_rules: Dict[str, Any] = {}
         
         # Load translations
         self._load_translations()
@@ -37,6 +38,8 @@ class I18nHelper:
             with open(rules_file, 'r', encoding='utf-8') as f:
                 data = json.load(f)
                 self.feature_rules = data.get('rules', {})
+                # Load master rules separately
+                self.master_rules = data.get('master', {})
     
     def get_text(self, key: str, locale: str = None) -> str:
         """
@@ -88,11 +91,44 @@ class I18nHelper:
             translated_case = {
                 'id': testcase['id'],
                 'description': self.get_text(testcase['description_key'], locale),
-                'type': testcase['type']
+                'type': testcase['type'],
+                'environment': testcase.get('environment', 'both')
             }
             test_cases.append(translated_case)
         
         return test_cases
+    
+    def get_master_test_cases(self, locale: str = None) -> list:
+        """
+        Get all master test cases with translated descriptions
+        
+        Args:
+            locale: target locale
+            
+        Returns:
+            List of master test cases with translated descriptions
+        """
+        test_cases = []
+        
+        for testcase in self.master_rules.get('testcases', []):
+            translated_case = {
+                'id': testcase['id'],
+                'description': self.get_text(testcase['description_key'], locale),
+                'type': testcase['type'],
+                'environment': testcase.get('environment', 'both')
+            }
+            test_cases.append(translated_case)
+        
+        return test_cases
+    
+    def get_master_integration_steps(self) -> list:
+        """
+        Get master integration steps that apply to all conversions
+        
+        Returns:
+            List of master integration steps with documentation URLs and comments
+        """
+        return self.master_rules.get('integration_steps', [])
     
     def get_all_test_cases(self, locale: str = None) -> Dict[str, list]:
         """
@@ -110,6 +146,7 @@ class I18nHelper:
             all_test_cases[feature_name] = self.get_test_cases_for_feature(feature_name, locale)
         
         return all_test_cases
+
 
 def main():
     """Example usage of the i18n helper"""
@@ -137,6 +174,20 @@ def main():
     refund_tests = i18n.get_test_cases_for_feature('Refund', 'pt')
     for test in refund_tests:
         print(f"ID: {test['id']} | Type: {test['type']} | Description: {test['description']}")
+    print()
+    
+    # Example 4: Get master integration steps and test cases
+    print("=== Master Integration Steps ===")
+    master_steps = i18n.get_master_integration_steps()
+    for i, step in enumerate(master_steps, 1):
+        print(f"Step {i}: {step['comment'][:60]}...")
+    print()
+    
+    print("=== Master Test Cases (English) ===")
+    master_tests = i18n.get_master_test_cases('en')
+    for test in master_tests:
+        print(f"ID: {test['id']} | Type: {test['type']} | Description: {test['description']}")
+
 
 if __name__ == "__main__":
     main() 

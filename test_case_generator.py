@@ -101,6 +101,7 @@ class TestCaseGenerator:
     def generate_integration_steps(self, parsed_features: Dict[str, Any]) -> List[Dict[str, Any]]:
         """
         Generate integration steps for implemented features based on feature_rules.json.
+        Includes master integration steps that apply to all conversions.
         
         Args:
             parsed_features: Dictionary of parsed features from CSV parser
@@ -114,6 +115,17 @@ class TestCaseGenerator:
         # Get integration steps from rules in the order they appear in feature_rules.json
         integration_steps = []
         step_number = 1
+        
+        # ALWAYS include master integration steps first (regardless of implemented features)
+        master_steps = self.i18n.get_master_integration_steps()
+        for step in master_steps:
+            integration_steps.append({
+                'step_number': step_number,
+                'feature_name': 'Master Rules',
+                'comment': step['comment'],
+                'documentation_url': step['documentation_url']
+            })
+            step_number += 1
         
         # Use the feature order from feature_rules.json (via i18n helper)
         feature_order = list(self.i18n.feature_rules.keys())
@@ -138,18 +150,41 @@ class TestCaseGenerator:
     def generate_test_cases_for_features(self, parsed_features: Dict[str, Any], environment: str = 'both') -> List[Dict]:
         """
         Generate test cases for all implemented features from parsed data.
-        Returns a flat list of test cases for table format.
+        Includes master test cases that apply to all conversions.
         
         Args:
             parsed_features: Dictionary of parsed features from CSV parser
             environment: Environment filter ('sandbox', 'production', or 'both')
             
         Returns:
-            List of test cases with table columns: id, description, passed, date, executer, evidence
+            List of test cases in table format with provider, payment method, and test details
         """
         all_test_cases = []
         
-        for provider_key, provider_data in parsed_features.items():
+        # ALWAYS include master test cases first (regardless of implemented features)
+        master_test_cases = self.i18n.get_master_test_cases(self.locale)
+        filtered_master_cases = self._filter_test_cases_by_environment(master_test_cases, environment)
+        
+        for test_case in filtered_master_cases:
+            # Use original ID from feature_rules.json with random salt
+            original_id = test_case['id']
+            salt = self._generate_test_case_salt()
+            
+            table_test_case = {
+                'id': f"{original_id}.{salt}",
+                'provider': 'All Providers',
+                'payment_method': 'All Payment Methods',
+                'description': test_case['description'],
+                'passed': '',  # Empty field for manual completion
+                'date': '',    # Empty field for manual completion
+                'executer': '',  # Empty field for manual completion
+                'evidence': '',   # Empty field for manual completion
+                'environment': test_case.get('environment', 'both')
+            }
+            all_test_cases.append(table_test_case)
+        
+        # Generate test cases for implemented features
+        for provider_payment_key, provider_data in parsed_features.items():
             provider = provider_data['provider']
             payment_method = provider_data['payment_method']
             features = provider_data['features']

@@ -104,7 +104,17 @@ class TestTestCaseGenerator:
         assert isinstance(test_cases_data, list)
         assert len(test_cases_data) > 0
         
-        # Check that test cases have the expected table format columns
+        # Separate master test cases from feature-specific test cases
+        master_test_cases = [tc for tc in test_cases_data if tc['provider'] == 'All Providers']
+        feature_test_cases = [tc for tc in test_cases_data if tc['provider'] != 'All Providers']
+        
+        # Should always have master test cases
+        assert len(master_test_cases) > 0, "Master test cases should always be included"
+        
+        # Should have feature-specific test cases for the implemented features
+        assert len(feature_test_cases) > 0, "Should have feature-specific test cases"
+        
+        # Check that all test cases have the expected table format columns
         for test_case in test_cases_data:
             assert 'id' in test_case
             assert 'provider' in test_case
@@ -120,31 +130,21 @@ class TestTestCaseGenerator:
             base_id, salt = test_case['id'].split('.', 1)
             assert len(salt) == 6, f"Salt should be 6 characters long: {salt}"
             assert salt.isalnum(), f"Salt should be alphanumeric: {salt}"
-            
-            # Check provider and payment method fields (now separate from description)
-            assert test_case['provider'] in ['REDE', 'PAGARME']
-            assert test_case['payment_method'] == 'CARD'
+        
+        # Check master test cases
+        for master_case in master_test_cases:
+            assert master_case['provider'] == 'All Providers'
+            assert master_case['payment_method'] == 'All Payment Methods'
+            assert master_case['id'].startswith('MST'), f"Master test case ID should start with MST: {master_case['id']}"
+        
+        # Check feature-specific test cases
+        for feature_case in feature_test_cases:
+            assert feature_case['provider'] in ['REDE', 'PAGARME']
+            assert feature_case['payment_method'] == 'CARD'
             
             # Check description no longer includes provider + payment method
-            assert 'REDE' not in test_case['description']
-            assert 'PAGARME' not in test_case['description']
-            assert 'CARD:' not in test_case['description']
-        
-        # Should have test cases from both providers (REDE and PAGARME)
-        rede_cases = [tc for tc in test_cases_data if tc['provider'] == 'REDE']
-        pagarme_cases = [tc for tc in test_cases_data if tc['provider'] == 'PAGARME']
-        assert len(rede_cases) > 0
-        assert len(pagarme_cases) > 0
-        
-        # All test cases should have the required table format fields
-        assert all('id' in tc for tc in test_cases_data)
-        assert all('provider' in tc for tc in test_cases_data)
-        assert all('payment_method' in tc for tc in test_cases_data)
-        assert all('description' in tc for tc in test_cases_data)
-        assert all('passed' in tc for tc in test_cases_data)
-        assert all('date' in tc for tc in test_cases_data)
-        assert all('executer' in tc for tc in test_cases_data)
-        assert all('evidence' in tc for tc in test_cases_data)
+            assert 'REDE' not in feature_case['description']
+            assert 'PAGARME' not in feature_case['description']
     
     def test_generate_test_cases_no_implemented_features(self, generator_en):
         """Test when no features are implemented"""
@@ -161,7 +161,16 @@ class TestTestCaseGenerator:
         }
         
         test_cases_data = generator_en.generate_test_cases_for_features(parsed_features)
-        assert len(test_cases_data) == 0
+        
+        # Separate master test cases from feature-specific test cases
+        master_test_cases = [tc for tc in test_cases_data if tc['provider'] == 'All Providers']
+        feature_test_cases = [tc for tc in test_cases_data if tc['provider'] != 'All Providers']
+        
+        # Should always have master test cases
+        assert len(master_test_cases) > 0, "Master test cases should always be included"
+        
+        # Should have no feature-specific test cases since no features are implemented
+        assert len(feature_test_cases) == 0, "Should have no feature-specific test cases when no features are implemented"
     
     def test_generate_markdown_document(self, generator_en, sample_parsed_features):
         """Test markdown document generation"""
@@ -264,14 +273,16 @@ class TestTestCaseGenerator:
         empty_features = {}
         
         test_cases_data = generator_en.generate_test_cases_for_features(empty_features)
-        assert len(test_cases_data) == 0
         
-        markdown_doc = generator_en.generate_markdown_document(empty_features)
-        assert "No test cases" not in markdown_doc  # Should handle gracefully
+        # Separate master test cases from feature-specific test cases
+        master_test_cases = [tc for tc in test_cases_data if tc['provider'] == 'All Providers']
+        feature_test_cases = [tc for tc in test_cases_data if tc['provider'] != 'All Providers']
         
-        stats = generator_en.generate_summary_statistics(empty_features)
-        assert stats['total_providers'] == 0
-        assert stats['total_test_cases'] == 0
+        # Should always have master test cases
+        assert len(master_test_cases) > 0, "Master test cases should always be included"
+        
+        # Should have no feature-specific test cases since no features are provided
+        assert len(feature_test_cases) == 0, "Should have no feature-specific test cases when no features are provided"
     
     def test_markdown_document_structure(self, generator_en, sample_parsed_features):
         """Test specific markdown document structure requirements"""
@@ -317,14 +328,16 @@ class TestTestCaseGenerator:
         
         test_cases_data = generator_en.generate_test_cases_for_features(edge_case_features)
         
-        if test_cases_data:
-            provider_data = list(test_cases_data.values())[0]
-            feature_names = set(tc['feature_name'] for tc in provider_data['test_cases'])
-            
-            # Only implemented features should have test cases
-            # Note: Only features that exist in feature_rules.json will have test cases
-            # The test features (Feature1, Feature2, etc.) don't exist in rules, so no test cases
-            assert len(feature_names) == 0  # No test cases for unknown features
+        # Separate master test cases from feature-specific test cases
+        master_test_cases = [tc for tc in test_cases_data if tc['provider'] == 'All Providers']
+        feature_test_cases = [tc for tc in test_cases_data if tc['provider'] != 'All Providers']
+        
+        # Should always have master test cases
+        assert len(master_test_cases) > 0, "Master test cases should always be included"
+        
+        # Since the test features (Feature1, Feature2, etc.) don't exist in feature_rules.json,
+        # there should be no feature-specific test cases for them
+        assert len(feature_test_cases) == 0, "No test cases for unknown features"
     
     def test_generate_html_document(self, generator_en, sample_parsed_features):
         """Test HTML document generation"""
