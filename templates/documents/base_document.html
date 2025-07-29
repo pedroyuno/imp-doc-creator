@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Cases for {{ merchant_name }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; margin: 40px; }
+        h1 { color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 10px; }
+        h2 { color: #34495e; border-bottom: 2px solid #ecf0f1; padding-bottom: 8px; margin-top: 30px; }
+        .metadata { background-color: #f8f9fa; padding: 15px; border-left: 4px solid #3498db; margin-bottom: 20px; }
+        .environment-section { margin-top: 40px; }
+        .environment-header { background-color: #e9ecef; padding: 10px; border-left: 4px solid #6c757d; margin-bottom: 15px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #3498db; color: white; font-weight: bold; }
+        .sandbox-header { background-color: #f39c12 !important; }
+        .production-header { background-color: #e74c3c !important; }
+        .id-column { font-family: "Courier New", "Monaco", "Lucida Console", monospace; font-size: 14px; }
+        tr:nth-child(even) { background-color: #f2f2f2; }
+        tr:hover { background-color: #e8f4f8; }
+        .summary { background-color: #ecf0f1; padding: 20px; border-radius: 5px; margin-top: 30px; }
+        .notes { background-color: #fff3cd; padding: 15px; border: 1px solid #ffeaa7; border-radius: 5px; margin-top: 20px; }
+        hr { border: none; border-top: 1px solid #bdc3c7; margin: 25px 0; }
+        .integration-steps { margin: 20px 0; }
+        .integration-step { background-color: #f8f9fa; padding: 15px; margin-bottom: 15px; border-left: 4px solid #28a745; border-radius: 5px; }
+        .integration-step h3 { color: #155724; margin-top: 0; margin-bottom: 10px; }
+        .integration-step p { margin: 5px 0; }
+        .integration-step a { color: #007bff; text-decoration: none; }
+        .integration-step a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <h1>Test Cases for {{ merchant_name }}</h1>
+    
+    {% if include_metadata %}
+    <div class="metadata">
+        <p><strong>Generated on:</strong> {{ generation_timestamp }}</p>
+        <p><strong>Language:</strong> {{ language.upper() }}</p>
+        <p><strong>Environment:</strong> {{ environment.title() }}</p>
+    </div>
+    {% endif %}
+    
+    {% if integration_steps %}
+    <h2>Integration Steps</h2>
+    <p>Follow these integration steps in sequential order to implement the required features for your payment integration:</p>
+    <div class="integration-steps">
+        {% for step in integration_steps %}
+        <div class="integration-step">
+            <h3>Step {{ step.step_number }}: {{ step.feature_name }} Implementation</h3>
+            <p><strong>Description:</strong> {{ step.comment }}</p>
+            <p><strong>Documentation:</strong> <a href="{{ step.documentation_url }}" target="_blank">{{ step.documentation_url }}</a></p>
+        </div>
+        {% endfor %}
+    </div>
+    <hr>
+    {% endif %}
+    
+    <h2>Test Case Documentation</h2>
+    <p>This document contains test cases for your payment integration implementation. Each test case should be executed to ensure proper functionality of the implemented features.</p>
+    
+    {% block test_cases %}{% endblock %}
+    
+    {% if include_metadata %}
+    <div class="summary">
+        <h2>Summary</h2>
+        <ul>
+            <li><strong>Total Test Cases:</strong> {{ statistics.total_test_cases }}</li>
+            <li><strong>Document Language:</strong> {{ language.upper() }}</li>
+            <li><strong>Environment Filter:</strong> {{ environment.title() }}</li>
+            {% if environment == 'separated' %}
+            <li><strong>Sandbox Test Cases:</strong> {{ statistics.sandbox_test_cases }}</li>
+            <li><strong>Production Test Cases:</strong> {{ statistics.production_test_cases }}</li>
+            {% endif %}
+        </ul>
+    </div>
+    <div class="notes">
+        <h3>Instructions</h3>
+        <ul>
+            <li>Fill in the "Passed" column with Yes/No after executing each test case</li>
+            <li>Record the execution date in the "Date" column</li>
+            <li>Add the name of the person who executed the test in the "Executer" column</li>
+            <li>Provide evidence (screenshots, logs, etc.) in the "Evidence" column</li>
+        </ul>
+    </div>
+    <hr>
+    <p><em>This document was automatically generated from your implementation scope.</em></p>
+    {% endif %}
+</body>
+</html>

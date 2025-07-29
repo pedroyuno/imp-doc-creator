@@ -19,6 +19,7 @@ from docx.shared import Inches, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.enum.section import WD_ORIENT
 from docx.oxml.shared import OxmlElement, qn
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 
 class TestCaseGenerator:
@@ -31,6 +32,15 @@ class TestCaseGenerator:
         """
         self.locale = locale
         self.i18n = I18nHelper(default_locale=locale)
+        
+        # Set up Jinja2 environment for document templates
+        template_dir = os.path.join(os.path.dirname(__file__), 'templates', 'documents')
+        self.jinja_env = Environment(
+            loader=FileSystemLoader(template_dir),
+            autoescape=select_autoescape(['html', 'xml']),
+            trim_blocks=True,
+            lstrip_blocks=True
+        )
     
     def _generate_test_case_salt(self, length: int = 6) -> str:
         """
@@ -208,138 +218,38 @@ class TestCaseGenerator:
         Returns:
             Complete markdown document as string with table format
         """
-        # Start building the markdown document
-        markdown_lines = []
-        
-        # Document header
-        if include_metadata:
-            markdown_lines.extend([
-                f"# Test Cases for {merchant_name}",
-                "",
-                f"**Generated on:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
-                f"**Language:** {self.locale.upper()}",
-                f"**Environment:** {environment.title()}",
-                "",
-                "---",
-                ""
-            ])
-        
-        # Integration Steps Section
-        integration_steps = self.generate_integration_steps(parsed_features)
-        if integration_steps:
-            markdown_lines.extend([
-                "## Integration Steps",
-                "",
-                "Follow these integration steps in sequential order to implement the required features for your payment integration:",
-                ""
-            ])
-            
-            for step in integration_steps:
-                step_title = f"### Step {step['step_number']}: {step['feature_name']} Implementation"
-                markdown_lines.extend([
-                    step_title,
-                    "",
-                    f"**Description:** {step['comment']}",
-                    f"**Documentation:** [{step['documentation_url']}]({step['documentation_url']})",
-                    ""
-                ])
-            
-            markdown_lines.extend([
-                "---",
-                ""
-            ])
-        
-        # Introduction
-        markdown_lines.extend([
-            "## Test Case Documentation",
-            "",
-            "This document contains test cases for your payment integration implementation.",
-            "Each test case should be executed to ensure proper functionality of the implemented features.",
-            "",
-            ""
-        ])
+        # Prepare template context
+        context = {
+            'merchant_name': merchant_name,
+            'include_metadata': include_metadata,
+            'environment': environment,
+            'language': self.locale,
+            'generation_timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            'integration_steps': self.generate_integration_steps(parsed_features)
+        }
         
         if environment == 'separated':
             # Generate separate tables for sandbox and production
             env_test_cases = self.generate_environment_separated_test_cases(parsed_features)
+            context['env_test_cases_data'] = env_test_cases
+            context['statistics'] = {
+                'total_test_cases': len(env_test_cases['sandbox']) + len(env_test_cases['production']),
+                'sandbox_test_cases': len(env_test_cases['sandbox']),
+                'production_test_cases': len(env_test_cases['production'])
+            }
             
-            for env_name in ['sandbox', 'production']:
-                test_cases_data = env_test_cases[env_name]
-                
-                if test_cases_data:  # Only show section if there are test cases
-                    markdown_lines.extend([
-                        f"## {env_name.title()} Environment Test Cases",
-                        "",
-                        f"Test cases specifically for the {env_name} environment.",
-                        "",
-                        "| `ID` | Provider | Payment Method | Description | Passed | Date | Executer | Evidence |",
-                        "|----|----------|----------------|-------------|--------|------|----------|----------|"
-                    ])
-                    
-                    # Generate table rows
-                    for test_case in test_cases_data:
-                        row = f"| `{test_case['id']}` | {test_case['provider']} | {test_case['payment_method']} | {test_case['description']} | {test_case['passed']} | {test_case['date']} | {test_case['executer']} | {test_case['evidence']} |"
-                        markdown_lines.append(row)
-                    
-                    markdown_lines.extend(["", ""])
+            template = self.jinja_env.get_template('test_case_table_separated.md')
         else:
             # Generate single table for specified environment
             test_cases_data = self.generate_test_cases_for_features(parsed_features, environment)
+            context['test_cases_data'] = test_cases_data
+            context['statistics'] = {
+                'total_test_cases': len(test_cases_data)
+            }
             
-            # Generate table header
-            markdown_lines.extend([
-                "| `ID` | Provider | Payment Method | Description | Passed | Date | Executer | Evidence |",
-                "|----|----------|----------------|-------------|--------|------|----------|----------|"
-            ])
-            
-            # Generate table rows
-            for test_case in test_cases_data:
-                row = f"| `{test_case['id']}` | {test_case['provider']} | {test_case['payment_method']} | {test_case['description']} | {test_case['passed']} | {test_case['date']} | {test_case['executer']} | {test_case['evidence']} |"
-                markdown_lines.append(row)
+            template = self.jinja_env.get_template('test_case_table_single.md')
         
-        # Summary section
-        if include_metadata:
-            if environment == 'separated':
-                env_test_cases = self.generate_environment_separated_test_cases(parsed_features)
-                total_cases = len(env_test_cases['sandbox']) + len(env_test_cases['production'])
-                sandbox_count = len(env_test_cases['sandbox'])
-                production_count = len(env_test_cases['production'])
-            else:
-                test_cases_data = self.generate_test_cases_for_features(parsed_features, environment)
-                total_cases = len(test_cases_data)
-                sandbox_count = production_count = None
-            
-            markdown_lines.extend([
-                "",
-                "---",
-                "",
-                "## Summary",
-                "",
-                f"- **Total Test Cases:** {total_cases}",
-                f"- **Document Language:** {self.locale.upper()}",
-                f"- **Environment Filter:** {environment.title()}",
-            ])
-            
-            if environment == 'separated':
-                markdown_lines.extend([
-                    f"- **Sandbox Test Cases:** {sandbox_count}",
-                    f"- **Production Test Cases:** {production_count}",
-                ])
-            
-            markdown_lines.extend([
-                "",
-                "### Instructions",
-                "- Fill in the 'Passed' column with Yes/No after executing each test case",
-                "- Record the execution date in the 'Date' column",
-                "- Add the name of the person who executed the test in the 'Executer' column",
-                "- Provide evidence (screenshots, logs, etc.) in the 'Evidence' column",
-                "",
-                "---",
-                "",
-                "*This document was automatically generated from your implementation scope.*"
-            ])
-        
-        return '\n'.join(markdown_lines)
+        return template.render(context)
     
     def generate_html_document(self, parsed_features: Dict[str, Any], 
                              merchant_name: str = "Merchant", 
@@ -358,234 +268,38 @@ class TestCaseGenerator:
         Returns:
             Complete HTML document as string with table format
         """
-        # Start building the HTML document
-        html_parts = []
-        
-        # Document start
-        html_parts.extend([
-            '<!DOCTYPE html>',
-            '<html lang="en">',
-            '<head>',
-            '    <meta charset="UTF-8">',
-            '    <meta name="viewport" content="width=device-width, initial-scale=1.0">',
-            f'    <title>Test Cases for {merchant_name}</title>',
-            '    <style>',
-            '        body { font-family: Arial, sans-serif; line-height: 1.6; margin: 40px; }',
-            '        h1 { color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 10px; }',
-            '        h2 { color: #34495e; border-bottom: 2px solid #ecf0f1; padding-bottom: 8px; margin-top: 30px; }',
-            '        .metadata { background-color: #f8f9fa; padding: 15px; border-left: 4px solid #3498db; margin-bottom: 20px; }',
-            '        .environment-section { margin-top: 40px; }',
-            '        .environment-header { background-color: #e9ecef; padding: 10px; border-left: 4px solid #6c757d; margin-bottom: 15px; }',
-            '        table { width: 100%; border-collapse: collapse; margin-top: 20px; }',
-            '        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }',
-            '        th { background-color: #3498db; color: white; font-weight: bold; }',
-            '        .sandbox-header { background-color: #f39c12 !important; }',
-            '        .production-header { background-color: #e74c3c !important; }',
-            '        .id-column { font-family: "Courier New", "Monaco", "Lucida Console", monospace; font-size: 14px; }',
-            '        tr:nth-child(even) { background-color: #f2f2f2; }',
-            '        tr:hover { background-color: #e8f4f8; }',
-            '        .summary { background-color: #ecf0f1; padding: 20px; border-radius: 5px; margin-top: 30px; }',
-            '        .notes { background-color: #fff3cd; padding: 15px; border: 1px solid #ffeaa7; border-radius: 5px; margin-top: 20px; }',
-            '        hr { border: none; border-top: 1px solid #bdc3c7; margin: 25px 0; }',
-            '        .integration-steps { margin: 20px 0; }',
-            '        .integration-step { background-color: #f8f9fa; padding: 15px; margin-bottom: 15px; border-left: 4px solid #28a745; border-radius: 5px; }',
-            '        .integration-step h3 { color: #155724; margin-top: 0; margin-bottom: 10px; }',
-            '        .integration-step p { margin: 5px 0; }',
-            '        .integration-step a { color: #007bff; text-decoration: none; }',
-            '        .integration-step a:hover { text-decoration: underline; }',
-            '    </style>',
-            '</head>',
-            '<body>'
-        ])
-        
-        # Document header
-        if include_metadata:
-            html_parts.extend([
-                f'    <h1>Test Cases for {merchant_name}</h1>',
-                '    <div class="metadata">',
-                f'        <p><strong>Generated on:</strong> {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}</p>',
-                f'        <p><strong>Language:</strong> {self.locale.upper()}</p>',
-                f'        <p><strong>Environment:</strong> {environment.title()}</p>',
-                '    </div>'
-            ])
-        else:
-            html_parts.append(f'    <h1>Test Cases for {merchant_name}</h1>')
-        
-        # Integration Steps Section
-        integration_steps = self.generate_integration_steps(parsed_features)
-        if integration_steps:
-            html_parts.extend([
-                '    <h2>Integration Steps</h2>',
-                '    <p>Follow these integration steps in sequential order to implement the required features for your payment integration:</p>',
-                '    <div class="integration-steps">',
-            ])
-            
-            for step in integration_steps:
-                step_title = f"Step {step['step_number']}: {step['feature_name']} Implementation"
-                html_parts.extend([
-                    f'        <div class="integration-step">',
-                    f'            <h3>{step_title}</h3>',
-                    f'            <p><strong>Description:</strong> {step["comment"]}</p>',
-                    f'            <p><strong>Documentation:</strong> <a href="{step["documentation_url"]}" target="_blank">{step["documentation_url"]}</a></p>',
-                    '        </div>'
-                ])
-            
-            html_parts.extend([
-                '    </div>',
-                '    <hr>',
-                ''
-            ])
-        
-        # Introduction
-        html_parts.extend([
-            '    <h2>Test Case Documentation</h2>',
-            '    <p>This document contains test cases for your payment integration implementation. Each test case should be executed to ensure proper functionality of the implemented features.</p>',
-            ''
-        ])
+        # Prepare template context
+        context = {
+            'merchant_name': merchant_name,
+            'include_metadata': include_metadata,
+            'environment': environment,
+            'language': self.locale,
+            'generation_timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            'integration_steps': self.generate_integration_steps(parsed_features)
+        }
         
         if environment == 'separated':
             # Generate separate tables for sandbox and production
             env_test_cases = self.generate_environment_separated_test_cases(parsed_features)
+            context['env_test_cases_data'] = env_test_cases
+            context['statistics'] = {
+                'total_test_cases': len(env_test_cases['sandbox']) + len(env_test_cases['production']),
+                'sandbox_test_cases': len(env_test_cases['sandbox']),
+                'production_test_cases': len(env_test_cases['production'])
+            }
             
-            for env_name in ['sandbox', 'production']:
-                test_cases_data = env_test_cases[env_name]
-                
-                if test_cases_data:  # Only show section if there are test cases
-                    header_class = f"{env_name}-header"
-                    
-                    html_parts.extend([
-                        '    <div class="environment-section">',
-                        f'        <div class="environment-header">',
-                        f'            <h3 style="margin: 0;">{env_name.title()} Environment Test Cases</h3>',
-                        f'            <p style="margin: 5px 0 0 0; font-size: 14px;">Test cases specifically for the {env_name} environment.</p>',
-                        '        </div>',
-                        '        <table>',
-                        '            <thead>',
-                        '                <tr>',
-                        f'                    <th class="id-column {header_class}">ID</th>',
-                        f'                    <th class="{header_class}">Provider</th>',
-                        f'                    <th class="{header_class}">Payment Method</th>',
-                        f'                    <th class="{header_class}">Description</th>',
-                        f'                    <th class="{header_class}">Passed</th>',
-                        f'                    <th class="{header_class}">Date</th>',
-                        f'                    <th class="{header_class}">Executer</th>',
-                        f'                    <th class="{header_class}">Evidence</th>',
-                        '                </tr>',
-                        '            </thead>',
-                        '            <tbody>'
-                    ])
-                    
-                    # Generate table rows
-                    for test_case in test_cases_data:
-                        html_parts.append(
-                            f'                <tr>'
-                            f'<td class="id-column">{test_case["id"]}</td>'
-                            f'<td>{test_case["provider"]}</td>'
-                            f'<td>{test_case["payment_method"]}</td>'
-                            f'<td>{test_case["description"]}</td>'
-                            f'<td>{test_case["passed"]}</td>'
-                            f'<td>{test_case["date"]}</td>'
-                            f'<td>{test_case["executer"]}</td>'
-                            f'<td>{test_case["evidence"]}</td>'
-                            f'</tr>'
-                        )
-                    
-                    html_parts.extend([
-                        '            </tbody>',
-                        '        </table>',
-                        '    </div>'
-                    ])
+            template = self.jinja_env.get_template('test_case_table_separated.html')
         else:
             # Generate single table for specified environment
             test_cases_data = self.generate_test_cases_for_features(parsed_features, environment)
+            context['test_cases_data'] = test_cases_data
+            context['statistics'] = {
+                'total_test_cases': len(test_cases_data)
+            }
             
-            html_parts.extend([
-                '    <table>',
-                '        <thead>',
-                '            <tr>',
-                '                <th class="id-column">ID</th>',
-                '                <th>Provider</th>',
-                '                <th>Payment Method</th>',
-                '                <th>Description</th>',
-                '                <th>Passed</th>',
-                '                <th>Date</th>',
-                '                <th>Executer</th>',
-                '                <th>Evidence</th>',
-                '            </tr>',
-                '        </thead>',
-                '        <tbody>'
-            ])
-            
-            # Generate table rows
-            for test_case in test_cases_data:
-                html_parts.append(
-                    f'            <tr>'
-                    f'<td class="id-column">{test_case["id"]}</td>'
-                    f'<td>{test_case["provider"]}</td>'
-                    f'<td>{test_case["payment_method"]}</td>'
-                    f'<td>{test_case["description"]}</td>'
-                    f'<td>{test_case["passed"]}</td>'
-                    f'<td>{test_case["date"]}</td>'
-                    f'<td>{test_case["executer"]}</td>'
-                    f'<td>{test_case["evidence"]}</td>'
-                    f'</tr>'
-                )
-            
-            html_parts.extend([
-                '        </tbody>',
-                '    </table>'
-            ])
+            template = self.jinja_env.get_template('test_case_table_single.html')
         
-        # Summary section
-        if include_metadata:
-            if environment == 'separated':
-                env_test_cases = self.generate_environment_separated_test_cases(parsed_features)
-                total_cases = len(env_test_cases['sandbox']) + len(env_test_cases['production'])
-                sandbox_count = len(env_test_cases['sandbox'])
-                production_count = len(env_test_cases['production'])
-            else:
-                test_cases_data = self.generate_test_cases_for_features(parsed_features, environment)
-                total_cases = len(test_cases_data)
-                sandbox_count = production_count = None
-            
-            html_parts.extend([
-                '    <div class="summary">',
-                '        <h2>Summary</h2>',
-                '        <ul>',
-                f'            <li><strong>Total Test Cases:</strong> {total_cases}</li>',
-                f'            <li><strong>Document Language:</strong> {self.locale.upper()}</li>',
-                f'            <li><strong>Environment Filter:</strong> {environment.title()}</li>',
-            ])
-            
-            if environment == 'separated':
-                html_parts.extend([
-                    f'            <li><strong>Sandbox Test Cases:</strong> {sandbox_count}</li>',
-                    f'            <li><strong>Production Test Cases:</strong> {production_count}</li>',
-                ])
-            
-            html_parts.extend([
-                '        </ul>',
-                '    </div>',
-                '    <div class="notes">',
-                '        <h3>Instructions</h3>',
-                '        <ul>',
-                '            <li>Fill in the "Passed" column with Yes/No after executing each test case</li>',
-                '            <li>Record the execution date in the "Date" column</li>',
-                '            <li>Add the name of the person who executed the test in the "Executer" column</li>',
-                '            <li>Provide evidence (screenshots, logs, etc.) in the "Evidence" column</li>',
-                '        </ul>',
-                '    </div>',
-                '    <hr>',
-                '    <p><em>This document was automatically generated from your implementation scope.</em></p>'
-            ])
-        
-        # Close HTML document
-        html_parts.extend([
-            '</body>',
-            '</html>'
-        ])
-        
-        return '\n'.join(html_parts)
+        return template.render(context)
     
     def generate_docx_document(self, parsed_features: Dict[str, Any], 
                              merchant_name: str = "Merchant", 
