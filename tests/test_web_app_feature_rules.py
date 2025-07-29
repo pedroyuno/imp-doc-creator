@@ -47,10 +47,32 @@ class TestFeatureRulesManagement:
                     ]
                 }
             },
+            "master": {
+                "description": "Master rules for testing",
+                "integration_steps": [
+                    {
+                        "documentation_url": "https://docs.test.com/getting-started",
+                        "comment": "Test master rule"
+                    }
+                ],
+                "testcases": [
+                    {
+                        "id": "MST0001",
+                        "description_key": "testcase.master.test",
+                        "type": "happy path",
+                        "environment": "both"
+                    }
+                ]
+            },
             "metadata": {
                 "total_rules": 1,
                 "testcase_types": ["happy path", "unhappy path", "corner case"],
-                "environments": ["sandbox", "production", "both"]
+                "environments": ["sandbox", "production", "both"],
+                "i18n": {
+                    "supported_locales": ["en", "es", "pt"],
+                    "default_locale": "en",
+                    "structure": "Test structure"
+                }
             }
         }
         
@@ -98,8 +120,8 @@ class TestFeatureRulesManagement:
         """Test saving changes to a feature rule"""
         data = {
             'feature_name': 'TestFeature',
-            'documentation_url': 'https://updated.example.com',
-            'comment': 'Updated comment'
+            'documentation_url_0': 'https://updated.example.com',
+            'comment_0': 'Updated comment'
         }
         response = client.post('/feature-rules/save', data=data)
         assert response.status_code == 302  # Redirect to feature rules page
@@ -121,8 +143,8 @@ class TestFeatureRulesManagement:
         """Test adding a new feature rule"""
         data = {
             'feature_name': 'NewFeature',
-            'documentation_url': 'https://new.example.com',
-            'comment': 'New feature comment'
+            'documentation_url_0': 'https://new.example.com',
+            'comment_0': 'New feature comment'
         }
         response = client.post('/feature-rules/add', data=data)
         assert response.status_code == 302  # Redirect
@@ -150,8 +172,8 @@ class TestFeatureRulesManagement:
         # Add another feature first
         data = {
             'feature_name': 'AnotherFeature',
-            'documentation_url': 'https://another.example.com',
-            'comment': 'Another feature comment'
+            'documentation_url_0': 'https://another.example.com',
+            'comment_0': 'Another feature comment'
         }
         client.post('/feature-rules/add', data=data)
         

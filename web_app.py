@@ -373,8 +373,12 @@ def feature_rules():
         with open('feature_rules.json', 'r', encoding='utf-8') as f:
             rules_data = json.load(f)
         
+        # Extract master rules separately
+        master_rules = rules_data.get('master', None)
+        
         return render_template('feature_rules.html', 
                              rules_data=rules_data,
+                             master_rules=master_rules,
                              summary=rules_manager.get_rules_summary())
     except Exception as e:
         flash(f'Error loading feature rules: {str(e)}')
@@ -387,14 +391,24 @@ def edit_feature_rule(feature_name):
         with open('feature_rules.json', 'r', encoding='utf-8') as f:
             rules_data = json.load(f)
         
-        if feature_name not in rules_data.get('rules', {}):
-            flash(f'Feature rule "{feature_name}" not found.')
-            return redirect(url_for('feature_rules'))
+        # Check if it's a master rule
+        is_master_rule = feature_name == 'master'
         
-        rule = rules_data['rules'][feature_name]
+        if is_master_rule:
+            if 'master' not in rules_data:
+                flash('Master rules not found.')
+                return redirect(url_for('feature_rules'))
+            rule = rules_data['master']
+        else:
+            if feature_name not in rules_data.get('rules', {}):
+                flash(f'Feature rule "{feature_name}" not found.')
+                return redirect(url_for('feature_rules'))
+            rule = rules_data['rules'][feature_name]
+        
         return render_template('edit_feature_rule.html', 
                              feature_name=feature_name,
-                             rule=rule)
+                             rule=rule,
+                             is_master_rule=is_master_rule)
     except Exception as e:
         flash(f'Error loading feature rule: {str(e)}')
         return redirect(url_for('feature_rules'))
@@ -404,26 +418,64 @@ def save_feature_rule():
     """Save changes to a feature rule."""
     try:
         feature_name = request.form.get('feature_name')
-        documentation_url = request.form.get('documentation_url', '').strip()
-        comment = request.form.get('comment', '').strip()
         
-        if not feature_name or not documentation_url or not comment:
-            flash('All fields are required.')
-            return redirect(url_for('edit_feature_rule', feature_name=feature_name))
+        if not feature_name:
+            flash('Feature name is required.')
+            return redirect(url_for('feature_rules'))
         
         # Load current rules
         with open('feature_rules.json', 'r', encoding='utf-8') as f:
             rules_data = json.load(f)
         
-        # Update the rule
-        if feature_name in rules_data.get('rules', {}):
-            rules_data['rules'][feature_name]['documentation_url'] = documentation_url
-            rules_data['rules'][feature_name]['comment'] = comment
+        # Check if it's a master rule
+        is_master_rule = feature_name == 'master'
+        
+        if is_master_rule:
+            if 'master' not in rules_data:
+                flash('Master rules not found.')
+                return redirect(url_for('feature_rules'))
+        else:
+            if feature_name not in rules_data.get('rules', {}):
+                flash(f'Feature rule "{feature_name}" not found.')
+                return redirect(url_for('feature_rules'))
+        
+        # Get all integration steps from form
+        integration_steps = []
+        step_index = 0
+        
+        while True:
+            doc_url_key = f'documentation_url_{step_index}'
+            comment_key = f'comment_{step_index}'
             
-            # Handle integration_steps format
-            if 'integration_steps' in rules_data['rules'][feature_name]:
-                rules_data['rules'][feature_name]['integration_steps'][0]['documentation_url'] = documentation_url
-                rules_data['rules'][feature_name]['integration_steps'][0]['comment'] = comment
+            documentation_url = request.form.get(doc_url_key, '').strip()
+            comment = request.form.get(comment_key, '').strip()
+            
+            if not documentation_url and not comment:
+                break
+                
+            if documentation_url and comment:
+                integration_steps.append({
+                    'documentation_url': documentation_url,
+                    'comment': comment
+                })
+            
+            step_index += 1
+        
+        if not integration_steps:
+            flash('At least one integration step is required.')
+            return redirect(url_for('edit_feature_rule', feature_name=feature_name))
+        
+        # Update the rule in the appropriate section
+        if is_master_rule:
+            rules_data['master']['integration_steps'] = integration_steps
+        else:
+            rules_data['rules'][feature_name]['integration_steps'] = integration_steps
+            
+            # Maintain backward compatibility - update old format fields if they exist
+            if 'documentation_url' in rules_data['rules'][feature_name]:
+                rules_data['rules'][feature_name]['documentation_url'] = integration_steps[0]['documentation_url']
+            if 'comment' in rules_data['rules'][feature_name]:
+                rules_data['rules'][feature_name]['comment'] = integration_steps[0]['comment']
         
         # Update last_updated timestamp
         from datetime import datetime
@@ -433,7 +485,8 @@ def save_feature_rule():
         with open('feature_rules.json', 'w', encoding='utf-8') as f:
             json.dump(rules_data, f, indent=2, ensure_ascii=False)
         
-        flash(f'Successfully updated feature rule for "{feature_name}".')
+        rule_type = "master rules" if is_master_rule else f'feature rule for "{feature_name}"'
+        flash(f'Successfully updated {rule_type} with {len(integration_steps)} integration step(s).')
         return redirect(url_for('feature_rules'))
         
     except Exception as e:
@@ -448,11 +501,9 @@ def add_feature_rule():
     
     try:
         feature_name = request.form.get('feature_name', '').strip()
-        documentation_url = request.form.get('documentation_url', '').strip()
-        comment = request.form.get('comment', '').strip()
         
-        if not feature_name or not documentation_url or not comment:
-            flash('All fields are required.')
+        if not feature_name:
+            flash('Feature name is required.')
             return render_template('add_feature_rule.html')
         
         # Load current rules
@@ -464,15 +515,36 @@ def add_feature_rule():
             flash(f'Feature rule "{feature_name}" already exists.')
             return render_template('add_feature_rule.html')
         
+        # Get all integration steps from form
+        integration_steps = []
+        step_index = 0
+        
+        while True:
+            doc_url_key = f'documentation_url_{step_index}'
+            comment_key = f'comment_{step_index}'
+            
+            documentation_url = request.form.get(doc_url_key, '').strip()
+            comment = request.form.get(comment_key, '').strip()
+            
+            if not documentation_url and not comment:
+                break
+                
+            if documentation_url and comment:
+                integration_steps.append({
+                    'documentation_url': documentation_url,
+                    'comment': comment
+                })
+            
+            step_index += 1
+        
+        if not integration_steps:
+            flash('At least one integration step is required.')
+            return render_template('add_feature_rule.html')
+        
         # Create new rule with testcases
         new_rule = {
             "feature_name": feature_name,
-            "integration_steps": [
-                {
-                    "documentation_url": documentation_url,
-                    "comment": comment
-                }
-            ],
+            "integration_steps": integration_steps,
             "testcases": [
                 {
                     "id": f"{feature_name[:3].upper()}0001",
@@ -491,11 +563,11 @@ def add_feature_rule():
         rules_data['last_updated'] = datetime.now().strftime('%Y-%m-%d')
         rules_data['metadata']['total_rules'] = len(rules_data['rules'])
         
-        # Save back to file
+        # Save to file
         with open('feature_rules.json', 'w', encoding='utf-8') as f:
             json.dump(rules_data, f, indent=2, ensure_ascii=False)
         
-        flash(f'Successfully added new feature rule for "{feature_name}".')
+        flash(f'Successfully added feature rule "{feature_name}" with {len(integration_steps)} integration step(s).')
         return redirect(url_for('feature_rules'))
         
     except Exception as e:

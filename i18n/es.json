@@ -79,6 +79,13 @@
       "execute_test_payment": "Ejecutar pago de prueba en sandbox",
       "data_isolation": "Verificar aislamiento de datos en sandbox",
       "environment_switching": "Probar cambio de entorno sandbox"
+    },
+    "master": {
+      "api_authentication": "Verificar autenticación de API con credenciales válidas",
+      "invalid_api_key": "Manejar autenticación con clave API inválida",
+      "rate_limiting": "Probar comportamiento de limitación de velocidad de API",
+      "network_connectivity": "Manejar problemas de conectividad de red",
+      "ssl_certificate_validation": "Verificar validación de certificado SSL en producción"
     }
   }
 } 

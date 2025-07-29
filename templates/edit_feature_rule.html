@@ -1,39 +1,116 @@
 {% extends "base.html" %}
 
-{% block title %}Edit Feature Rule - {{ feature_name }}{% endblock %}
+{% block title %}Edit {% if is_master_rule %}Master Rules{% else %}Feature Rule - {{ feature_name }}{% endif %}{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="card">
-            <div class="card-header">
-                <h4>✏️ Edit Feature Rule: {{ feature_name }}</h4>
+    <div class="col-md-10">
+        {% if is_master_rule %}
+        <div class="alert alert-warning border-warning">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-crown fa-lg text-warning me-3"></i>
+                <div>
+                    <h6 class="mb-1"><strong>Editing Master Rules</strong></h6>
+                    <p class="mb-0">These rules are applied to every documentation conversion regardless of which features are detected. Changes here will affect all generated documentation.</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="card {% if is_master_rule %}border-warning{% endif %}">
+            <div class="card-header {% if is_master_rule %}bg-warning bg-opacity-10{% endif %}">
+                {% if is_master_rule %}
+                    <h4><i class="fas fa-crown text-warning me-2"></i>✏️ Edit Master Rules</h4>
+                    <small class="text-muted">Rules that apply to all conversions</small>
+                {% else %}
+                    <h4>✏️ Edit Feature Rule: {{ feature_name }}</h4>
+                {% endif %}
             </div>
             <div class="card-body">
                 <form method="POST" action="{{ url_for('save_feature_rule') }}">
                     <input type="hidden" name="feature_name" value="{{ feature_name }}">
                     
                     <div class="mb-3">
-                        <label for="feature_name_display" class="form-label">Feature Name</label>
+                        <label for="feature_name_display" class="form-label">
+                            {% if is_master_rule %}Rule Type{% else %}Feature Name{% endif %}
+                        </label>
                         <input type="text" class="form-control" id="feature_name_display" 
-                               value="{{ feature_name }}" disabled>
-                        <div class="form-text">Feature name cannot be changed after creation.</div>
+                               value="{% if is_master_rule %}Master Rules (Global){% else %}{{ feature_name }}{% endif %}" disabled>
+                        <div class="form-text">
+                            {% if is_master_rule %}
+                                Master rules are applied to every conversion automatically.
+                            {% else %}
+                                Feature name cannot be changed after creation.
+                            {% endif %}
+                        </div>
                     </div>
                     
-                    <div class="mb-3">
-                        <label for="documentation_url" class="form-label">Documentation URL</label>
-                        <input type="url" class="form-control" id="documentation_url" 
-                               name="documentation_url" required 
-                               value="{% if rule.integration_steps and rule.integration_steps|length > 0 %}{{ rule.integration_steps[0].documentation_url }}{% else %}{{ rule.documentation_url }}{% endif %}">
-                        <div class="form-text">Enter the complete URL to the documentation for this feature.</div>
+                    <!-- Integration Steps Section -->
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <label class="form-label">Integration Steps</label>
+                            <button type="button" class="btn btn-sm btn-outline-success" onclick="addIntegrationStep()">
+                                <i class="fas fa-plus"></i> Add Step
+                            </button>
+                        </div>
+                        
+                        <div id="integration-steps-container">
+                            {% if rule.integration_steps and rule.integration_steps|length > 0 %}
+                                {% for step in rule.integration_steps %}
+                                <div class="integration-step card mb-3" data-step-index="{{ loop.index0 }}">
+                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-0">Step {{ loop.index }}</h6>
+                                        {% if rule.integration_steps|length > 1 %}
+                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeIntegrationStep(this)">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                        {% endif %}
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label class="form-label">Documentation URL</label>
+                                            <input type="url" class="form-control" 
+                                                   name="documentation_url_{{ loop.index0 }}" 
+                                                   value="{{ step.documentation_url }}" required>
+                                        </div>
+                                        <div class="mb-0">
+                                            <label class="form-label">Comment</label>
+                                            <textarea class="form-control" 
+                                                      name="comment_{{ loop.index0 }}" 
+                                                      rows="3" required>{{ step.comment }}</textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <!-- Fallback for old format -->
+                                <div class="integration-step card mb-3" data-step-index="0">
+                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-0">Step 1</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label class="form-label">Documentation URL</label>
+                                            <input type="url" class="form-control" 
+                                                   name="documentation_url_0" 
+                                                   value="{{ rule.documentation_url or '' }}" required>
+                                        </div>
+                                        <div class="mb-0">
+                                            <label class="form-label">Comment</label>
+                                            <textarea class="form-control" 
+                                                      name="comment_0" 
+                                                      rows="3" required>{{ rule.comment or '' }}</textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-text">
+                            Add multiple integration steps to provide comprehensive documentation for complex features.
+                        </div>
                     </div>
-                    
-                    <div class="mb-3">
-                        <label for="comment" class="form-label">Comment</label>
-                        <textarea class="form-control" id="comment" name="comment" rows="4" required>{% if rule.integration_steps and rule.integration_steps|length > 0 %}{{ rule.integration_steps[0].comment }}{% else %}{{ rule.comment }}{% endif %}</textarea>
-                        <div class="form-text">Provide a detailed description of the feature and its purpose.</div>
-                    </div>
-                    
+
                     <!-- Test Cases Management -->
                     <div class="mb-3">
                         <div class="d-flex justify-content-between align-items-center">
@@ -84,6 +161,7 @@
         </div>
         
         <!-- Danger Zone -->
+        {% if not is_master_rule %}
         <div class="card mt-4 border-danger">
             <div class="card-header bg-danger text-white">
                 <h6 class="mb-0">🚨 Danger Zone</h6>
@@ -98,6 +176,107 @@
                 </form>
             </div>
         </div>
+        {% else %}
+        <div class="card mt-4 border-info">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0">ℹ️ Master Rules Information</h6>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">Master rules are essential for all conversions and cannot be deleted. You can modify the integration steps and test cases, but the master rules section will always be present.</p>
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-shield-alt text-info me-2"></i>
+                    <span class="text-info fw-bold">Protected from deletion</span>
+                </div>
+            </div>
+        </div>
+        {% endif %}
     </div>
 </div>
+
+<script>
+let stepCounter = {{ (rule.integration_steps|length if rule.integration_steps else 1) }};
+
+function addIntegrationStep() {
+    const container = document.getElementById('integration-steps-container');
+    const stepDiv = document.createElement('div');
+    stepDiv.className = 'integration-step card mb-3';
+    stepDiv.setAttribute('data-step-index', stepCounter);
+    
+    stepDiv.innerHTML = `
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h6 class="mb-0">Step ${stepCounter + 1}</h6>
+            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeIntegrationStep(this)">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+        <div class="card-body">
+            <div class="mb-3">
+                <label class="form-label">Documentation URL</label>
+                <input type="url" class="form-control" 
+                       name="documentation_url_${stepCounter}" 
+                       placeholder="https://docs.y.uno/..." required>
+            </div>
+            <div class="mb-0">
+                <label class="form-label">Comment</label>
+                <textarea class="form-control" 
+                          name="comment_${stepCounter}" 
+                          rows="3" 
+                          placeholder="Describe this integration step..." required></textarea>
+            </div>
+        </div>
+    `;
+    
+    container.appendChild(stepDiv);
+    stepCounter++;
+    updateStepNumbers();
+    updateRemoveButtons();
+}
+
+function removeIntegrationStep(button) {
+    const container = document.getElementById('integration-steps-container');
+    const steps = container.querySelectorAll('.integration-step');
+    
+    if (steps.length > 1) {
+        button.closest('.integration-step').remove();
+        updateStepNumbers();
+        updateRemoveButtons();
+        reindexFormFields();
+    }
+}
+
+function updateStepNumbers() {
+    const steps = document.querySelectorAll('.integration-step');
+    steps.forEach((step, index) => {
+        const headerTitle = step.querySelector('.card-header h6');
+        headerTitle.textContent = `Step ${index + 1}`;
+    });
+}
+
+function updateRemoveButtons() {
+    const steps = document.querySelectorAll('.integration-step');
+    const removeButtons = document.querySelectorAll('.integration-step .btn-outline-danger');
+    
+    removeButtons.forEach(button => {
+        button.style.display = steps.length > 1 ? 'inline-block' : 'none';
+    });
+}
+
+function reindexFormFields() {
+    const steps = document.querySelectorAll('.integration-step');
+    steps.forEach((step, index) => {
+        step.setAttribute('data-step-index', index);
+        
+        const urlInput = step.querySelector('input[type="url"]');
+        const textArea = step.querySelector('textarea');
+        
+        if (urlInput) urlInput.name = `documentation_url_${index}`;
+        if (textArea) textArea.name = `comment_${index}`;
+    });
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    updateRemoveButtons();
+});
+</script>
 {% endblock %} 

@@ -3,25 +3,60 @@
   "description": "Feature documentation rules for dynamic documentation generation",
   "last_updated": "2025-07-25",
   "rules": {
-    "Country": {
-      "feature_name": "Country",
+    "Purchase": {
+      "feature_name": "Purchase",
       "integration_steps": [
         {
-          "documentation_url": "https://docs.y.uno/reference/retrieve-payment-by-merchant-order-id",
-          "comment": "Specifies the country where this provider + payment method combination is available. Essential for geographic implementation planning."
+          "documentation_url": "https://docs.y.uno/reference/create-payment",
+          "comment": "Supports direct purchase transactions (single-step payment). Essential for standard e-commerce payment flows."
         }
       ],
       "testcases": [
         {
-          "id": "CTR0001",
-          "description_key": "testcase.country.process_payment_supported",
+          "id": "PUR0001",
+          "description_key": "testcase.purchase.successful_payment",
           "type": "happy path",
           "environment": "both"
         },
         {
-          "id": "CTR0002",
-          "description_key": "testcase.country.reject_unsupported",
+          "id": "PUR0002",
+          "description_key": "testcase.purchase.failed_payment",
           "type": "unhappy path",
+          "environment": "both"
+        },
+        {
+          "id": "PUR0003",
+          "description_key": "testcase.purchase.timeout_handling",
+          "type": "corner case",
+          "environment": "both"
+        }
+      ]
+    },
+    "Authorize": {
+      "feature_name": "Authorize",
+      "integration_steps": [
+        {
+          "documentation_url": "https://docs.y.uno/reference/authorize-payment",
+          "comment": "Supports payment authorization functionality. Required for holding funds before capture in two-step payment flows."
+        }
+      ],
+      "testcases": [
+        {
+          "id": "ATH0001",
+          "description_key": "testcase.authorize.successful",
+          "type": "happy path",
+          "environment": "both"
+        },
+        {
+          "id": "ATH0002",
+          "description_key": "testcase.authorize.failure",
+          "type": "unhappy path",
+          "environment": "both"
+        },
+        {
+          "id": "ATH0003",
+          "description_key": "testcase.authorize.expiration",
+          "type": "corner case",
           "environment": "both"
         }
       ]
@@ -51,6 +86,35 @@
           "id": "CPT0003",
           "description_key": "testcase.capture.expired_authorization",
           "type": "corner case",
+          "environment": "both"
+        }
+      ]
+    },
+    "Cancel": {
+      "feature_name": "Cancel",
+      "integration_steps": [
+        {
+          "documentation_url": "https://docs.y.uno/reference/cancel-payment",
+          "comment": "Allows canceling authorized but not yet captured payments. Important for inventory management and customer service."
+        }
+      ],
+      "testcases": [
+        {
+          "id": "CNC0001",
+          "description_key": "testcase.cancel.authorized_payment",
+          "type": "happy path",
+          "environment": "both"
+        },
+        {
+          "id": "CNC0002",
+          "description_key": "testcase.cancel.captured_payment",
+          "type": "corner case",
+          "environment": "both"
+        },
+        {
+          "id": "CNC0003",
+          "description_key": "testcase.cancel.confirmation",
+          "type": "happy path",
           "environment": "both"
         }
       ]
@@ -86,64 +150,6 @@
       "documentation_url": "https://docs.y.uno/docs/card-verification",
       "comment": "Indicates whether payment verification is supported. Critical for transaction security and compliance requirements."
     },
-    "Authorize": {
-      "feature_name": "Authorize",
-      "integration_steps": [
-        {
-          "documentation_url": "https://docs.y.uno/reference/authorize-payment",
-          "comment": "Supports payment authorization functionality. Required for holding funds before capture in two-step payment flows."
-        }
-      ],
-      "testcases": [
-        {
-          "id": "ATH0001",
-          "description_key": "testcase.authorize.successful",
-          "type": "happy path",
-          "environment": "both"
-        },
-        {
-          "id": "ATH0002",
-          "description_key": "testcase.authorize.failure",
-          "type": "unhappy path",
-          "environment": "both"
-        },
-        {
-          "id": "ATH0003",
-          "description_key": "testcase.authorize.expiration",
-          "type": "corner case",
-          "environment": "both"
-        }
-      ]
-    },
-    "Cancel": {
-      "feature_name": "Cancel",
-      "integration_steps": [
-        {
-          "documentation_url": "https://docs.y.uno/reference/cancel-payment",
-          "comment": "Allows canceling authorized but not yet captured payments. Important for inventory management and customer service."
-        }
-      ],
-      "testcases": [
-        {
-          "id": "CNC0001",
-          "description_key": "testcase.cancel.authorized_payment",
-          "type": "happy path",
-          "environment": "both"
-        },
-        {
-          "id": "CNC0002",
-          "description_key": "testcase.cancel.captured_payment",
-          "type": "corner case",
-          "environment": "both"
-        },
-        {
-          "id": "CNC0003",
-          "description_key": "testcase.cancel.confirmation",
-          "type": "happy path",
-          "environment": "both"
-        }
-      ]
-    },
     "Refund": {
       "feature_name": "Refund",
       "integration_steps": [
@@ -169,35 +175,6 @@
           "id": "RFD0003",
           "description_key": "testcase.refund.failure",
           "type": "unhappy path",
-          "environment": "both"
-        }
-      ]
-    },
-    "Currency": {
-      "feature_name": "Currency",
-      "integration_steps": [
-        {
-          "documentation_url": "https://docs.y.uno/reference/get-conversion-rate",
-          "comment": "Defines supported currencies for this provider + payment method. Essential for multi-currency implementations."
-        }
-      ],
-      "testcases": [
-        {
-          "id": "CUR0001",
-          "description_key": "testcase.currency.supported",
-          "type": "happy path",
-          "environment": "both"
-        },
-        {
-          "id": "CUR0002",
-          "description_key": "testcase.currency.unsupported",
-          "type": "unhappy path",
-          "environment": "both"
-        },
-        {
-          "id": "CUR0003",
-          "description_key": "testcase.currency.conversion",
-          "type": "corner case",
           "environment": "both"
         }
       ]
@@ -434,43 +411,588 @@
         }
       ]
     },
-    "Sandbox": {
-      "feature_name": "Sandbox",
+    "Experience": {
+      "feature_name": "Experience",
       "integration_steps": [
         {
-          "documentation_url": "https://docs.y.uno/docs/step-1-set-up-your-account",
-          "comment": "Testing environment availability for safe integration development. Critical for development and QA processes."
+          "documentation_url": "https://docs.y.uno/docs/choose-the-right-integration-for-you",
+          "comment": "Defines the integration experience type (SDK, API, Platform-specific). Determines implementation approach and technical requirements."
         }
       ],
       "testcases": [
         {
-          "id": "SBX0001",
-          "description_key": "testcase.sandbox.execute_test_payment",
+          "id": "EXP0001",
+          "description_key": "testcase.experience.sdk_integration",
           "type": "happy path",
           "environment": "both"
         },
         {
-          "id": "SBX0002",
-          "description_key": "testcase.sandbox.data_isolation",
+          "id": "EXP0002",
+          "description_key": "testcase.experience.api_integration",
+          "type": "happy path",
+          "environment": "both"
+        },
+        {
+          "id": "EXP0003",
+          "description_key": "testcase.experience.platform_specific",
+          "type": "happy path",
+          "environment": "both"
+        }
+      ]
+    },
+    "Card_Type": {
+      "feature_name": "Card_Type",
+      "integration_steps": [
+        {
+          "documentation_url": "https://docs.y.uno/docs/cards",
+          "comment": "Specifies accepted card types (Credit, Debit, Prepaid). Critical for payment method validation and user experience."
+        }
+      ],
+      "testcases": [
+        {
+          "id": "CDT0001",
+          "description_key": "testcase.card_type.accept_credit",
+          "type": "happy path",
+          "environment": "both"
+        },
+        {
+          "id": "CDT0002",
+          "description_key": "testcase.card_type.accept_debit",
+          "type": "happy path",
+          "environment": "both"
+        },
+        {
+          "id": "CDT0003",
+          "description_key": "testcase.card_type.reject_unsupported",
+          "type": "unhappy path",
+          "environment": "both"
+        }
+      ]
+    },
+    "Partial_Capture": {
+      "feature_name": "Partial_Capture",
+      "integration_steps": [
+        {
+          "documentation_url": "https://docs.y.uno/reference/capture-authorization",
+          "comment": "Enables capturing partial amounts from authorized payments. Useful for order modifications and split fulfillment."
+        }
+      ],
+      "testcases": [
+        {
+          "id": "PCP0001",
+          "description_key": "testcase.partial_capture.capture_partial_amount",
+          "type": "happy path",
+          "environment": "both"
+        },
+        {
+          "id": "PCP0002",
+          "description_key": "testcase.partial_capture.exceed_authorized_amount",
+          "type": "unhappy path",
+          "environment": "both"
+        },
+        {
+          "id": "PCP0003",
+          "description_key": "testcase.partial_capture.multiple_partial_captures",
+          "type": "corner case",
+          "environment": "both"
+        }
+      ]
+    },
+    "Partial_Refund": {
+      "feature_name": "Partial_Refund",
+      "integration_steps": [
+        {
+          "documentation_url": "https://docs.y.uno/reference/refund-payment",
+          "comment": "Supports partial refunds of completed payments. Essential for handling returns, damages, and customer service scenarios."
+        }
+      ],
+      "testcases": [
+        {
+          "id": "PRF0001",
+          "description_key": "testcase.partial_refund.process_partial_refund",
+          "type": "happy path",
+          "environment": "both"
+        },
+        {
+          "id": "PRF0002",
+          "description_key": "testcase.partial_refund.exceed_original_amount",
+          "type": "unhappy path",
+          "environment": "both"
+        },
+        {
+          "id": "PRF0003",
+          "description_key": "testcase.partial_refund.multiple_partial_refunds",
+          "type": "corner case",
+          "environment": "both"
+        }
+      ]
+    },
+    "Multiple_Captures": {
+      "feature_name": "Multiple_Captures",
+      "integration_steps": [
+        {
+          "documentation_url": "https://docs.y.uno/reference/capture-authorization",
+          "comment": "Allows multiple capture operations from a single authorization. Required for complex order fulfillment scenarios."
+        }
+      ],
+      "testcases": [
+        {
+          "id": "MCP0001",
+          "description_key": "testcase.multiple_captures.sequential_captures",
+          "type": "happy path",
+          "environment": "both"
+        },
+        {
+          "id": "MCP0002",
+          "description_key": "testcase.multiple_captures.exceed_total_authorization",
+          "type": "unhappy path",
+          "environment": "both"
+        },
+        {
+          "id": "MCP0003",
+          "description_key": "testcase.multiple_captures.concurrent_captures",
+          "type": "corner case",
+          "environment": "both"
+        }
+      ]
+    },
+    "Multiple_Refunds": {
+      "feature_name": "Multiple_Refunds",
+      "integration_steps": [
+        {
+          "documentation_url": "https://docs.y.uno/reference/refund-payment",
+          "comment": "Supports multiple refund operations against a single payment. Important for complex return and customer service scenarios."
+        }
+      ],
+      "testcases": [
+        {
+          "id": "MRF0001",
+          "description_key": "testcase.multiple_refunds.sequential_refunds",
+          "type": "happy path",
+          "environment": "both"
+        },
+        {
+          "id": "MRF0002",
+          "description_key": "testcase.multiple_refunds.exceed_original_amount",
+          "type": "unhappy path",
+          "environment": "both"
+        },
+        {
+          "id": "MRF0003",
+          "description_key": "testcase.multiple_refunds.refund_tracking",
+          "type": "corner case",
+          "environment": "both"
+        }
+      ]
+    },
+    "Checkout": {
+      "feature_name": "Checkout",
+      "integration_steps": [
+        {
+          "documentation_url": "https://docs.y.uno/docs/checkout",
+          "comment": "Hosted checkout page functionality for seamless payment collection. Reduces PCI compliance scope and implementation complexity."
+        }
+      ],
+      "testcases": [
+        {
+          "id": "CHK0001",
+          "description_key": "testcase.checkout.display_payment_form",
+          "type": "happy path",
+          "environment": "both"
+        },
+        {
+          "id": "CHK0002",
+          "description_key": "testcase.checkout.handle_payment_errors",
+          "type": "unhappy path",
+          "environment": "both"
+        },
+        {
+          "id": "CHK0003",
+          "description_key": "testcase.checkout.customization_options",
+          "type": "corner case",
+          "environment": "both"
+        }
+      ]
+    },
+    "Redirect": {
+      "feature_name": "Redirect",
+      "integration_steps": [
+        {
+          "documentation_url": "https://docs.y.uno/docs/seamless-sdk-payment-web",
+          "comment": "Support for redirect-based payment flows. Common for bank transfers, digital wallets, and alternative payment methods."
+        }
+      ],
+      "testcases": [
+        {
+          "id": "RDR0001",
+          "description_key": "testcase.redirect.initiate_redirect",
+          "type": "happy path",
+          "environment": "both"
+        },
+        {
+          "id": "RDR0002",
+          "description_key": "testcase.redirect.handle_return_url",
+          "type": "happy path",
+          "environment": "both"
+        },
+        {
+          "id": "RDR0003",
+          "description_key": "testcase.redirect.timeout_handling",
+          "type": "corner case",
+          "environment": "both"
+        }
+      ]
+    },
+    "External_Refunds": {
+      "feature_name": "External_Refunds",
+      "integration_steps": [
+        {
+          "documentation_url": "https://docs.y.uno/reference/refund-payment",
+          "comment": "Support for refunds initiated outside of Yuno platform. Important for reconciliation and external system integration."
+        }
+      ],
+      "testcases": [
+        {
+          "id": "ERF0001",
+          "description_key": "testcase.external_refunds.receive_external_refund",
+          "type": "happy path",
+          "environment": "both"
+        },
+        {
+          "id": "ERF0002",
+          "description_key": "testcase.external_refunds.reconcile_refunds",
           "type": "corner case",
           "environment": "both"
         },
         {
-          "id": "SBX0003",
-          "description_key": "testcase.sandbox.environment_switching",
+          "id": "ERF0003",
+          "description_key": "testcase.external_refunds.duplicate_refund_prevention",
+          "type": "unhappy path",
+          "environment": "both"
+        }
+      ]
+    },
+    "Conciliations": {
+      "feature_name": "Conciliations",
+      "integration_steps": [
+        {
+          "documentation_url": "https://docs.y.uno/docs/reconciliations",
+          "comment": "Automated reconciliation and settlement reporting. Essential for financial operations and compliance."
+        }
+      ],
+      "testcases": [
+        {
+          "id": "CON0001",
+          "description_key": "testcase.conciliations.generate_settlement_report",
+          "type": "happy path",
+          "environment": "both"
+        },
+        {
+          "id": "CON0002",
+          "description_key": "testcase.conciliations.handle_discrepancies",
+          "type": "unhappy path",
+          "environment": "both"
+        },
+        {
+          "id": "CON0003",
+          "description_key": "testcase.conciliations.automated_reconciliation",
           "type": "corner case",
+          "environment": "both"
+        }
+      ]
+    },
+    "Network_Tokens": {
+      "feature_name": "Network_Tokens",
+      "integration_steps": [
+        {
+          "documentation_url": "https://docs.y.uno/docs/network-tokens",
+          "comment": "Support for card network tokenization (Visa, Mastercard tokens). Improves authorization rates and reduces fraud."
+        }
+      ],
+      "testcases": [
+        {
+          "id": "NTK0001",
+          "description_key": "testcase.network_tokens.create_network_token",
+          "type": "happy path",
+          "environment": "both"
+        },
+        {
+          "id": "NTK0002",
+          "description_key": "testcase.network_tokens.use_network_token",
+          "type": "happy path",
+          "environment": "both"
+        },
+        {
+          "id": "NTK0003",
+          "description_key": "testcase.network_tokens.token_lifecycle_management",
+          "type": "corner case",
+          "environment": "both"
+        }
+      ]
+    },
+    "Market_Segment": {
+      "feature_name": "Market_Segment",
+      "integration_steps": [
+        {
+          "documentation_url": "https://docs.y.uno/reference/api-reference-overview",
+          "comment": "Identifies the target market segment for the payment provider. Affects available features and pricing models."
+        }
+      ],
+      "testcases": [
+        {
+          "id": "MKS0001",
+          "description_key": "testcase.market_segment.validate_segment_rules",
+          "type": "happy path",
+          "environment": "both"
+        },
+        {
+          "id": "MKS0002",
+          "description_key": "testcase.market_segment.segment_specific_features",
+          "type": "corner case",
+          "environment": "both"
+        },
+        {
+          "id": "MKS0003",
+          "description_key": "testcase.market_segment.cross_segment_compatibility",
+          "type": "corner case",
+          "environment": "both"
+        }
+      ]
+    },
+    "SubMerchants": {
+      "feature_name": "SubMerchants",
+      "integration_steps": [
+        {
+          "documentation_url": "https://docs.y.uno/docs/step-1-set-up-your-account",
+          "comment": "Support for sub-merchant management in marketplace scenarios. Required for payment facilitator models."
+        }
+      ],
+      "testcases": [
+        {
+          "id": "SMC0001",
+          "description_key": "testcase.submerchants.create_submerchant",
+          "type": "happy path",
+          "environment": "both"
+        },
+        {
+          "id": "SMC0002",
+          "description_key": "testcase.submerchants.process_submerchant_payment",
+          "type": "happy path",
+          "environment": "both"
+        },
+        {
+          "id": "SMC0003",
+          "description_key": "testcase.submerchants.submerchant_compliance",
+          "type": "corner case",
+          "environment": "both"
+        }
+      ]
+    },
+    "Soft_Descriptor": {
+      "feature_name": "Soft_Descriptor",
+      "integration_steps": [
+        {
+          "documentation_url": "https://docs.y.uno/reference/create-payment",
+          "comment": "Support for customizable merchant descriptors on customer statements. Important for brand recognition and chargeback prevention."
+        }
+      ],
+      "testcases": [
+        {
+          "id": "SFD0001",
+          "description_key": "testcase.soft_descriptor.set_custom_descriptor",
+          "type": "happy path",
+          "environment": "both"
+        },
+        {
+          "id": "SFD0002",
+          "description_key": "testcase.soft_descriptor.descriptor_validation",
+          "type": "unhappy path",
+          "environment": "both"
+        },
+        {
+          "id": "SFD0003",
+          "description_key": "testcase.soft_descriptor.dynamic_descriptors",
+          "type": "corner case",
+          "environment": "both"
+        }
+      ]
+    },
+    "APM_Expiration": {
+      "feature_name": "APM_Expiration",
+      "integration_steps": [
+        {
+          "documentation_url": "https://docs.y.uno/reference/create-payment",
+          "comment": "Customizable expiration times for Alternative Payment Methods. Allows flexible payment windows for different use cases."
+        }
+      ],
+      "testcases": [
+        {
+          "id": "APE0001",
+          "description_key": "testcase.apm_expiration.set_custom_expiration",
+          "type": "happy path",
+          "environment": "both"
+        },
+        {
+          "id": "APE0002",
+          "description_key": "testcase.apm_expiration.handle_expired_payment",
+          "type": "unhappy path",
+          "environment": "both"
+        },
+        {
+          "id": "APE0003",
+          "description_key": "testcase.apm_expiration.expiration_notifications",
+          "type": "corner case",
+          "environment": "both"
+        }
+      ]
+    },
+    "ApplePay": {
+      "feature_name": "ApplePay",
+      "integration_steps": [
+        {
+          "documentation_url": "https://docs.y.uno/docs/apple-pay",
+          "comment": "Apple Pay digital wallet integration. Provides seamless mobile payment experience for iOS users."
+        }
+      ],
+      "testcases": [
+        {
+          "id": "APL0001",
+          "description_key": "testcase.applepay.initiate_payment",
+          "type": "happy path",
+          "environment": "both"
+        },
+        {
+          "id": "APL0002",
+          "description_key": "testcase.applepay.handle_cancellation",
+          "type": "unhappy path",
+          "environment": "both"
+        },
+        {
+          "id": "APL0003",
+          "description_key": "testcase.applepay.device_compatibility",
+          "type": "corner case",
+          "environment": "both"
+        }
+      ]
+    },
+    "GooglePay": {
+      "feature_name": "GooglePay",
+      "integration_steps": [
+        {
+          "documentation_url": "https://docs.y.uno/docs/google-pay",
+          "comment": "Google Pay digital wallet integration. Enables fast and secure payments for Android and web users."
+        }
+      ],
+      "testcases": [
+        {
+          "id": "GPY0001",
+          "description_key": "testcase.googlepay.initiate_payment",
+          "type": "happy path",
+          "environment": "both"
+        },
+        {
+          "id": "GPY0002",
+          "description_key": "testcase.googlepay.handle_failure",
+          "type": "unhappy path",
+          "environment": "both"
+        },
+        {
+          "id": "GPY0003",
+          "description_key": "testcase.googlepay.browser_compatibility",
+          "type": "corner case",
+          "environment": "both"
+        }
+      ]
+    },
+    "ClickToPay": {
+      "feature_name": "ClickToPay",
+      "integration_steps": [
+        {
+          "documentation_url": "https://docs.y.uno/docs/click-to-pay",
+          "comment": "Click to Pay functionality for streamlined checkout experience. Reduces cart abandonment through simplified payment flows."
+        }
+      ],
+      "testcases": [
+        {
+          "id": "CTP0001",
+          "description_key": "testcase.clicktopay.one_click_payment",
+          "type": "happy path",
+          "environment": "both"
+        },
+        {
+          "id": "CTP0002",
+          "description_key": "testcase.clicktopay.authentication_required",
+          "type": "corner case",
+          "environment": "both"
+        },
+        {
+          "id": "CTP0003",
+          "description_key": "testcase.clicktopay.card_enrollment",
+          "type": "happy path",
           "environment": "both"
         }
       ]
     }
   },
+  "master": {
+    "description": "Master rules executed for every conversion regardless of matched features",
+    "integration_steps": [
+      {
+        "documentation_url": "https://docs.y.uno/docs/getting-started",
+        "comment": "Essential setup and configuration steps required for all integrations. This covers initial account setup, API key configuration, and basic implementation requirements."
+      },
+      {
+        "documentation_url": "https://docs.y.uno/docs/security-best-practices",
+        "comment": "Security guidelines and best practices that must be implemented in all integrations. Includes proper API key handling, webhook signature verification, and data protection measures."
+      },
+      {
+        "documentation_url": "https://docs.y.uno/docs/error-handling",
+        "comment": "Standard error handling patterns and response codes. Essential for building robust integrations that handle failures gracefully."
+      }
+    ],
+    "testcases": [
+      {
+        "id": "MST0001",
+        "description_key": "testcase.master.api_authentication",
+        "type": "happy path",
+        "environment": "both"
+      },
+      {
+        "id": "MST0002",
+        "description_key": "testcase.master.invalid_api_key",
+        "type": "unhappy path",
+        "environment": "both"
+      },
+      {
+        "id": "MST0003",
+        "description_key": "testcase.master.rate_limiting",
+        "type": "corner case",
+        "environment": "both"
+      },
+      {
+        "id": "MST0004",
+        "description_key": "testcase.master.network_connectivity",
+        "type": "unhappy path",
+        "environment": "both"
+      },
+      {
+        "id": "MST0005",
+        "description_key": "testcase.master.ssl_certificate_validation",
+        "type": "corner case",
+        "environment": "production"
+      }
+    ]
+  },
   "metadata": {
-    "total_rules": 16,
+    "total_rules": 32,
     "categories": [
       "Payment Processing",
       "Security & Compliance",
       "Customer Experience",
-      "Development & Testing"
+      "Development & Testing",
+      "Business Operations",
+      "Digital Wallets",
+      "Market Segments"
     ],
     "testcase_types": [
       "happy path",
@@ -491,6 +1013,6 @@
       "default_locale": "en",
       "structure": "Testcase descriptions use i18n keys (description_key) that reference translations in i18n/{locale}.json files"
     },
-    "usage_instructions": "This file contains documentation rules that map feature names to their corresponding documentation URLs and explanatory comments. Integration steps are an array of objects, each containing documentation_url and comment, allowing multiple integration steps per feature. Testcase descriptions are internationalized using i18n keys. Each testcase now includes an environment field specifying whether it applies to 'sandbox', 'production', or 'both' environments. Use the i18n_helper.py utility to load translations."
+    "usage_instructions": "This file contains documentation rules that map feature names to their corresponding documentation URLs and explanatory comments. Integration steps are an array of objects, each containing documentation_url and comment, allowing multiple integration steps per feature. Testcase descriptions are internationalized using i18n keys. Each testcase now includes an environment field specifying whether it applies to 'sandbox', 'production', or 'both' environments. The 'master' section contains rules that are executed for every conversion regardless of which features are matched. Use the i18n_helper.py utility to load translations."
   }
 }
