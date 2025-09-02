@@ -258,48 +258,54 @@
                                 <i class="fas fa-cog text-primary"></i> 
                                 {{ rule.feature_name }}
                             </h5>
-                            
-                            {% if rule.integration_steps and rule.integration_steps|length > 0 %}
-                                {% if rule.integration_steps|length > 1 %}
+                            {% set by_pm = rule.by_payment_method if rule.by_payment_method is defined else {} %}
+                            {% set universal = by_pm.universal if by_pm and by_pm.universal is defined else {} %}
+
+                            {% if universal.integration_steps and universal.integration_steps|length > 0 %}
+                                {% if universal.integration_steps|length > 1 %}
                                 <div class="mb-2">
-                                    <small class="badge bg-secondary">{{ rule.integration_steps|length }} Integration Steps</small>
+                                    <small class="badge bg-secondary">{{ universal.integration_steps|length }} Integration Steps</small>
                                 </div>
                                 {% endif %}
-                                
-                                {% for step in rule.integration_steps %}
+                                {% for step in universal.integration_steps %}
                                 <div class="integration-step mb-2">
-                                    {% if rule.integration_steps|length > 1 %}
+                                    {% if universal.integration_steps|length > 1 %}
                                     <div class="step-header">
                                         <small class="text-muted fw-bold">Step {{ loop.index }}:</small>
                                     </div>
                                     {% endif %}
                                     <div class="documentation-url">
-                                        <i class="fas fa-link"></i> 
-                                        <a href="{{ step.documentation_url }}" target="_blank">
-                                            {{ step.documentation_url }}
-                                        </a>
+                                        <i class="fas fa-link"></i>
+                                        <a href="{{ step.documentation_url }}" target="_blank">{{ step.documentation_url }}</a>
                                     </div>
-                                    <div class="rule-comment">
-                                        "{{ step.comment }}"
-                                    </div>
+                                    <div class="rule-comment">"{{ step.comment }}"</div>
                                 </div>
                                 {% endfor %}
                             {% else %}
-                                <div class="documentation-url">
-                                    <i class="fas fa-link"></i> 
-                                    <a href="{{ rule.documentation_url }}" target="_blank">
-                                        {{ rule.documentation_url }}
-                                    </a>
-                                </div>
-                                <div class="rule-comment">
-                                    "{{ rule.comment }}"
-                                </div>
+                                {# Backward compatibility display #}
+                                {% if rule.integration_steps and rule.integration_steps|length > 0 %}
+                                    {% for step in rule.integration_steps %}
+                                    <div class="integration-step mb-2">
+                                        <div class="documentation-url">
+                                            <i class="fas fa-link"></i>
+                                            <a href="{{ step.documentation_url }}" target="_blank">{{ step.documentation_url }}</a>
+                                        </div>
+                                        <div class="rule-comment">"{{ step.comment }}"</div>
+                                    </div>
+                                    {% endfor %}
+                                {% elif rule.documentation_url %}
+                                    <div class="documentation-url">
+                                        <i class="fas fa-link"></i>
+                                        <a href="{{ rule.documentation_url }}" target="_blank">{{ rule.documentation_url }}</a>
+                                    </div>
+                                    <div class="rule-comment">"{{ rule.comment }}"</div>
+                                {% endif %}
                             {% endif %}
-                            
-                            {% if rule.testcases %}
+
+                            {% if universal.testcases %}
                             <div class="mt-2">
                                 <small class="text-muted">
-                                    <i class="fas fa-vial"></i> {{ rule.testcases|length }} test cases configured
+                                    <i class="fas fa-vial"></i> {{ universal.testcases|length }} test cases configured (universal)
                                 </small>
                             </div>
                             {% endif %}

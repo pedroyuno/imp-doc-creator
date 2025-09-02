@@ -132,8 +132,8 @@ class TestCaseGenerator:
         
         for feature_name in feature_order:
             if feature_name in implemented_features:
-                feature_rule = self.i18n.feature_rules.get(feature_name, {})
-                integration_step_list = feature_rule.get('integration_steps', [])
+                # Pull integration steps from by_payment_method.universal (with fallback)
+                integration_step_list = self.i18n.get_integration_steps_for_feature(feature_name)
                 
                 if integration_step_list:
                     for step in integration_step_list:
@@ -193,7 +193,11 @@ class TestCaseGenerator:
             for feature_name, feature_value in features.items():
                 # Only include test cases for implemented features
                 if self._is_feature_implemented(feature_value):
-                    feature_test_cases = self.i18n.get_test_cases_for_feature(feature_name, self.locale)
+                    feature_test_cases = self.i18n.get_test_cases_for_feature(
+                        feature_name,
+                        self.locale,
+                        payment_method=payment_method
+                    )
                     
                     # Filter test cases by environment
                     filtered_test_cases = self._filter_test_cases_by_environment(feature_test_cases, environment)

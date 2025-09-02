@@ -40,6 +40,15 @@ class I18nHelper:
                 self.feature_rules = data.get('rules', {})
                 # Load master rules separately
                 self.master_rules = data.get('master', {})
+                # Ensure every feature that has universal testcases also includes a by_payment_method key
+                try:
+                    for feature_name, feature_data in self.feature_rules.items():
+                        if isinstance(feature_data, dict):
+                            if 'testcases' in feature_data and 'by_payment_method' not in feature_data:
+                                feature_data['by_payment_method'] = {}
+                except Exception:
+                    # Be permissive: if structure isn't as expected, skip enrichment
+                    pass
     
     def get_text(self, key: str, locale: str = None) -> str:
         """
@@ -70,7 +79,7 @@ class I18nHelper:
             # Return the key if translation not found
             return key
     
-    def get_test_cases_for_feature(self, feature_name: str, locale: str = None) -> list:
+    def get_test_cases_for_feature(self, feature_name: str, locale: str = None, payment_method: str = None) -> list:
         """
         Get all test cases for a feature with translated descriptions
         
@@ -87,7 +96,10 @@ class I18nHelper:
         test_cases = []
         feature_data = self.feature_rules[feature_name]
         
-        for testcase in feature_data.get('testcases', []):
+        # New structure: by_payment_method with 'universal' section
+        by_pm = feature_data.get('by_payment_method', {}) or {}
+        universal = by_pm.get('universal', {}) if isinstance(by_pm, dict) else {}
+        for testcase in universal.get('testcases', []) or []:
             translated_case = {
                 'id': testcase['id'],
                 'description': self.get_text(testcase['description_key'], locale),
@@ -96,7 +108,45 @@ class I18nHelper:
             }
             test_cases.append(translated_case)
         
+        # Method-specific cases (case-insensitive key match)
+        if payment_method and isinstance(by_pm, dict):
+            pm_lookup = {str(k).lower(): v for k, v in by_pm.items()}
+            pm_block = pm_lookup.get(str(payment_method).lower())
+            if isinstance(pm_block, dict):
+                for testcase in pm_block.get('testcases', []) or []:
+                    translated_case = {
+                        'id': testcase['id'],
+                        'description': self.get_text(testcase['description_key'], locale),
+                        'type': testcase['type'],
+                        'environment': testcase.get('environment', 'both')
+                    }
+                    test_cases.append(translated_case)
+        
+        # Backward-compat fallback: include top-level testcases if present
+        if not test_cases:
+            for testcase in feature_data.get('testcases', []) or []:
+                translated_case = {
+                    'id': testcase['id'],
+                    'description': self.get_text(testcase['description_key'], locale),
+                    'type': testcase['type'],
+                    'environment': testcase.get('environment', 'both')
+                }
+                test_cases.append(translated_case)
+        
         return test_cases
+
+    def get_integration_steps_for_feature(self, feature_name: str, payment_method: str = None) -> list:
+        """Return integration steps for a feature from by_payment_method.universal (or PM-specific in future)."""
+        if feature_name not in self.feature_rules:
+            return []
+        feature_data = self.feature_rules[feature_name]
+        by_pm = feature_data.get('by_payment_method', {}) or {}
+        universal = by_pm.get('universal', {}) if isinstance(by_pm, dict) else {}
+        steps = universal.get('integration_steps', []) or []
+        if steps:
+            return steps
+        # Backward-compat fallback to top-level integration_steps
+        return feature_data.get('integration_steps', []) or []
     
     def get_master_test_cases(self, locale: str = None) -> list:
         """

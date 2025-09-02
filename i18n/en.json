@@ -1,5 +1,17 @@
 {
   "testcase": {
+    "purchase": {
+      "card": {
+        "successful_payment": "Complete card purchase successfully",
+        "failed_payment": "Handle card purchase failure",
+        "timeout_handling": "Handle timeout during card purchase"
+      },
+      "pix": {
+        "qr_generation": "Generate and display PIX QR code",
+        "expiration_handling": "Handle PIX payment expiration window",
+        "refund_flow": "Process refund for PIX payment"
+      }
+    },
     "country": {
       "process_payment_supported": "Process payment in supported country",
       "reject_unsupported": "Verify payment rejection in unsupported country",
