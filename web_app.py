@@ -846,6 +846,405 @@ def delete_testcase(feature_name, testcase_id):
         flash(f'Error deleting test case: {str(e)}')
         return redirect(url_for('manage_testcases', feature_name=feature_name))
 
+# Helper function to get description text from i18n files
+def get_i18n_description(description_key, locale='en'):
+    """Get the description text from i18n file."""
+    try:
+        i18n_file = f'i18n/{locale}.json'
+        
+        # Load i18n data
+        with open(i18n_file, 'r', encoding='utf-8') as f:
+            i18n_data = json.load(f)
+        
+        # Parse the description key (e.g., "testcase.purchase.card.purc001")
+        key_parts = description_key.split('.')
+        
+        # Navigate the nested structure
+        current = i18n_data
+        for part in key_parts:
+            if part in current:
+                current = current[part]
+            else:
+                return None
+        
+        return current if isinstance(current, str) else None
+    except Exception as e:
+        print(f"Error reading i18n file: {e}")
+        return None
+
+# Helper function to update i18n files
+def update_i18n_description(description_key, description_text, locale='en'):
+    """Update the i18n file with a new description."""
+    try:
+        i18n_file = f'i18n/{locale}.json'
+        
+        # Load current i18n data
+        with open(i18n_file, 'r', encoding='utf-8') as f:
+            i18n_data = json.load(f)
+        
+        # Parse the description key (e.g., "testcase.purchase.card.purc001")
+        key_parts = description_key.split('.')
+        
+        # Navigate/create the nested structure
+        current = i18n_data
+        for part in key_parts[:-1]:
+            if part not in current:
+                current[part] = {}
+            current = current[part]
+        
+        # Set the final value
+        current[key_parts[-1]] = description_text
+        
+        # Save updated i18n data
+        with open(i18n_file, 'w', encoding='utf-8') as f:
+            json.dump(i18n_data, f, indent=2, ensure_ascii=False)
+        
+        return True
+    except Exception as e:
+        print(f"Error updating i18n file: {e}")
+        return False
+
+# API endpoints for the new feature rules interface
+@app.route('/api/feature-rules/<feature_name>/payment-methods', methods=['POST'])
+def api_add_payment_method(feature_name):
+    """Add a new payment method to a feature rule."""
+    try:
+        data = request.get_json()
+        payment_method = data.get('payment_method')
+        
+        if not payment_method:
+            return jsonify({'success': False, 'error': 'Payment method name is required'})
+        
+        # Load current rules
+        with open('feature_rules.json', 'r', encoding='utf-8') as f:
+            rules_data = json.load(f)
+        
+        if feature_name not in rules_data.get('rules', {}):
+            return jsonify({'success': False, 'error': 'Feature rule not found'})
+        
+        # Add payment method structure
+        if 'by_payment_method' not in rules_data['rules'][feature_name]:
+            rules_data['rules'][feature_name]['by_payment_method'] = {}
+        
+        if payment_method not in rules_data['rules'][feature_name]['by_payment_method']:
+            rules_data['rules'][feature_name]['by_payment_method'][payment_method] = {
+                'testcases': [],
+                'integration_steps': []
+            }
+        
+        # Save updated rules
+        with open('feature_rules.json', 'w', encoding='utf-8') as f:
+            json.dump(rules_data, f, indent=2, ensure_ascii=False)
+        
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/feature-rules/<feature_name>', methods=['PUT'])
+def api_update_feature_rule(feature_name):
+    """Update a feature rule."""
+    try:
+        data = request.get_json()
+        
+        # Load current rules
+        with open('feature_rules.json', 'r', encoding='utf-8') as f:
+            rules_data = json.load(f)
+        
+        if feature_name not in rules_data.get('rules', {}):
+            return jsonify({'success': False, 'error': 'Feature rule not found'})
+        
+        # Update feature rule data
+        if 'feature_name' in data:
+            rules_data['rules'][feature_name]['feature_name'] = data['feature_name']
+        
+        # Save updated rules
+        with open('feature_rules.json', 'w', encoding='utf-8') as f:
+            json.dump(rules_data, f, indent=2, ensure_ascii=False)
+        
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/testcases', methods=['POST'])
+def api_create_testcase():
+    """Create a new test case."""
+    try:
+        data = request.get_json()
+        
+        # Parse feature and payment method from ID
+        feature_pm = data.get('id', '').split(':')
+        if len(feature_pm) != 2:
+            return jsonify({'success': False, 'error': 'Invalid ID format. Use feature:payment_method'})
+        
+        feature_name, payment_method = feature_pm
+        
+        # Load current rules
+        with open('feature_rules.json', 'r', encoding='utf-8') as f:
+            rules_data = json.load(f)
+        
+        if feature_name not in rules_data.get('rules', {}):
+            return jsonify({'success': False, 'error': 'Feature rule not found'})
+        
+        # Add test case
+        if 'by_payment_method' not in rules_data['rules'][feature_name]:
+            rules_data['rules'][feature_name]['by_payment_method'] = {}
+        
+        if payment_method not in rules_data['rules'][feature_name]['by_payment_method']:
+            rules_data['rules'][feature_name]['by_payment_method'][payment_method] = {
+                'testcases': [],
+                'integration_steps': []
+            }
+        
+        # Generate unique test case ID
+        testcase_id = data.get('id', 'TC' + str(len(rules_data['rules'][feature_name]['by_payment_method'][payment_method]['testcases']) + 1).zfill(3))
+        
+        # Auto-generate description key based on feature, payment method, and test case ID
+        description_key = f"testcase.{feature_name.lower()}.{payment_method.lower()}.{testcase_id.lower()}"
+        
+        new_testcase = {
+            'id': testcase_id,
+            'description_key': description_key,
+            'type': data.get('type', 'happy path'),
+            'environment': data.get('environment', 'both')
+        }
+        
+        rules_data['rules'][feature_name]['by_payment_method'][payment_method]['testcases'].append(new_testcase)
+        
+        # Save updated rules
+        with open('feature_rules.json', 'w', encoding='utf-8') as f:
+            json.dump(rules_data, f, indent=2, ensure_ascii=False)
+        
+        # Update i18n files with the description
+        description_text = data.get('description', '')
+        if description_text:
+            # Update all supported locales
+            for locale in ['en', 'es', 'pt']:
+                update_i18n_description(description_key, description_text, locale)
+        
+        return jsonify({'success': True, 'testcase_id': testcase_id, 'description_key': description_key})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/testcases/<testcase_id>', methods=['PUT'])
+def api_update_testcase(testcase_id):
+    """Update an existing test case."""
+    try:
+        data = request.get_json()
+        
+        # Load current rules
+        with open('feature_rules.json', 'r', encoding='utf-8') as f:
+            rules_data = json.load(f)
+        
+        # Find and update test case in regular rules
+        for feature_name, rule in rules_data.get('rules', {}).items():
+            if 'by_payment_method' in rule:
+                for pm_name, pm_config in rule['by_payment_method'].items():
+                    for i, testcase in enumerate(pm_config.get('testcases', [])):
+                        if testcase['id'] == testcase_id:
+                            # Update test case
+                            if 'description_key' in data:
+                                testcase['description_key'] = data['description_key']
+                            if 'type' in data:
+                                testcase['type'] = data['type']
+                            if 'environment' in data:
+                                testcase['environment'] = data['environment']
+                            
+                            # Save updated rules
+                            with open('feature_rules.json', 'w', encoding='utf-8') as f:
+                                json.dump(rules_data, f, indent=2, ensure_ascii=False)
+                            
+                            # Update i18n files if description is provided
+                            if 'description' in data and data['description']:
+                                description_key = testcase.get('description_key', '')
+                                if description_key:
+                                    # Update all supported locales
+                                    for locale in ['en', 'es', 'pt']:
+                                        update_i18n_description(description_key, data['description'], locale)
+                            
+                            return jsonify({'success': True})
+        
+        # Check master rules if not found in regular rules
+        master_rules = rules_data.get('master', {})
+        for i, testcase in enumerate(master_rules.get('testcases', [])):
+            if testcase['id'] == testcase_id:
+                # Update test case
+                if 'description_key' in data:
+                    testcase['description_key'] = data['description_key']
+                if 'type' in data:
+                    testcase['type'] = data['type']
+                if 'environment' in data:
+                    testcase['environment'] = data['environment']
+                
+                # Save updated rules
+                with open('feature_rules.json', 'w', encoding='utf-8') as f:
+                    json.dump(rules_data, f, indent=2, ensure_ascii=False)
+                
+                # Update i18n files if description is provided
+                if 'description' in data and data['description']:
+                    description_key = testcase.get('description_key', '')
+                    if description_key:
+                        # Update all supported locales
+                        for locale in ['en', 'es', 'pt']:
+                            update_i18n_description(description_key, data['description'], locale)
+                
+                return jsonify({'success': True})
+        
+        return jsonify({'success': False, 'error': 'Test case not found'})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/testcases/<testcase_id>', methods=['DELETE'])
+def api_delete_testcase(testcase_id):
+    """Delete a test case."""
+    try:
+        # Load current rules
+        with open('feature_rules.json', 'r', encoding='utf-8') as f:
+            rules_data = json.load(f)
+        
+        # Find and delete test case in regular rules
+        for feature_name, rule in rules_data.get('rules', {}).items():
+            if 'by_payment_method' in rule:
+                for pm_name, pm_config in rule['by_payment_method'].items():
+                    for i, testcase in enumerate(pm_config.get('testcases', [])):
+                        if testcase['id'] == testcase_id:
+                            # Remove test case
+                            pm_config['testcases'].pop(i)
+                            
+                            # Save updated rules
+                            with open('feature_rules.json', 'w', encoding='utf-8') as f:
+                                json.dump(rules_data, f, indent=2, ensure_ascii=False)
+                            
+                            return jsonify({'success': True})
+        
+        # Check master rules if not found in regular rules
+        master_rules = rules_data.get('master', {})
+        for i, testcase in enumerate(master_rules.get('testcases', [])):
+            if testcase['id'] == testcase_id:
+                # Remove test case
+                master_rules['testcases'].pop(i)
+                
+                # Save updated rules
+                with open('feature_rules.json', 'w', encoding='utf-8') as f:
+                    json.dump(rules_data, f, indent=2, ensure_ascii=False)
+                
+                return jsonify({'success': True})
+        
+        return jsonify({'success': False, 'error': 'Test case not found'})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/testcases/<testcase_id>/data', methods=['GET'])
+def api_get_testcase_data(testcase_id):
+    """Get test case data including description text."""
+    try:
+        # Get locale from query parameter, default to 'en'
+        locale = request.args.get('locale', 'en')
+        
+        # Load current rules
+        with open('feature_rules.json', 'r', encoding='utf-8') as f:
+            rules_data = json.load(f)
+        
+        # Find test case in regular rules
+        for feature_name, rule in rules_data.get('rules', {}).items():
+            if 'by_payment_method' in rule:
+                for pm_name, pm_config in rule['by_payment_method'].items():
+                    for testcase in pm_config.get('testcases', []):
+                        if testcase['id'] == testcase_id:
+                            # Get description text from i18n using the specified locale
+                            description_key = testcase.get('description_key', '')
+                            description_text = get_i18n_description(description_key, locale) if description_key else ''
+                            
+                            return jsonify({
+                                'success': True,
+                                'testcase': {
+                                    'id': testcase['id'],
+                                    'description_key': description_key,
+                                    'description': description_text,
+                                    'type': testcase['type'],
+                                    'environment': testcase['environment']
+                                }
+                            })
+        
+        # Check master rules if not found in regular rules
+        master_rules = rules_data.get('master', {})
+        for testcase in master_rules.get('testcases', []):
+            if testcase['id'] == testcase_id:
+                # Get description text from i18n using the specified locale
+                description_key = testcase.get('description_key', '')
+                description_text = get_i18n_description(description_key, locale) if description_key else ''
+                
+                return jsonify({
+                    'success': True,
+                    'testcase': {
+                        'id': testcase['id'],
+                        'description_key': description_key,
+                        'description': description_text,
+                        'type': testcase['type'],
+                        'environment': testcase['environment']
+                    }
+                })
+        
+        return jsonify({'success': False, 'error': 'Test case not found'})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/feature-rules/<feature_name>/data', methods=['GET'])
+def api_get_feature_data(feature_name):
+    """Get feature rule data including integration steps."""
+    try:
+        # Load current rules
+        with open('feature_rules.json', 'r', encoding='utf-8') as f:
+            rules_data = json.load(f)
+        
+        # Find feature in regular rules
+        if feature_name in rules_data.get('rules', {}):
+            feature_rule = rules_data['rules'][feature_name]
+            
+            # Get the first integration step from the first payment method as default
+            default_url = ""
+            default_comment = ""
+            
+            if 'by_payment_method' in feature_rule:
+                for pm_name, pm_config in feature_rule['by_payment_method'].items():
+                    if 'integration_steps' in pm_config and pm_config['integration_steps']:
+                        first_step = pm_config['integration_steps'][0]
+                        default_url = first_step.get('documentation_url', '')
+                        default_comment = first_step.get('comment', '')
+                        break
+            
+            return jsonify({
+                'success': True,
+                'feature': {
+                    'feature_name': feature_rule.get('feature_name', feature_name),
+                    'documentation_url': default_url,
+                    'comment': default_comment
+                }
+            })
+        
+        # Check master rules if not found in regular rules
+        elif feature_name == 'master':
+            master_rules = rules_data.get('master', {})
+            default_url = ""
+            default_comment = ""
+            
+            if 'integration_steps' in master_rules and master_rules['integration_steps']:
+                first_step = master_rules['integration_steps'][0]
+                default_url = first_step.get('documentation_url', '')
+                default_comment = first_step.get('comment', '')
+            
+            return jsonify({
+                'success': True,
+                'feature': {
+                    'feature_name': 'Master Rules',
+                    'documentation_url': default_url,
+                    'comment': default_comment
+                }
+            })
+        
+        return jsonify({'success': False, 'error': 'Feature not found'})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
 if __name__ == '__main__':
     port = 5001
     

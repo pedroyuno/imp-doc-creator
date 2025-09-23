@@ -86,12 +86,6 @@
         "universal": {
           "testcases": [
             {
-              "id": "ATH0001",
-              "description_key": "testcase.authorize.successful",
-              "type": "happy path",
-              "environment": "both"
-            },
-            {
               "id": "ATH0002",
               "description_key": "testcase.authorize.failure",
               "type": "unhappy path",

@@ -18,12 +18,12 @@
       "specific_availability": "Test country-specific payment method availability"
     },
     "verify": {
-      "valid_payment_method": "Verify valid payment method",
+      "valid_payment_method": "Correctly verify a card",
       "invalid_payment_method": "Verify invalid payment method",
       "response_handling": "Test verification response handling"
     },
     "authorize": {
-      "successful": "Authorize payment successfully",
+      "successful": "Updated test case description",
       "failure": "Handle authorization failure",
       "expiration": "Test authorization expiration"
     },
@@ -100,4 +100,4 @@
       "ssl_certificate_validation": "Verify SSL certificate validation in production"
     }
   }
-} 
+}

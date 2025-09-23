@@ -6,12 +6,12 @@
       "specific_availability": "Testar disponibilidade específica de método de pagamento por país"
     },
     "verify": {
-      "valid_payment_method": "Verificar método de pagamento válido",
-      "invalid_payment_method": "Verificar método de pagamento inválido",
+      "valid_payment_method": "Correctly verify a card",
+      "invalid_payment_method": "Verify invalid payment method",
       "response_handling": "Testar tratamento de resposta de verificação"
     },
     "authorize": {
-      "successful": "Autorizar pagamento com sucesso",
+      "successful": "Updated test case description",
       "failure": "Tratar falha de autorização",
       "expiration": "Testar expiração de autorização"
     },
@@ -86,6 +86,11 @@
       "rate_limiting": "Testar comportamento de limitação de taxa da API",
       "network_connectivity": "Tratar problemas de conectividade de rede",
       "ssl_certificate_validation": "Verificar validação de certificado SSL em produção"
+    },
+    "purchase": {
+      "card": {
+        "successful_payment": "Complete card purchase successfully"
+      }
     }
   }
-} 
+}

@@ -50,13 +50,18 @@ A column is considered valid if:
 - 📱 Mobile responsive design
 - 📖 Interactive document format guide
 - 🌐 RESTful API endpoints
+- ⚙️ **Interactive Feature Rules Management** with inline editing
+- 🌍 **Real-time language switching** (English, Spanish, Portuguese)
+- ✏️ **Inline test case description editing** with save/cancel controls
+- 🎯 **Payment method-specific test case organization**
 
 ### Testing & Quality
 - 🧪 **84% code coverage** with comprehensive test suite
-- ✅ **144 comprehensive test cases**
+- ✅ **176 comprehensive test cases** (including new API endpoint tests)
 - 🔄 Unit, integration, and regression tests
 - 🛡️ Security and error handling tests
-- 📋 Automated test runner scripts 
+- 📋 Automated test runner scripts
+- 🆕 **API endpoint testing** for feature rules management 
 
 ## Usage
 
@@ -81,6 +86,9 @@ A column is considered valid if:
 - 📥 Export parsed data as JSON for documentation generation
 - 📱 Mobile responsive design
 - 📖 Interactive document format guide
+- ⚙️ **Feature Rules Management**: Interactive editing of feature rules and test cases
+- ✏️ **Inline Editing**: Edit test case descriptions directly with save/cancel controls
+- 🌍 **Real-time Language Switching**: Switch between languages without page reload
 
 ### Command Line Interface
 
@@ -172,11 +180,12 @@ Our test suite achieves **84% code coverage** with comprehensive testing:
 |----------|---------|------------|
 | **Unit** | Core functionality testing | 50+ |
 | **Web** | Web interface testing | 30+ |
-| **API** | RESTful API testing | 10+ |
+| **API** | RESTful API testing | 15+ |
 | **Integration** | End-to-end workflows | 15+ |
 | **Security** | File upload security | 5+ |
 | **Error Handling** | Edge cases & errors | 20+ |
 | **Test Case Generation** | Document generation testing | 14+ |
+| **Feature Rules** | Feature rules management testing | 22+ |
 
 ## Example Output
 

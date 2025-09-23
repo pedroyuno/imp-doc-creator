@@ -4,407 +4,798 @@
 
 {% block extra_css %}
 <style>
-    .rule-card {
-        border-left: 4px solid #007bff;
-        margin-bottom: 1rem;
+    /* Language Switcher */
+    .language-switcher {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1000;
+        background: white;
+        border-radius: 25px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        padding: 8px;
     }
-    .rule-card.missing-rule {
-        border-left-color: #dc3545;
+    
+    .language-switcher .btn {
+        border-radius: 20px;
+        margin: 0 2px;
+        padding: 6px 12px;
+        font-size: 0.85rem;
     }
-    .feature-name {
-        font-weight: bold;
-        color: #007bff;
+    
+    .language-switcher .btn.active {
+        background: #007bff;
+        color: white;
     }
-    .documentation-url {
-        color: #6c757d;
-        font-size: 0.9em;
-        word-break: break-all;
+
+    /* Main Layout */
+    .main-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 20px;
     }
-    .rule-comment {
-        margin-top: 0.5rem;
-        font-style: italic;
-    }
-    .stats-card {
+    
+    .page-header {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
-        border-radius: 10px;
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 30px;
+        text-align: center;
     }
-    .btn-action {
-        margin-right: 0.5rem;
-        margin-bottom: 0.5rem;
+    
+    .page-header h1 {
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+        font-weight: 700;
+    }
+    
+    .page-header p {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        margin: 0;
+    }
+
+    /* Statistics Cards */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 25px;
+        text-align: center;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+    
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 8px;
+    }
+    
+    .stat-label {
+        color: #6c757d;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* Feature Cards */
+    .feature-section {
+        margin-bottom: 25px;
+    }
+    
+    .feature-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+    
+    .feature-card:hover {
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+    
+    .feature-header {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        padding: 20px 25px;
+        border-bottom: 1px solid #dee2e6;
+        cursor: pointer;
+        display: flex;
+        justify-content: between;
+        align-items: center;
+    }
+    
+    .feature-header:hover {
+        background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+    }
+    
+    .feature-title {
+        display: flex;
+        align-items: center;
+        flex: 1;
+    }
+    
+    .feature-title h3 {
+        margin: 0;
+        font-size: 1.4rem;
+        font-weight: 600;
+        color: #495057;
+    }
+    
+    .feature-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 15px;
+        font-size: 1.2rem;
+    }
+    
+    .feature-actions {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+    
+    .feature-actions .btn {
+        padding: 4px 8px;
+        font-size: 0.8rem;
+        min-width: 60px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+    }
+    
+    .feature-toggle {
+        background: none;
+        border: none;
+        font-size: 1.2rem;
+        color: #6c757d;
+        transition: transform 0.2s ease;
+    }
+    
+    .feature-toggle.rotated {
+        transform: rotate(180deg);
+    }
+    
+    .feature-content {
+        padding: 0;
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease, padding 0.3s ease;
+    }
+    
+    .feature-content.expanded {
+        max-height: 2000px;
+        padding: 25px;
+    }
+
+    /* Payment Method Tabs */
+    .payment-tabs {
+        margin-bottom: 20px;
+    }
+    
+    .payment-tabs .nav-tabs {
+        border: none;
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 5px;
+    }
+    
+    .payment-tabs .nav-link {
+        border: none;
+        border-radius: 8px;
+        color: #6c757d;
+        font-weight: 500;
+        padding: 10px 20px;
+        margin: 0 2px;
+        transition: all 0.2s ease;
+    }
+    
+    .payment-tabs .nav-link:hover {
+        background: white;
+        color: #495057;
+    }
+    
+    .payment-tabs .nav-link.active {
+        background: white;
+        color: #007bff;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .payment-tab-content {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        margin-top: 10px;
+    }
+
+    /* Integration Steps */
+    .integration-step {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 15px;
+        border-left: 4px solid #007bff;
+    }
+    
+    .integration-step:last-child {
+        margin-bottom: 0;
+    }
+    
+    .step-url {
+        color: #007bff;
+        text-decoration: none;
+        font-weight: 500;
+        word-break: break-all;
+    }
+    
+    .step-url:hover {
+        text-decoration: underline;
+    }
+    
+    .step-comment {
+        color: #6c757d;
+        font-style: italic;
+        margin-top: 8px;
+        font-size: 0.9rem;
+    }
+
+    /* Test Cases */
+    .testcase-section {
+        margin-top: 20px;
+    }
+    
+    .testcase-header {
+        display: flex;
+        justify-content: between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+    
+    .testcase-list {
+        display: grid;
+        gap: 10px;
+    }
+    
+    .testcase-item {
+        background: white;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        padding: 12px 15px;
+        display: flex;
+        justify-content: between;
+        align-items: center;
+        transition: all 0.2s ease;
+    }
+    
+    .testcase-item:hover {
+        border-color: #007bff;
+        box-shadow: 0 2px 8px rgba(0,123,255,0.1);
+    }
+    
+    .testcase-info {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        flex: 1;
+    }
+    
+    .testcase-main {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    .edit-buttons {
+        display: flex;
+        gap: 4px;
+        align-items: center;
+    }
+    
+    .save-btn, .cancel-btn {
+        padding: 2px 6px;
+        font-size: 0.8rem;
+        height: 24px;
+        min-width: 24px;
+        border-radius: 4px;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+    }
+    
+    .save-btn:hover {
+        transform: scale(1.1);
+        background-color: #28a745;
+        border-color: #28a745;
+    }
+    
+    .cancel-btn:hover {
+        transform: scale(1.1);
+        background-color: #dc3545;
+        border-color: #dc3545;
+    }
+    
+    .testcase-id {
+        font-weight: 600;
+        color: #495057;
+        min-width: 80px;
+    }
+    
+    .testcase-description {
+        flex: 1;
+        color: #6c757d;
+        font-size: 0.9rem;
+        padding: 4px 8px;
+        border-radius: 4px;
+        border: 1px solid transparent;
+        transition: all 0.2s ease;
+        min-height: 20px;
+    }
+    
+    .testcase-description:hover {
+        background-color: #f8f9fa;
+        border-color: #dee2e6;
+    }
+    
+    .testcase-description:focus {
+        background-color: white;
+        border-color: #007bff;
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+    }
+    
+    .testcase-meta {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .testcase-badge {
+        font-size: 0.75rem;
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-weight: 500;
+    }
+    
+    .testcase-actions {
+        display: flex;
+        gap: 8px;
+    }
+    
+    .testcase-actions .btn {
+        padding: 4px 8px;
+        font-size: 0.8rem;
+        min-width: 60px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+    }
+
+    /* Edit Mode */
+    .edit-mode {
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        border-radius: 8px;
+        padding: 15px;
+        margin: 15px 0;
+    }
+    
+    .edit-controls {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px solid #dee2e6;
+    }
+
+    /* Buttons */
+    .btn {
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+    
+    .btn-sm {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+    }
+    
+    .btn-primary {
+        background: #007bff;
+        border-color: #007bff;
+    }
+    
+    .btn-primary:hover {
+        background: #0056b3;
+        border-color: #0056b3;
+        transform: translateY(-1px);
+    }
+    
+    .btn-success {
+        background: #28a745;
+        border-color: #28a745;
+    }
+    
+    .btn-success:hover {
+        background: #1e7e34;
+        border-color: #1e7e34;
+        transform: translateY(-1px);
+    }
+    
+    .btn-danger {
+        background: #dc3545;
+        border-color: #dc3545;
+    }
+    
+    .btn-danger:hover {
+        background: #c82333;
+        border-color: #c82333;
+        transform: translateY(-1px);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .main-container {
+            padding: 15px;
+        }
+        
+        .page-header {
+            padding: 20px;
+        }
+        
+        .page-header h1 {
+            font-size: 2rem;
+        }
+        
+        .stats-grid {
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+        
+        .feature-header {
+            padding: 15px 20px;
+        }
+        
+        .feature-content.expanded {
+            padding: 20px;
+        }
+        
+        .language-switcher {
+            position: relative;
+            top: auto;
+            right: auto;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+        }
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .feature-card {
+        animation: fadeIn 0.3s ease;
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<style>
-.rule-comment {
-    font-style: italic;
-    color: #6c757d;
-    margin-top: 5px;
-}
+<!-- Language Switcher -->
+<div class="language-switcher">
+    <button class="btn btn-sm {% if current_locale == 'en' %}active{% endif %}" onclick="switchLanguage('en')">
+        🇺🇸 EN
+    </button>
+    <button class="btn btn-sm {% if current_locale == 'es' %}active{% endif %}" onclick="switchLanguage('es')">
+        🇪🇸 ES
+    </button>
+    <button class="btn btn-sm {% if current_locale == 'pt' %}active{% endif %}" onclick="switchLanguage('pt')">
+        🇧🇷 PT
+    </button>
+</div>
 
-.documentation-url a {
-    color: #0d6efd;
-    text-decoration: none;
-    word-break: break-all;
-}
+<div class="main-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1>🎯 Feature Rules Management</h1>
+        <p>Manage documentation rules and test cases for payment features</p>
+    </div>
 
-.documentation-url a:hover {
-    text-decoration: underline;
-}
-
-.integration-step {
-    border-left: 3px solid #e9ecef;
-    padding-left: 10px;
-    margin-left: 5px;
-}
-
-.integration-step:last-child {
-    margin-bottom: 0 !important;
-}
-
-.step-header {
-    margin-bottom: 5px;
-}
-
-.feature-card {
-    transition: box-shadow 0.2s ease-in-out;
-}
-
-.feature-card:hover {
-    box-shadow: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.15);
-}
-
-.stats-card {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-}
-
-.stats-card .card-body {
-    padding: 1.5rem;
-}
-
-.stats-number {
-    font-size: 2rem;
-    font-weight: bold;
-    margin-bottom: 0.5rem;
-}
-
-.stats-label {
-    font-size: 0.9rem;
-    opacity: 0.9;
-}
-</style>
-
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <div>
-                    <h2>🎯 Feature Rules Management</h2>
-                    <p class="text-muted mb-0">Manage documentation rules and test cases for payment features</p>
-                </div>
-                <div>
-                    <a href="{{ url_for('add_feature_rule') }}" class="btn btn-success">
-                        <i class="fas fa-plus"></i> Add New Rule
-                    </a>
-                </div>
-            </div>
+    <!-- Statistics -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-number text-primary">{{ rules_data.metadata.total_rules }}</div>
+            <div class="stat-label">Total Rules</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number text-success">{{ rules_data.metadata.categories|length }}</div>
+            <div class="stat-label">Categories</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number text-info">{{ rules_data.metadata.testcase_types|length }}</div>
+            <div class="stat-label">Test Types</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number text-warning">{{ rules_data.metadata.i18n.supported_locales|length }}</div>
+            <div class="stat-label">Languages</div>
         </div>
     </div>
 
-    <!-- Statistics Row -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card stats-card text-center">
-                <div class="card-body">
-                    <div class="stats-number">{{ rules_data.metadata.total_rules }}</div>
-                    <div class="stats-label">Total Rules</div>
+    <!-- Master Rules Section -->
+    {% if master_rules %}
+    <div class="feature-section">
+        <div class="feature-card">
+            <div class="feature-header" onclick="toggleFeature('master')">
+                <div class="feature-title">
+                    <div class="feature-icon bg-warning text-white">
+                        <i class="fas fa-crown"></i>
+                    </div>
+                    <h3>Master Rules (Global)</h3>
+                </div>
+                <div class="feature-actions">
+                    <button class="btn btn-outline-primary" onclick="editFeature('master', event)">
+                        <i class="fas fa-edit"></i> Edit
+                    </button>
+                    <button class="feature-toggle" id="master-toggle">
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
                 </div>
             </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card bg-success text-white text-center">
-                <div class="card-body">
-                    <div class="stats-number">{{ rules_data.metadata.categories|length }}</div>
-                    <div class="stats-label">Categories</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card bg-info text-white text-center">
-                <div class="card-body">
-                    <div class="stats-number">{{ rules_data.metadata.testcase_types|length }}</div>
-                    <div class="stats-label">Test Types</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card bg-warning text-white text-center">
-                <div class="card-body">
-                    <div class="stats-number">{{ rules_data.metadata.i18n.supported_locales|length }}</div>
-                    <div class="stats-label">Languages</div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="row">
-        <!-- Feature Rules List -->
-        <div class="col-lg-8">
-            {% if master_rules %}
-            <!-- Master Rules Section -->
-            <div class="mb-4">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h3><i class="fas fa-crown text-warning me-2"></i>Master Rules (Applied to All Conversions)</h3>
-                    <small class="text-muted">
-                        <i class="fas fa-info-circle"></i> These rules are executed for every conversion
-                    </small>
-                </div>
-                
-                <div class="card feature-card border-warning mb-3" style="background: linear-gradient(135deg, #fff3cd 0%, #fef9e7 100%);">
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-1 d-flex align-items-center">
-                                <div class="text-warning">
-                                    <i class="fas fa-crown fa-lg"></i>
-                                </div>
-                            </div>
-                            <div class="col-md-7">
-                                <h5 class="card-title">
-                                    <i class="fas fa-cog text-warning"></i> 
-                                    Master Rules
-                                    <span class="badge bg-warning text-dark ms-2">GLOBAL</span>
-                                </h5>
-                                
-                                {% if master_rules.integration_steps and master_rules.integration_steps|length > 0 %}
-                                    {% if master_rules.integration_steps|length > 1 %}
-                                    <div class="mb-2">
-                                        <small class="badge bg-secondary">{{ master_rules.integration_steps|length }} Integration Steps</small>
+            <div class="feature-content" id="master-content">
+                <div class="payment-tab-content">
+                    <div class="integration-step">
+                        <div class="step-url">
+                            <i class="fas fa-link"></i> Essential setup and configuration steps
+                        </div>
+                        <div class="step-comment">
+                            Required for all integrations. Covers initial account setup, API key configuration, and basic implementation requirements.
+                        </div>
+                    </div>
+                    
+                    <div class="testcase-section">
+                        <div class="testcase-header">
+                            <h5><i class="fas fa-vial"></i> Test Cases ({{ master_rules.testcases|length }})</h5>
+                            <button class="btn btn-success" onclick="addTestcase('master')">
+                                <i class="fas fa-plus"></i> Add Test Case
+                            </button>
+                        </div>
+                        <div class="testcase-list">
+                            {% for testcase in master_rules.testcases %}
+                            <div class="testcase-item">
+                                <div class="testcase-info">
+                                    <div class="testcase-main">
+                                        <span class="testcase-id">{{ testcase.id }}</span>
+                                    <span class="testcase-description" id="desc-{{ testcase.id }}" contenteditable="true" oninput="showEditButtons('{{ testcase.id }}')" onblur="hideEditButtons('{{ testcase.id }}')">
+                                        Loading description...
+                                    </span>
+                                    <div class="edit-buttons" id="edit-buttons-{{ testcase.id }}" style="display: none;">
+                                        <button class="btn btn-sm btn-success save-btn" onclick="saveDescription('{{ testcase.id }}')" title="Save changes">
+                                            ✓
+                                        </button>
+                                        <button class="btn btn-sm btn-danger cancel-btn" onclick="cancelEdit('{{ testcase.id }}')" title="Cancel changes">
+                                            ✕
+                                        </button>
                                     </div>
-                                    {% endif %}
-                                    
-                                    {% for step in master_rules.integration_steps %}
-                                    <div class="integration-step mb-2">
-                                        {% if master_rules.integration_steps|length > 1 %}
-                                        <div class="step-header">
-                                            <small class="text-muted fw-bold">Step {{ loop.index }}:</small>
-                                        </div>
-                                        {% endif %}
-                                        <div class="documentation-url">
-                                            <i class="fas fa-link"></i> 
-                                            <a href="{{ step.documentation_url }}" target="_blank">
-                                                {{ step.documentation_url }}
-                                            </a>
-                                        </div>
-                                        <div class="rule-comment">
-                                            "{{ step.comment }}"
-                                        </div>
                                     </div>
-                                    {% endfor %}
-                                {% endif %}
-                                
-                                {% if master_rules.testcases %}
-                                <div class="mt-2">
-                                    <small class="text-muted">
-                                        <i class="fas fa-vial"></i> {{ master_rules.testcases|length }} test cases configured
-                                    </small>
+                                    <div class="testcase-meta">
+                                        <span class="testcase-badge bg-{% if testcase.type == 'happy path' %}success{% elif testcase.type == 'unhappy path' %}danger{% else %}warning{% endif %}">
+                                            {{ testcase.type }}
+                                        </span>
+                                        <span class="testcase-env badge bg-secondary">{{ testcase.environment }}</span>
+                                    </div>
                                 </div>
-                                {% endif %}
-                                
-                                <div class="mt-2">
-                                    <small class="text-warning fw-bold">
-                                        <i class="fas fa-exclamation-triangle"></i> These rules apply to every documentation conversion regardless of features detected.
-                                    </small>
-                                </div>
-                            </div>
-                            <div class="col-md-4 text-end">
-                                <div class="btn-group" role="group">
-                                    <a href="{{ url_for('edit_feature_rule', feature_name='master') }}" 
-                                       class="btn btn-sm btn-outline-warning" title="Edit Master Rules">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    <a href="{{ url_for('manage_testcases', feature_name='master') }}" 
-                                       class="btn btn-sm btn-outline-secondary" title="Manage Master Test Cases">
-                                        <i class="fas fa-vial"></i>
-                                    </a>
+                                <div class="testcase-actions">
+                                    <button class="btn btn-outline-primary" onclick="editTestcaseParams('{{ testcase.id }}')">
+                                        <i class="fas fa-cog"></i> Edit
+                                    </button>
+                                    <button class="btn btn-outline-danger" onclick="deleteTestcase('{{ testcase.id }}')">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </button>
                                 </div>
                             </div>
+                            {% endfor %}
                         </div>
                     </div>
                 </div>
             </div>
-            {% endif %}
-            
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h3>Feature Rules ({{ rules_data.rules|length }})</h3>
-                <small class="text-muted">
-                    <i class="fas fa-grip-vertical"></i> Drag to reorder rules
-                </small>
-            </div>
-            <div id="feature-rules-container">
-            {% for feature_name, rule in rules_data.rules.items() %}
-            <div class="card feature-card mb-3" data-feature="{{ feature_name }}">
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-1 d-flex align-items-center">
-                            <div class="drag-handle" style="cursor: grab;">
-                                <i class="fas fa-grip-vertical text-muted"></i>
-                            </div>
-                        </div>
-                        <div class="col-md-7">
-                            <h5 class="card-title">
-                                <i class="fas fa-cog text-primary"></i> 
-                                {{ rule.feature_name }}
-                            </h5>
-                            {% set by_pm = rule.by_payment_method if rule.by_payment_method is defined else {} %}
-                            {% set universal = by_pm.universal if by_pm and by_pm.universal is defined else {} %}
+        </div>
+    </div>
+    {% endif %}
 
-                            {% if universal.integration_steps and universal.integration_steps|length > 0 %}
-                                {% if universal.integration_steps|length > 1 %}
-                                <div class="mb-2">
-                                    <small class="badge bg-secondary">{{ universal.integration_steps|length }} Integration Steps</small>
-                                </div>
+    <!-- Feature Rules -->
+    {% for feature_name, rule in rules_data.rules.items() %}
+    <div class="feature-section">
+        <div class="feature-card">
+            <div class="feature-header" onclick="toggleFeature('{{ feature_name }}')">
+                <div class="feature-title">
+                    <div class="feature-icon bg-primary text-white">
+                        <i class="fas fa-cog"></i>
+                    </div>
+                    <h3>{{ rule.feature_name }}</h3>
+                </div>
+                <div class="feature-actions">
+                    <button class="btn btn-outline-primary" onclick="editFeature('{{ feature_name }}', event)">
+                        <i class="fas fa-edit"></i> Edit
+                    </button>
+                    <button class="btn btn-outline-success" onclick="addPaymentMethod('{{ feature_name }}', event)">
+                        <i class="fas fa-plus"></i> Add PM
+                    </button>
+                    <button class="feature-toggle" id="{{ feature_name }}-toggle">
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="feature-content" id="{{ feature_name }}-content">
+                {% set by_pm = rule.by_payment_method if rule.by_payment_method is defined else {} %}
+                
+                {% if by_pm %}
+                <!-- Payment Method Tabs -->
+                <div class="payment-tabs">
+                    <ul class="nav nav-tabs" id="payment-tabs-{{ loop.index }}" role="tablist">
+                        {% for pm_name, pm_config in by_pm.items() %}
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link {% if loop.first %}active{% endif %}" 
+                                    id="{{ pm_name }}-tab-{{ loop.index }}" 
+                                    data-bs-toggle="tab" 
+                                    data-bs-target="#{{ pm_name }}-content-{{ loop.index }}" 
+                                    type="button" role="tab">
+                                {% if pm_name == 'universal' %}
+                                    <i class="fas fa-globe"></i> Universal
+                                {% elif pm_name == 'CARD' %}
+                                    <i class="fas fa-credit-card"></i> Card
+                                {% elif pm_name == 'PIX' %}
+                                    <i class="fas fa-qrcode"></i> PIX
+                                {% else %}
+                                    <i class="fas fa-money-bill"></i> {{ pm_name }}
                                 {% endif %}
-                                {% for step in universal.integration_steps %}
-                                <div class="integration-step mb-2">
-                                    {% if universal.integration_steps|length > 1 %}
-                                    <div class="step-header">
-                                        <small class="text-muted fw-bold">Step {{ loop.index }}:</small>
-                                    </div>
-                                    {% endif %}
-                                    <div class="documentation-url">
-                                        <i class="fas fa-link"></i>
-                                        <a href="{{ step.documentation_url }}" target="_blank">{{ step.documentation_url }}</a>
-                                    </div>
-                                    <div class="rule-comment">"{{ step.comment }}"</div>
-                                </div>
-                                {% endfor %}
-                            {% else %}
-                                {# Backward compatibility display #}
-                                {% if rule.integration_steps and rule.integration_steps|length > 0 %}
-                                    {% for step in rule.integration_steps %}
-                                    <div class="integration-step mb-2">
-                                        <div class="documentation-url">
+                                {% if pm_config.testcases %}
+                                    <span class="badge bg-secondary ms-1">{{ pm_config.testcases|length }}</span>
+                                {% endif %}
+                            </button>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    
+                    <div class="tab-content" id="payment-content-{{ loop.index }}">
+                        {% for pm_name, pm_config in by_pm.items() %}
+                        <div class="tab-pane fade {% if loop.first %}show active{% endif %}" 
+                             id="{{ pm_name }}-content-{{ loop.index }}" 
+                             role="tabpanel">
+                            
+                            <div class="payment-tab-content">
+                                <!-- Integration Steps -->
+                                {% if pm_config.integration_steps and pm_config.integration_steps|length > 0 %}
+                                    {% for step in pm_config.integration_steps %}
+                                    <div class="integration-step">
+                                        <div class="step-url">
                                             <i class="fas fa-link"></i>
                                             <a href="{{ step.documentation_url }}" target="_blank">{{ step.documentation_url }}</a>
                                         </div>
-                                        <div class="rule-comment">"{{ step.comment }}"</div>
+                                        <div class="step-comment">"{{ step.comment }}"</div>
                                     </div>
                                     {% endfor %}
-                                {% elif rule.documentation_url %}
-                                    <div class="documentation-url">
-                                        <i class="fas fa-link"></i>
-                                        <a href="{{ rule.documentation_url }}" target="_blank">{{ rule.documentation_url }}</a>
-                                    </div>
-                                    <div class="rule-comment">"{{ rule.comment }}"</div>
                                 {% endif %}
-                            {% endif %}
 
-                            {% if universal.testcases %}
-                            <div class="mt-2">
-                                <small class="text-muted">
-                                    <i class="fas fa-vial"></i> {{ universal.testcases|length }} test cases configured (universal)
-                                </small>
+                                <!-- Test Cases -->
+                                {% if pm_config.testcases %}
+                                <div class="testcase-section">
+                                    <div class="testcase-header">
+                                        <h5><i class="fas fa-vial"></i> Test Cases ({{ pm_config.testcases|length }})</h5>
+                                        <button class="btn btn-success" onclick="addTestcase('{{ feature_name }}', '{{ pm_name }}')">
+                                            <i class="fas fa-plus"></i> Add Test Case
+                                        </button>
+                                    </div>
+                                    <div class="testcase-list">
+                                        {% for testcase in pm_config.testcases %}
+                                        <div class="testcase-item">
+                                            <div class="testcase-info">
+                                                <div class="testcase-main">
+                                                    <span class="testcase-id">{{ testcase.id }}</span>
+                                    <span class="testcase-description" id="desc-{{ testcase.id }}" contenteditable="true" oninput="showEditButtons('{{ testcase.id }}')" onblur="hideEditButtons('{{ testcase.id }}')">
+                                        Loading description...
+                                    </span>
+                                    <div class="edit-buttons" id="edit-buttons-{{ testcase.id }}" style="display: none;">
+                                        <button class="btn btn-sm btn-success save-btn" onclick="saveDescription('{{ testcase.id }}')" title="Save changes">
+                                            ✓
+                                        </button>
+                                        <button class="btn btn-sm btn-danger cancel-btn" onclick="cancelEdit('{{ testcase.id }}')" title="Cancel changes">
+                                            ✕
+                                        </button>
+                                    </div>
+                                                </div>
+                                                <div class="testcase-meta">
+                                                    <span class="testcase-badge bg-{% if testcase.type == 'happy path' %}success{% elif testcase.type == 'unhappy path' %}danger{% else %}warning{% endif %}">
+                                                        {{ testcase.type }}
+                                                    </span>
+                                                    <span class="testcase-env badge bg-secondary">{{ testcase.environment }}</span>
+                                                </div>
+                                            </div>
+                                <div class="testcase-actions">
+                                    <button class="btn btn-outline-primary" onclick="editTestcaseParams('{{ testcase.id }}')">
+                                        <i class="fas fa-cog"></i> Edit
+                                    </button>
+                                    <button class="btn btn-outline-danger" onclick="deleteTestcase('{{ testcase.id }}')">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </button>
+                                </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                {% endif %}
                             </div>
-                            {% endif %}
                         </div>
-                        <div class="col-md-4 text-end">
-                            <div class="btn-group" role="group">
-                                <a href="{{ url_for('edit_feature_rule', feature_name=feature_name) }}" 
-                                   class="btn btn-sm btn-outline-primary" title="Edit Rule">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                                <a href="{{ url_for('manage_testcases', feature_name=feature_name) }}" 
-                                   class="btn btn-sm btn-outline-secondary" title="Manage Test Cases">
-                                    <i class="fas fa-vial"></i>
-                                </a>
-                                <a href="{{ url_for('delete_feature_rule', feature_name=feature_name) }}" 
-                                   class="btn btn-sm btn-outline-danger" title="Delete Rule"
-                                   onclick="return confirm('Are you sure you want to delete this feature rule?')">
-                                    <i class="fas fa-trash"></i>
-                                </a>
-                            </div>
-                        </div>
+                        {% endfor %}
                     </div>
                 </div>
+                {% else %}
+                <!-- Backward compatibility -->
+                <div class="payment-tab-content">
+                    <div class="integration-step">
+                        <div class="step-url">
+                            <i class="fas fa-link"></i>
+                            <a href="{{ rule.documentation_url }}" target="_blank">{{ rule.documentation_url }}</a>
+                        </div>
+                        <div class="step-comment">"{{ rule.comment }}"</div>
+                    </div>
+                </div>
+                {% endif %}
             </div>
-            {% endfor %}
-            </div> <!-- Close feature-rules-container -->
         </div>
+    </div>
+    {% endfor %}
 
-        {% if rules_data.rules|length == 0 %}
-        <div class="alert alert-info">
-            <h4>No Feature Rules Found</h4>
-            <p>There are currently no feature rules configured. Start by adding your first feature rule.</p>
-            <a href="{{ url_for('add_feature_rule') }}" class="btn btn-primary">Add First Feature Rule</a>
-        </div>
-        {% endif %}
-        
-        <!-- Metadata Information -->
-        <div class="col-lg-4">
-            <h3>Configuration Details</h3>
-            <div class="card">
-                <div class="card-body">
-                    <h6>Supported Categories:</h6>
-                    <ul class="list-unstyled">
-                        {% for category in rules_data.metadata.categories %}
-                        <li><i class="fas fa-tag text-muted me-2"></i>{{ category }}</li>
-                        {% endfor %}
-                    </ul>
-                    
-                    <h6 class="mt-3">Test Case Types:</h6>
-                    <div class="mb-3">
-                        {% for type in rules_data.metadata.testcase_types %}
-                        <span class="badge bg-light text-dark me-1">{{ type }}</span>
-                        {% endfor %}
-                    </div>
-                    
-                    <h6>Supported Environments:</h6>
-                    <div class="mb-3">
-                        {% for env in rules_data.metadata.environments %}
-                        <span class="badge bg-info me-1">{{ env }}</span>
-                        {% endfor %}
-                    </div>
-                    
-                    <h6>Internationalization:</h6>
-                    <ul class="list-unstyled">
-                        <li><strong>Default Locale:</strong> {{ rules_data.metadata.i18n.default_locale }}</li>
-                        <li><strong>Supported Languages:</strong></li>
-                        <ul>
-                            {% for locale in rules_data.metadata.i18n.supported_locales %}
-                            <li>{{ locale }}</li>
-                            {% endfor %}
-                        </ul>
-                    </ul>
-                    
-                    <hr>
-                    <small class="text-muted">
-                        <strong>Last Updated:</strong> {{ rules_data.last_updated }}<br>
-                        <strong>Version:</strong> {{ rules_data.version }}
-                    </small>
-                </div>
+    <!-- Add New Feature Button -->
+    <div class="text-center mt-4">
+        <button class="btn btn-primary btn-lg" onclick="addNewFeature()">
+            <i class="fas fa-plus"></i> Add New Feature Rule
+        </button>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Feature Rule</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            
-            <!-- Quick Actions -->
-            <div class="card mt-3">
-                <div class="card-header">
-                    <h6>Quick Actions</h6>
-                </div>
-                <div class="card-body">
-                    <div class="d-grid gap-2">
-                        <a href="{{ url_for('add_feature_rule') }}" class="btn btn-success btn-sm">
-                            <i class="fas fa-plus"></i> Add New Rule
-                        </a>
-                        <a href="{{ url_for('index') }}" class="btn btn-outline-primary btn-sm">
-                            <i class="fas fa-home"></i> Back to Main
-                        </a>
-                        <a href="{{ url_for('upload_file') }}" class="btn btn-outline-secondary btn-sm">
-                            <i class="fas fa-upload"></i> Test with CSV
-                        </a>
-                    </div>
-                </div>
+            <div class="modal-body">
+                <form id="editForm">
+                    <input type="hidden" id="editType" name="type">
+                    <input type="hidden" id="editId" name="id">
+                    <div id="editContent"></div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveEdit()">Save Changes</button>
             </div>
         </div>
     </div>
@@ -412,104 +803,507 @@
 {% endblock %}
 
 {% block extra_js %}
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize drag and drop functionality
-    const container = document.getElementById('feature-rules-container');
+// Global variables
+let currentLocale = '{{ current_locale or "en" }}';
+let editingFeature = null;
+let editingTestcase = null;
+
+// Language switching
+function switchLanguage(locale) {
+    currentLocale = locale;
+    // Update active button
+    document.querySelectorAll('.language-switcher .btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    event.target.classList.add('active');
     
-    if (container) {
-        const sortable = Sortable.create(container, {
-            animation: 150,
-            handle: '.drag-handle',
-            ghostClass: 'sortable-ghost',
-            chosenClass: 'sortable-chosen',
-            onEnd: function(evt) {
-                // Get the new order
-                const order = Array.from(container.children).map(el => el.dataset.feature);
+    // Update URL without reloading page
+    const url = new URL(window.location);
+    url.searchParams.set('locale', locale);
+    window.history.pushState({}, '', url.toString());
+    
+    // Reload all descriptions with new locale
+    loadAllDescriptions();
+}
+
+// Feature toggling
+function toggleFeature(featureName) {
+    const content = document.getElementById(featureName + '-content');
+    const toggle = document.getElementById(featureName + '-toggle');
+    
+    if (content.classList.contains('expanded')) {
+        content.classList.remove('expanded');
+        toggle.classList.remove('rotated');
+    } else {
+        content.classList.add('expanded');
+        toggle.classList.add('rotated');
+    }
+}
+
+// Edit feature
+function editFeature(featureName, event) {
+    event.stopPropagation();
+    editingFeature = featureName;
+    
+    // Show edit modal
+    const modal = new bootstrap.Modal(document.getElementById('editModal'));
+    document.getElementById('editModal').querySelector('.modal-title').textContent = 'Edit Feature: ' + featureName;
+    document.getElementById('editType').value = 'feature';
+    document.getElementById('editId').value = featureName;
+    
+    // Load current data into form
+    loadFeatureData(featureName);
+    
+    modal.show();
+}
+
+// Add payment method
+function addPaymentMethod(featureName, event) {
+    event.stopPropagation();
+    
+    const paymentMethod = prompt('Enter payment method name (e.g., CARD, PIX, universal):');
+    if (paymentMethod) {
+        // Add payment method via API
+        fetch('/api/feature-rules/' + featureName + '/payment-methods', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                payment_method: paymentMethod
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error adding payment method: ' + data.error);
+            }
+        });
+    }
+}
+
+// Add test case
+function addTestcase(featureName, paymentMethod = null) {
+    editingTestcase = null;
+    
+    const modal = new bootstrap.Modal(document.getElementById('editModal'));
+    document.getElementById('editModal').querySelector('.modal-title').textContent = 'Add Test Case';
+    document.getElementById('editType').value = 'testcase';
+    document.getElementById('editId').value = featureName + (paymentMethod ? ':' + paymentMethod : '');
+    
+    // Create form for new test case
+    document.getElementById('editContent').innerHTML = `
+        <div class="mb-3">
+            <label class="form-label">Test Case ID</label>
+            <input type="text" class="form-control" name="id" placeholder="e.g., PURC001">
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Description</label>
+            <input type="text" class="form-control" name="description" placeholder="e.g., Complete card purchase successfully">
+            <div class="form-text">This description will be used in the generated documentation</div>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Type</label>
+            <select class="form-select" name="type">
+                <option value="happy path">Happy Path</option>
+                <option value="unhappy path">Unhappy Path</option>
+                <option value="corner case">Corner Case</option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Environment</label>
+            <select class="form-select" name="environment">
+                <option value="both">Both</option>
+                <option value="sandbox">Sandbox</option>
+                <option value="production">Production</option>
+            </select>
+        </div>
+    `;
+    
+    modal.show();
+}
+
+// Edit test case parameters (type, environment)
+function editTestcaseParams(testcaseId) {
+    editingTestcase = testcaseId;
+    
+    const modal = new bootstrap.Modal(document.getElementById('editModal'));
+    document.getElementById('editModal').querySelector('.modal-title').textContent = 'Edit Test Case Parameters: ' + testcaseId;
+    document.getElementById('editType').value = 'testcase';
+    document.getElementById('editId').value = testcaseId;
+    
+    // Load current test case data for parameters only
+    loadTestcaseParams(testcaseId);
+    
+    modal.show();
+}
+
+// Show edit buttons when description is being edited
+function showEditButtons(testcaseId) {
+    const editButtons = document.getElementById('edit-buttons-' + testcaseId);
+    if (editButtons) {
+        editButtons.style.display = 'flex';
+    }
+    
+    // Store the original value for cancel functionality
+    const descElement = document.getElementById('desc-' + testcaseId);
+    if (descElement && !descElement.dataset.originalValue) {
+        descElement.dataset.originalValue = descElement.textContent;
+    }
+}
+
+// Hide edit buttons when focus is lost
+function hideEditButtons(testcaseId) {
+    // Hide the edit buttons after a short delay to allow clicking them
+    setTimeout(() => {
+        const editButtons = document.getElementById('edit-buttons-' + testcaseId);
+        if (editButtons) {
+            editButtons.style.display = 'none';
+        }
+    }, 200);
+}
+
+// Cancel editing and restore original value
+function cancelEdit(testcaseId) {
+    const descElement = document.getElementById('desc-' + testcaseId);
+    if (descElement && descElement.dataset.originalValue) {
+        descElement.textContent = descElement.dataset.originalValue;
+    }
+    
+    // Hide the edit buttons
+    const editButtons = document.getElementById('edit-buttons-' + testcaseId);
+    if (editButtons) {
+        editButtons.style.display = 'none';
+    }
+    
+    // Remove the stored original value
+    if (descElement) {
+        delete descElement.dataset.originalValue;
+    }
+}
+
+// Save description when checkmark is clicked
+function saveDescription(testcaseId) {
+    const descElement = document.getElementById('desc-' + testcaseId);
+    const newDescription = descElement.textContent.trim();
+    
+    if (newDescription === '') {
+        return;
+    }
+    
+    const locale = currentLocale || 'en';
+    
+    // First get the current testcase data to get the description_key
+    fetch('/api/testcases/' + testcaseId + '/data?locale=' + locale)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const descriptionKey = data.testcase.description_key;
                 
-                // Send the new order to the server
-                fetch('{{ url_for("reorder_feature_rules") }}', {
-                    method: 'POST',
+                // Update the description via API
+                fetch('/api/testcases/' + testcaseId, {
+                    method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ order: order })
+                    body: JSON.stringify({
+                        description: newDescription
+                    })
                 })
                 .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // Show success message
-                        showToast('Rules reordered successfully!', 'success');
+                .then(result => {
+                    if (result.success) {
+                        // Visual feedback
+                        descElement.style.color = '#28a745';
+                        setTimeout(() => {
+                            descElement.style.color = '#6c757d';
+                        }, 1000);
+                        
+                        // Hide the edit buttons
+                        const editButtons = document.getElementById('edit-buttons-' + testcaseId);
+                        if (editButtons) {
+                            editButtons.style.display = 'none';
+                        }
+                        
+                        // Remove the stored original value
+                        if (descElement) {
+                            delete descElement.dataset.originalValue;
+                        }
                     } else {
-                        // Show error message
-                        showToast('Error reordering rules: ' + data.error, 'error');
-                        // Revert the change
-                        location.reload();
+                        alert('Error updating description: ' + result.error);
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    showToast('Error reordering rules', 'error');
-                    // Revert the change
-                    location.reload();
+                    alert('Error updating description');
+                });
+            } else {
+                alert('Error loading test case data: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error loading test case data');
+        });
+}
+
+// Update description inline (deprecated - use saveDescription instead)
+function updateDescription(testcaseId, newDescription) {
+    if (newDescription.trim() === '') {
+        return;
+    }
+    
+    // Find the test case and get its description key
+    const locale = currentLocale || 'en';
+    fetch('/api/testcases/' + testcaseId + '/data?locale=' + locale)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const descriptionKey = data.testcase.description_key;
+                
+                // Update the description in i18n files
+                fetch('/api/testcases/' + testcaseId, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        description: newDescription.trim()
+                    })
+                })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        // Show success feedback
+                        const descElement = document.getElementById('desc-' + testcaseId);
+                        descElement.style.color = '#28a745';
+                        setTimeout(() => {
+                            descElement.style.color = '#6c757d';
+                        }, 1000);
+                    } else {
+                        alert('Error updating description: ' + result.error);
+                    }
                 });
             }
         });
+}
+
+// Delete test case
+function deleteTestcase(testcaseId) {
+    if (confirm('Are you sure you want to delete this test case?')) {
+        fetch('/api/testcases/' + testcaseId, {
+            method: 'DELETE'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error deleting test case: ' + data.error);
+            }
+        });
+    }
+}
+
+// Add new feature
+function addNewFeature() {
+    const featureName = prompt('Enter feature name:');
+    if (featureName) {
+        // Redirect to add feature page
+        window.location.href = '/feature-rules/add?name=' + encodeURIComponent(featureName);
+    }
+}
+
+// Load feature data for editing
+function loadFeatureData(featureName) {
+    // Fetch current feature data from the server
+    fetch('/api/feature-rules/' + featureName + '/data')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const feature = data.feature;
+                document.getElementById('editContent').innerHTML = `
+                    <div class="mb-3">
+                        <label class="form-label">Feature Name</label>
+                        <input type="text" class="form-control" name="feature_name" value="${feature.feature_name}" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Documentation URL</label>
+                        <input type="url" class="form-control" name="documentation_url" value="${feature.documentation_url || ''}" placeholder="https://docs.y.uno/...">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Comment</label>
+                        <textarea class="form-control" name="comment" rows="3" placeholder="Describe this feature...">${feature.comment || ''}</textarea>
+                    </div>
+                `;
+            } else {
+                alert('Error loading feature data: ' + data.error);
+                // Fallback to empty form
+                document.getElementById('editContent').innerHTML = `
+                    <div class="mb-3">
+                        <label class="form-label">Feature Name</label>
+                        <input type="text" class="form-control" name="feature_name" value="${featureName}" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Documentation URL</label>
+                        <input type="url" class="form-control" name="documentation_url" placeholder="https://docs.y.uno/...">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Comment</label>
+                        <textarea class="form-control" name="comment" rows="3" placeholder="Describe this feature..."></textarea>
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error loading feature data');
+            // Fallback to empty form
+            document.getElementById('editContent').innerHTML = `
+                <div class="mb-3">
+                    <label class="form-label">Feature Name</label>
+                    <input type="text" class="form-control" name="feature_name" value="${featureName}" readonly>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Documentation URL</label>
+                    <input type="url" class="form-control" name="documentation_url" placeholder="https://docs.y.uno/...">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Comment</label>
+                    <textarea class="form-control" name="comment" rows="3" placeholder="Describe this feature..."></textarea>
+                </div>
+            `;
+        });
+}
+
+// Load test case parameters for editing (type, environment only)
+function loadTestcaseParams(testcaseId) {
+    // Fetch current test case data from the server
+    const locale = currentLocale || 'en';
+    fetch('/api/testcases/' + testcaseId + '/data?locale=' + locale)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const testcase = data.testcase;
+                document.getElementById('editContent').innerHTML = `
+                    <div class="mb-3">
+                        <label class="form-label">Test Case ID</label>
+                        <input type="text" class="form-control" name="id" value="${testcase.id}" readonly>
+                        <div class="form-text">Test case ID cannot be changed</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Type</label>
+                        <select class="form-select" name="type">
+                            <option value="happy path" ${testcase.type === 'happy path' ? 'selected' : ''}>Happy Path</option>
+                            <option value="unhappy path" ${testcase.type === 'unhappy path' ? 'selected' : ''}>Unhappy Path</option>
+                            <option value="corner case" ${testcase.type === 'corner case' ? 'selected' : ''}>Corner Case</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Environment</label>
+                        <select class="form-select" name="environment">
+                            <option value="both" ${testcase.environment === 'both' ? 'selected' : ''}>Both</option>
+                            <option value="sandbox" ${testcase.environment === 'sandbox' ? 'selected' : ''}>Sandbox</option>
+                            <option value="production" ${testcase.environment === 'production' ? 'selected' : ''}>Production</option>
+                        </select>
+                    </div>
+                `;
+            } else {
+                alert('Error loading test case data: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error loading test case data');
+        });
+}
+
+// Load all test case descriptions on page load
+function loadAllDescriptions() {
+    // Find all test case elements and load their descriptions
+    document.querySelectorAll('.testcase-description').forEach(element => {
+        const testcaseId = element.id.replace('desc-', '');
+        const locale = currentLocale || 'en';
+        fetch('/api/testcases/' + testcaseId + '/data?locale=' + locale)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    element.textContent = data.testcase.description || 'No description available';
+                    element.style.color = '#6c757d';
+                } else {
+                    element.textContent = 'Error loading description';
+                    element.style.color = '#dc3545';
+                }
+            })
+            .catch(error => {
+                element.textContent = 'Error loading description';
+                element.style.color = '#dc3545';
+            });
+    });
+}
+
+// Save edit
+function saveEdit() {
+    const form = document.getElementById('editForm');
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
+    
+    const type = document.getElementById('editType').value;
+    const id = document.getElementById('editId').value;
+    
+    let url, method;
+    
+    if (type === 'feature') {
+        url = '/api/feature-rules/' + id;
+        method = 'PUT';
+    } else if (type === 'testcase') {
+        if (editingTestcase) {
+            url = '/api/testcases/' + editingTestcase;
+            method = 'PUT';
+            // Only send type and environment for parameter updates
+            data = {
+                type: data.type,
+                environment: data.environment
+            };
+        } else {
+            url = '/api/testcases';
+            method = 'POST';
+        }
     }
     
-    // Simple toast notification function
-    function showToast(message, type) {
-        const toast = document.createElement('div');
-        toast.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show position-fixed`;
-        toast.style.cssText = 'top: 20px; right: 20px; z-index: 1050; min-width: 300px;';
-        toast.innerHTML = `
-            ${message}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        `;
-        
-        document.body.appendChild(toast);
-        
-        // Auto-remove after 3 seconds
-        setTimeout(() => {
-            if (toast.parentNode) {
-                toast.parentNode.removeChild(toast);
-            }
-        }, 3000);
+    fetch(url, {
+        method: method,
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
+            location.reload();
+        } else {
+            alert('Error saving: ' + data.error);
+        }
+    });
+}
+
+// Initialize page
+document.addEventListener('DOMContentLoaded', function() {
+    // Load all test case descriptions
+    loadAllDescriptions();
+    
+    // Auto-expand first feature
+    const firstFeature = document.querySelector('.feature-card');
+    if (firstFeature) {
+        const featureName = firstFeature.id || firstFeature.querySelector('.feature-content').id.replace('-content', '');
+        toggleFeature(featureName);
     }
 });
 </script>
-<style>
-.drag-handle:hover {
-    color: #007bff !important;
-    background-color: #f8f9fa;
-    border-radius: 4px;
-    padding: 2px 4px;
-}
-.drag-handle {
-    transition: all 0.2s ease;
-    border-radius: 4px;
-    padding: 8px 4px;
-    user-select: none;
-}
-
-.drag-handle:active {
-    cursor: grabbing !important;
-}
-
-.feature-rules-container .card {
-    transition: transform 0.2s ease;
-}
-
-.sortable-ghost {
-    opacity: 0.5;
-    transform: rotate(5deg);
-}
-
-.sortable-chosen {
-    opacity: 0.8;
-    transform: scale(1.02);
-}
-</style>
-{% endblock %} 
+{% endblock %}
