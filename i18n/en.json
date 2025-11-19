@@ -28,6 +28,9 @@
       "expiration": "Test authorization expiration",
       "card": {
         "test001": "Test description"
+      },
+      "universal": {
+        "ath0001": "Updated test case description"
       }
     },
     "capture": {

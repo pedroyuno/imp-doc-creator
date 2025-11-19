@@ -6,14 +6,16 @@ Demonstrates how to load and use translation files with the feature rules
 
 import json
 import os
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
+from rules_manager import RulesManager
 
 class I18nHelper:
-    def __init__(self, default_locale: str = 'en'):
+    def __init__(self, default_locale: str = 'en', rules_file_paths: Optional[List[str]] = None):
         self.default_locale = default_locale
         self.translations: Dict[str, Dict] = {}
         self.feature_rules: Dict[str, Any] = {}
         self.master_rules: Dict[str, Any] = {}
+        self.rules_file_paths = rules_file_paths
         
         # Load translations
         self._load_translations()
@@ -32,23 +34,112 @@ class I18nHelper:
                     self.translations[locale] = json.load(f)
     
     def _load_feature_rules(self):
-        """Load feature rules from JSON file"""
-        rules_file = os.path.join(os.path.dirname(__file__), 'feature_rules.json')
-        if os.path.exists(rules_file):
-            with open(rules_file, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-                self.feature_rules = data.get('rules', {})
-                # Load master rules separately
-                self.master_rules = data.get('master', {})
-                # Ensure every feature that has universal testcases also includes a by_payment_method key
-                try:
-                    for feature_name, feature_data in self.feature_rules.items():
-                        if isinstance(feature_data, dict):
-                            if 'testcases' in feature_data and 'by_payment_method' not in feature_data:
-                                feature_data['by_payment_method'] = {}
-                except Exception:
-                    # Be permissive: if structure isn't as expected, skip enrichment
-                    pass
+        """Load feature rules from JSON file(s)"""
+        # Determine which files to load
+        files_to_load = []
+        default_file = os.path.join(os.path.dirname(__file__), 'feature_rules.json')
+        
+        # Always include default file if it exists
+        if os.path.exists(default_file):
+            files_to_load.append(default_file)
+        
+        # Add additional files if provided
+        if self.rules_file_paths:
+            for file_path in self.rules_file_paths:
+                if os.path.exists(file_path) and file_path not in files_to_load:
+                    files_to_load.append(file_path)
+        
+        # Load and merge rules from all files
+        self.feature_rules = {}
+        self.master_rules = {}
+        
+        for file_path in files_to_load:
+            try:
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                    
+                    # Merge feature rules
+                    for feature_name, rule_data in data.get('rules', {}).items():
+                        if feature_name not in self.feature_rules:
+                            # Deep copy the rule data
+                            import copy
+                            self.feature_rules[feature_name] = copy.deepcopy(rule_data)
+                        else:
+                            # Merge existing rule
+                            existing = self.feature_rules[feature_name]
+                            
+                            # Merge by_payment_method
+                            if 'by_payment_method' in rule_data:
+                                if 'by_payment_method' not in existing:
+                                    existing['by_payment_method'] = {}
+                                
+                                for pm_name, pm_data in rule_data['by_payment_method'].items():
+                                    if pm_name not in existing['by_payment_method']:
+                                        existing['by_payment_method'][pm_name] = copy.deepcopy(pm_data)
+                                    else:
+                                        # Merge integration_steps
+                                        existing_pm = existing['by_payment_method'][pm_name]
+                                        if 'integration_steps' in pm_data:
+                                            existing_steps = existing_pm.get('integration_steps', [])
+                                            new_steps = pm_data.get('integration_steps', [])
+                                            # Append new steps that don't already exist
+                                            for new_step in new_steps:
+                                                step_key = (new_step.get('documentation_url', ''), new_step.get('comment', ''))
+                                                if not any((s.get('documentation_url', '') == step_key[0] and 
+                                                           s.get('comment', '') == step_key[1]) for s in existing_steps):
+                                                    existing_steps.append(new_step)
+                                            existing_pm['integration_steps'] = existing_steps
+                                        
+                                        # Merge testcases
+                                        if 'testcases' in pm_data:
+                                            existing_tcs = {tc['id']: tc for tc in existing_pm.get('testcases', [])}
+                                            for tc in pm_data.get('testcases', []):
+                                                if tc['id'] not in existing_tcs:
+                                                    existing_pm.setdefault('testcases', []).append(tc)
+                            
+                            # Merge by_provider (provider-specific steps)
+                            if 'by_provider' in rule_data:
+                                if 'by_provider' not in existing:
+                                    existing['by_provider'] = {}
+                                
+                                for provider, provider_steps in rule_data['by_provider'].items():
+                                    if provider not in existing['by_provider']:
+                                        existing['by_provider'][provider] = copy.deepcopy(provider_steps)
+                                    else:
+                                        # Append new steps
+                                        existing['by_provider'][provider].extend(provider_steps)
+                    
+                    # Merge master rules
+                    master = data.get('master', {})
+                    if master:
+                        # Merge master testcases
+                        if 'testcases' in master:
+                            existing_tcs = {tc['id']: tc for tc in self.master_rules.get('testcases', [])}
+                            for tc in master.get('testcases', []):
+                                if tc['id'] not in existing_tcs:
+                                    self.master_rules.setdefault('testcases', []).append(tc)
+                        
+                        # Merge master integration_steps
+                        if 'integration_steps' in master:
+                            existing_steps = {(s.get('documentation_url', ''), s.get('comment', '')): s 
+                                             for s in self.master_rules.get('integration_steps', [])}
+                            for step in master.get('integration_steps', []):
+                                step_key = (step.get('documentation_url', ''), step.get('comment', ''))
+                                if step_key not in existing_steps:
+                                    self.master_rules.setdefault('integration_steps', []).append(step)
+            except Exception as e:
+                # Skip files that can't be loaded
+                pass
+        
+        # Ensure every feature that has universal testcases also includes a by_payment_method key
+        try:
+            for feature_name, feature_data in self.feature_rules.items():
+                if isinstance(feature_data, dict):
+                    if 'testcases' in feature_data and 'by_payment_method' not in feature_data:
+                        feature_data['by_payment_method'] = {}
+        except Exception:
+            # Be permissive: if structure isn't as expected, skip enrichment
+            pass
     
     def get_text(self, key: str, locale: str = None) -> str:
         """
@@ -135,18 +226,47 @@ class I18nHelper:
         
         return test_cases
 
-    def get_integration_steps_for_feature(self, feature_name: str, payment_method: str = None) -> list:
-        """Return integration steps for a feature from by_payment_method.universal (or PM-specific in future)."""
+    def get_integration_steps_for_feature(self, feature_name: str, payment_method: str = None, provider: str = None) -> Dict[str, Any]:
+        """
+        Return integration steps for a feature.
+        Returns both universal steps and provider-specific steps.
+        If provider is specified, only returns steps for that provider.
+        If provider is None, returns all provider-specific steps.
+        
+        Returns:
+            Dictionary with 'universal' and 'provider_specific' keys containing lists of steps
+        """
+        result = {
+            'universal': [],
+            'provider_specific': {}
+        }
+        
         if feature_name not in self.feature_rules:
-            return []
+            return result
+        
         feature_data = self.feature_rules[feature_name]
         by_pm = feature_data.get('by_payment_method', {}) or {}
         universal = by_pm.get('universal', {}) if isinstance(by_pm, dict) else {}
         steps = universal.get('integration_steps', []) or []
-        if steps:
-            return steps
-        # Backward-compat fallback to top-level integration_steps
-        return feature_data.get('integration_steps', []) or []
+        
+        if not steps:
+            # Backward-compat fallback to top-level integration_steps
+            steps = feature_data.get('integration_steps', []) or []
+        
+        result['universal'] = steps
+        
+        # Get provider-specific steps
+        if 'by_provider' in feature_data:
+            if provider:
+                # Return steps for specific provider only
+                provider_steps = feature_data['by_provider'].get(provider, [])
+                if provider_steps:
+                    result['provider_specific'][provider] = provider_steps
+            else:
+                # Return all provider-specific steps
+                result['provider_specific'] = feature_data['by_provider'].copy()
+        
+        return result
     
     def get_master_test_cases(self, locale: str = None) -> list:
         """

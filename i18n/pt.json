@@ -16,6 +16,9 @@
       "expiration": "Testar expiração de autorização",
       "card": {
         "test001": "Test description"
+      },
+      "universal": {
+        "ath0001": "Updated test case description"
       }
     },
     "capture": {

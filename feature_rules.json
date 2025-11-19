@@ -1,7 +1,7 @@
 {
   "version": "2.0",
   "description": "Feature documentation rules for dynamic documentation generation",
-  "last_updated": "2025-07-25",
+  "last_updated": "2025-11-19",
   "rules": {
     "Purchase": {
       "feature_name": "Purchase",
@@ -41,40 +41,19 @@
               "description_key": "testcase.purchase.pix.expiration_handling",
               "type": "corner case",
               "environment": "both"
-            },
-            {
-              "id": "PURP003",
-              "description_key": "testcase.purchase.pix.refund_flow",
-              "type": "unhappy path",
-              "environment": "both"
             }
           ]
         },
         "universal": {
-          "testcases": [
-            {
-              "id": "PUR0001",
-              "description_key": "testcase.purchase.successful_payment",
-              "type": "happy path",
-              "environment": "both"
-            },
-            {
-              "id": "PUR0002",
-              "description_key": "testcase.purchase.failed_payment",
-              "type": "unhappy path",
-              "environment": "both"
-            },
-            {
-              "id": "PUR0003",
-              "description_key": "testcase.purchase.timeout_handling",
-              "type": "corner case",
-              "environment": "both"
-            }
-          ],
+          "testcases": [],
           "integration_steps": [
             {
               "documentation_url": "https://docs.y.uno/reference/create-payment",
-              "comment": "Supports direct purchase transactions (single-step payment). Essential for standard e-commerce payment flows."
+              "comment": "Create payment documentation"
+            },
+            {
+              "documentation_url": "https://docs.y.uno/docs/yuno-testing-gateway#442---card-detail",
+              "comment": "Testing cards"
             }
           ]
         }
@@ -107,6 +86,12 @@
         },
         "CARD": {
           "testcases": [
+            {
+              "id": "TEST001",
+              "description_key": "testcase.authorize.card.test001",
+              "type": "happy path",
+              "environment": "both"
+            },
             {
               "id": "TEST001",
               "description_key": "testcase.authorize.card.test001",
@@ -173,12 +158,6 @@
               "description_key": "testcase.cancel.captured_payment",
               "type": "corner case",
               "environment": "both"
-            },
-            {
-              "id": "CNC0003",
-              "description_key": "testcase.cancel.confirmation",
-              "type": "happy path",
-              "environment": "both"
             }
           ],
           "integration_steps": [
@@ -208,18 +187,12 @@
               "description_key": "testcase.verify.invalid_payment_method",
               "type": "unhappy path",
               "environment": "both"
-            },
-            {
-              "id": "VRF0003",
-              "description_key": "testcase.verify.response_handling",
-              "type": "corner case",
-              "environment": "both"
             }
           ],
           "integration_steps": [
             {
               "documentation_url": "https://docs.y.uno/docs/card-verification",
-              "comment": "Indicates whether payment verification is supported. Critical for transaction security and compliance requirements."
+              "comment": "Zero Dolar documentation"
             }
           ]
         }
@@ -1115,6 +1088,23 @@
           ]
         }
       }
+    },
+    "TesteAddFR": {
+      "feature_name": "TesteAddFR",
+      "integration_steps": [
+        {
+          "documentation_url": "https://dashboard.y.uno/auth/login",
+          "comment": "TEsting"
+        }
+      ],
+      "testcases": [
+        {
+          "id": "TES0001",
+          "description_key": "testcase.testeaddfr.basic_functionality",
+          "type": "happy path",
+          "environment": "both"
+        }
+      ]
     }
   },
   "master": {
@@ -1125,49 +1115,18 @@
         "comment": "Essential setup and configuration steps required for all integrations. This covers initial account setup, API key configuration, and basic implementation requirements."
       },
       {
-        "documentation_url": "https://docs.y.uno/docs/security-best-practices",
-        "comment": "Security guidelines and best practices that must be implemented in all integrations. Includes proper API key handling, webhook signature verification, and data protection measures."
+        "documentation_url": "https://docs.y.uno/docs/yuno-testing-gateway#442---card-detail",
+        "comment": "Testing cards"
       },
       {
-        "documentation_url": "https://docs.y.uno/docs/error-handling",
-        "comment": "Standard error handling patterns and response codes. Essential for building robust integrations that handle failures gracefully."
+        "documentation_url": "https://docs.y.uno/reference/payment",
+        "comment": "Payment status and response codes"
       }
     ],
-    "testcases": [
-      {
-        "id": "MST0001",
-        "description_key": "testcase.master.api_authentication",
-        "type": "happy path",
-        "environment": "both"
-      },
-      {
-        "id": "MST0002",
-        "description_key": "testcase.master.invalid_api_key",
-        "type": "unhappy path",
-        "environment": "both"
-      },
-      {
-        "id": "MST0003",
-        "description_key": "testcase.master.rate_limiting",
-        "type": "corner case",
-        "environment": "both"
-      },
-      {
-        "id": "MST0004",
-        "description_key": "testcase.master.network_connectivity",
-        "type": "unhappy path",
-        "environment": "both"
-      },
-      {
-        "id": "MST0005",
-        "description_key": "testcase.master.ssl_certificate_validation",
-        "type": "corner case",
-        "environment": "production"
-      }
-    ]
+    "testcases": []
   },
   "metadata": {
-    "total_rules": 32,
+    "total_rules": 33,
     "categories": [
       "Payment Processing",
       "Security & Compliance",

@@ -526,6 +526,32 @@
         <p>Manage documentation rules and test cases for payment features</p>
     </div>
 
+    <!-- Rules File Selector -->
+    <div class="card mb-4" style="border: 2px solid #007bff;">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center flex-wrap">
+                <div class="flex-grow-1 me-3 mb-2">
+                    <label class="form-label fw-bold mb-2">
+                        <i class="fas fa-file-code"></i> Current Feature Rules File
+                    </label>
+                    <select class="form-select" id="rulesFileSelector" onchange="switchRulesFile()">
+                        {% for rules_file in available_rules_files %}
+                        <option value="{{ rules_file.path }}" {% if rules_file.path == current_rules_file %}selected{% endif %}>
+                            {{ rules_file.name }} ({{ rules_file.filename }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <small class="text-muted">Switch between different feature rules files</small>
+                </div>
+                <div class="mb-2">
+                    <button class="btn btn-success btn-lg" onclick="createNewRulesFile()">
+                        <i class="fas fa-plus-circle"></i> Create New Feature Rules File
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Statistics -->
     <div class="stats-grid">
         <div class="stat-card">
@@ -568,14 +594,78 @@
             </div>
             <div class="feature-content" id="master-content">
                 <div class="payment-tab-content">
-                    <div class="integration-step">
-                        <div class="step-url">
-                            <i class="fas fa-link"></i> Essential setup and configuration steps
+                    <!-- Universal Master Integration Steps -->
+                    {% if master_rules.integration_steps and master_rules.integration_steps|length > 0 %}
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5><i class="fas fa-globe"></i> Universal Master Integration Steps</h5>
+                                <button class="btn btn-sm btn-outline-primary" onclick="editMasterIntegrationSteps('universal', event)">
+                                    <i class="fas fa-edit"></i> Edit Steps
+                                </button>
+                            </div>
+                            {% for step in master_rules.integration_steps %}
+                            <div class="integration-step">
+                                <div class="step-url">
+                                    <i class="fas fa-link"></i>
+                                    <a href="{{ step.documentation_url }}" target="_blank">{{ step.documentation_url }}</a>
+                                </div>
+                                <div class="step-comment">"{{ step.comment }}"</div>
+                            </div>
+                            {% endfor %}
                         </div>
-                        <div class="step-comment">
-                            Required for all integrations. Covers initial account setup, API key configuration, and basic implementation requirements.
+                    {% endif %}
+
+                    <!-- Provider-Specific Master Integration Steps -->
+                    {% if master_rules.by_provider is defined and master_rules.by_provider %}
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5><i class="fas fa-building"></i> Provider-Specific Master Integration Steps</h5>
+                                <button class="btn btn-sm btn-success" onclick="addMasterProviderSteps(event)">
+                                    <i class="fas fa-plus"></i> Add Provider Steps
+                                </button>
+                            </div>
+                            {% for provider, provider_steps in master_rules.by_provider.items() %}
+                            <div class="provider-steps-section mb-3" style="border: 2px solid #007bff; border-radius: 8px; padding: 15px; background: #f0f8ff;">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h6 class="mb-0">
+                                        <i class="fas fa-building text-primary"></i> 
+                                        <strong>{{ provider }}</strong>
+                                        <span class="badge bg-primary ms-2">{{ provider_steps|length }} step(s)</span>
+                                    </h6>
+                                    <div>
+                                        <button class="btn btn-sm btn-outline-primary" onclick="editMasterProviderSteps('{{ provider }}', event)">
+                                            <i class="fas fa-edit"></i> Edit
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger" onclick="deleteMasterProviderSteps('{{ provider }}', event)">
+                                            <i class="fas fa-trash"></i> Delete
+                                        </button>
+                                    </div>
+                                </div>
+                                {% for step in provider_steps %}
+                                <div class="integration-step" style="border-left-color: #28a745;">
+                                    <div class="step-url">
+                                        <i class="fas fa-link"></i>
+                                        <a href="{{ step.documentation_url }}" target="_blank">{{ step.documentation_url }}</a>
+                                    </div>
+                                    <div class="step-comment">"{{ step.comment }}"</div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% endfor %}
                         </div>
-                    </div>
+                    {% else %}
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5><i class="fas fa-building"></i> Provider-Specific Master Integration Steps</h5>
+                                <button class="btn btn-sm btn-success" onclick="addMasterProviderSteps(event)">
+                                    <i class="fas fa-plus"></i> Add Provider Steps
+                                </button>
+                            </div>
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i> No provider-specific master steps defined. Click "Add Provider Steps" to add provider-specific documentation that applies to all features.
+                            </div>
+                        </div>
+                    {% endif %}
                     
                     <div class="testcase-section">
                         <div class="testcase-header">
@@ -688,17 +778,77 @@
                              role="tabpanel">
                             
                             <div class="payment-tab-content">
-                                <!-- Integration Steps -->
+                                <!-- Universal Integration Steps -->
                                 {% if pm_config.integration_steps and pm_config.integration_steps|length > 0 %}
-                                    {% for step in pm_config.integration_steps %}
-                                    <div class="integration-step">
-                                        <div class="step-url">
-                                            <i class="fas fa-link"></i>
-                                            <a href="{{ step.documentation_url }}" target="_blank">{{ step.documentation_url }}</a>
+                                    <div class="mb-4">
+                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                            <h5><i class="fas fa-globe"></i> Universal Integration Steps</h5>
+                                            <button class="btn btn-sm btn-outline-primary" onclick="editIntegrationSteps('{{ feature_name }}', '{{ pm_name }}', 'universal', event)">
+                                                <i class="fas fa-edit"></i> Edit Steps
+                                            </button>
                                         </div>
-                                        <div class="step-comment">"{{ step.comment }}"</div>
+                                        {% for step in pm_config.integration_steps %}
+                                        <div class="integration-step">
+                                            <div class="step-url">
+                                                <i class="fas fa-link"></i>
+                                                <a href="{{ step.documentation_url }}" target="_blank">{{ step.documentation_url }}</a>
+                                            </div>
+                                            <div class="step-comment">"{{ step.comment }}"</div>
+                                        </div>
+                                        {% endfor %}
                                     </div>
-                                    {% endfor %}
+                                {% endif %}
+
+                                <!-- Provider-Specific Integration Steps -->
+                                {% if rule.by_provider is defined and rule.by_provider %}
+                                    <div class="mb-4">
+                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                            <h5><i class="fas fa-building"></i> Provider-Specific Integration Steps</h5>
+                                            <button class="btn btn-sm btn-success" onclick="addProviderSteps('{{ feature_name }}', event)">
+                                                <i class="fas fa-plus"></i> Add Provider Steps
+                                            </button>
+                                        </div>
+                                        {% for provider, provider_steps in rule.by_provider.items() %}
+                                        <div class="provider-steps-section mb-3" style="border: 2px solid #007bff; border-radius: 8px; padding: 15px; background: #f0f8ff;">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <h6 class="mb-0">
+                                                    <i class="fas fa-building text-primary"></i> 
+                                                    <strong>{{ provider }}</strong>
+                                                    <span class="badge bg-primary ms-2">{{ provider_steps|length }} step(s)</span>
+                                                </h6>
+                                                <div>
+                                                    <button class="btn btn-sm btn-outline-primary" onclick="editProviderSteps('{{ feature_name }}', '{{ provider }}', event)">
+                                                        <i class="fas fa-edit"></i> Edit
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-danger" onclick="deleteProviderSteps('{{ feature_name }}', '{{ provider }}', event)">
+                                                        <i class="fas fa-trash"></i> Delete
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            {% for step in provider_steps %}
+                                            <div class="integration-step" style="border-left-color: #28a745;">
+                                                <div class="step-url">
+                                                    <i class="fas fa-link"></i>
+                                                    <a href="{{ step.documentation_url }}" target="_blank">{{ step.documentation_url }}</a>
+                                                </div>
+                                                <div class="step-comment">"{{ step.comment }}"</div>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <div class="mb-4">
+                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                            <h5><i class="fas fa-building"></i> Provider-Specific Integration Steps</h5>
+                                            <button class="btn btn-sm btn-success" onclick="addProviderSteps('{{ feature_name }}', event)">
+                                                <i class="fas fa-plus"></i> Add Provider Steps
+                                            </button>
+                                        </div>
+                                        <div class="alert alert-info">
+                                            <i class="fas fa-info-circle"></i> No provider-specific steps defined. Click "Add Provider Steps" to add provider-specific documentation.
+                                        </div>
+                                    </div>
                                 {% endif %}
 
                                 <!-- Test Cases -->
@@ -813,6 +963,7 @@
 let currentLocale = '{{ current_locale or "en" }}';
 let editingFeature = null;
 let editingTestcase = null;
+let currentRulesFile = '{{ current_rules_file or "feature_rules.json" }}';
 
 // Language switching
 function switchLanguage(locale) {
@@ -890,6 +1041,561 @@ function addPaymentMethod(featureName, event) {
     `;
     
     modal.show();
+}
+
+// Add provider-specific steps
+function addProviderSteps(featureName, event) {
+    if (event) event.stopPropagation();
+    
+    const modal = new bootstrap.Modal(document.getElementById('editModal'));
+    document.getElementById('editModal').querySelector('.modal-title').textContent = 'Add Provider-Specific Steps for ' + featureName;
+    document.getElementById('editType').value = 'provider_steps';
+    document.getElementById('editFeatureName').value = featureName;
+    
+    document.getElementById('editContent').innerHTML = `
+        <div class="mb-3">
+            <label class="form-label">Provider Name</label>
+            <input type="text" class="form-control" name="provider" list="common-providers" placeholder="e.g., Stripe, Adyen, PayPal" required>
+            <datalist id="common-providers">
+                <option value="Stripe">
+                <option value="Adyen">
+                <option value="PayPal">
+                <option value="MercadoPago">
+                <option value="PagSeguro">
+            </datalist>
+            <div class="form-text">Enter the payment provider name (e.g., Stripe, Adyen)</div>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Integration Steps</label>
+            <div id="provider-steps-container">
+                <div class="provider-step-item mb-3 p-3 border rounded">
+                    <div class="mb-2">
+                        <label class="form-label small">Documentation URL</label>
+                        <input type="url" class="form-control form-control-sm" name="provider_step_url_0" placeholder="https://docs.provider.com/...">
+                    </div>
+                    <div>
+                        <label class="form-label small">Comment/Description</label>
+                        <textarea class="form-control form-control-sm" name="provider_step_comment_0" rows="2" placeholder="Provider-specific integration step description..."></textarea>
+                    </div>
+                </div>
+            </div>
+            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="addProviderStepField()">
+                <i class="fas fa-plus"></i> Add Another Step
+            </button>
+        </div>
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> Provider-specific steps are shown alongside universal steps when the provider matches.
+        </div>
+    `;
+    
+    modal.show();
+}
+
+// Add another provider step field
+let providerStepCounter = 1;
+function addProviderStepField() {
+    const container = document.getElementById('provider-steps-container');
+    const newStep = document.createElement('div');
+    newStep.className = 'provider-step-item mb-3 p-3 border rounded';
+    newStep.innerHTML = `
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="small text-muted">Step ${providerStepCounter + 1}</span>
+            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeProviderStepField(this)">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="mb-2">
+            <label class="form-label small">Documentation URL</label>
+            <input type="url" class="form-control form-control-sm" name="provider_step_url_${providerStepCounter}" placeholder="https://docs.provider.com/...">
+        </div>
+        <div>
+            <label class="form-label small">Comment/Description</label>
+            <textarea class="form-control form-control-sm" name="provider_step_comment_${providerStepCounter}" rows="2" placeholder="Provider-specific integration step description..."></textarea>
+        </div>
+    `;
+    container.appendChild(newStep);
+    providerStepCounter++;
+}
+
+// Remove provider step field
+function removeProviderStepField(button) {
+    button.closest('.provider-step-item').remove();
+}
+
+// Edit provider-specific steps
+function editProviderSteps(featureName, provider, event) {
+    if (event) event.stopPropagation();
+    
+    const modal = new bootstrap.Modal(document.getElementById('editModal'));
+    document.getElementById('editModal').querySelector('.modal-title').textContent = `Edit Provider Steps: ${provider} - ${featureName}`;
+    document.getElementById('editType').value = 'provider_steps_edit';
+    document.getElementById('editFeatureName').value = featureName;
+    document.getElementById('editId').value = provider;
+    
+    // Load current provider steps
+    fetch('/api/feature-rules/' + featureName + '/provider/' + provider + '/steps?rules_file=' + encodeURIComponent(currentRulesFile))
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const steps = data.steps || [];
+                let stepsHtml = '<div id="provider-steps-container">';
+                
+                steps.forEach((step, index) => {
+                    stepsHtml += `
+                        <div class="provider-step-item mb-3 p-3 border rounded">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="small text-muted">Step ${index + 1}</span>
+                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeProviderStepField(this)">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label small">Documentation URL</label>
+                                <input type="url" class="form-control form-control-sm" name="provider_step_url_${index}" value="${step.documentation_url || ''}" placeholder="https://docs.provider.com/...">
+                            </div>
+                            <div>
+                                <label class="form-label small">Comment/Description</label>
+                                <textarea class="form-control form-control-sm" name="provider_step_comment_${index}" rows="2" placeholder="Provider-specific integration step description...">${step.comment || ''}</textarea>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                if (steps.length === 0) {
+                    stepsHtml += `
+                        <div class="provider-step-item mb-3 p-3 border rounded">
+                            <div class="mb-2">
+                                <label class="form-label small">Documentation URL</label>
+                                <input type="url" class="form-control form-control-sm" name="provider_step_url_0" placeholder="https://docs.provider.com/...">
+                            </div>
+                            <div>
+                                <label class="form-label small">Comment/Description</label>
+                                <textarea class="form-control form-control-sm" name="provider_step_comment_0" rows="2" placeholder="Provider-specific integration step description..."></textarea>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                stepsHtml += '</div>';
+                stepsHtml += '<button type="button" class="btn btn-sm btn-outline-secondary" onclick="addProviderStepField()"><i class="fas fa-plus"></i> Add Another Step</button>';
+                
+                document.getElementById('editContent').innerHTML = `
+                    <div class="mb-3">
+                        <label class="form-label">Provider Name</label>
+                        <input type="text" class="form-control" name="provider" value="${provider}" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Integration Steps</label>
+                        ${stepsHtml}
+                    </div>
+                `;
+                
+                providerStepCounter = steps.length || 1;
+                modal.show();
+            } else {
+                alert('Error loading provider steps: ' + (data.error || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error loading provider steps');
+        });
+}
+
+// Edit integration steps (universal)
+function editIntegrationSteps(featureName, paymentMethod, stepType, event) {
+    if (event) event.stopPropagation();
+    
+    const modal = new bootstrap.Modal(document.getElementById('editModal'));
+    document.getElementById('editModal').querySelector('.modal-title').textContent = `Edit Integration Steps: ${featureName} - ${paymentMethod}`;
+    document.getElementById('editType').value = 'integration_steps';
+    document.getElementById('editFeatureName').value = featureName;
+    document.getElementById('editPaymentMethod').value = paymentMethod;
+    
+    // Load current integration steps
+    fetch('/api/feature-rules/' + featureName + '/payment-method/' + paymentMethod + '/steps?rules_file=' + encodeURIComponent(currentRulesFile))
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const steps = data.steps || [];
+                let stepsHtml = '<div id="integration-steps-container">';
+                
+                steps.forEach((step, index) => {
+                    stepsHtml += `
+                        <div class="integration-step-item mb-3 p-3 border rounded">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="small text-muted">Step ${index + 1}</span>
+                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeIntegrationStepField(this)">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label small">Documentation URL</label>
+                                <input type="url" class="form-control form-control-sm" name="step_url_${index}" value="${step.documentation_url || ''}" placeholder="https://docs.y.uno/...">
+                            </div>
+                            <div>
+                                <label class="form-label small">Comment/Description</label>
+                                <textarea class="form-control form-control-sm" name="step_comment_${index}" rows="2" placeholder="Integration step description...">${step.comment || ''}</textarea>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                if (steps.length === 0) {
+                    stepsHtml += `
+                        <div class="integration-step-item mb-3 p-3 border rounded">
+                            <div class="mb-2">
+                                <label class="form-label small">Documentation URL</label>
+                                <input type="url" class="form-control form-control-sm" name="step_url_0" placeholder="https://docs.y.uno/...">
+                            </div>
+                            <div>
+                                <label class="form-label small">Comment/Description</label>
+                                <textarea class="form-control form-control-sm" name="step_comment_0" rows="2" placeholder="Integration step description..."></textarea>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                stepsHtml += '</div>';
+                stepsHtml += '<button type="button" class="btn btn-sm btn-outline-secondary" onclick="addIntegrationStepField()"><i class="fas fa-plus"></i> Add Another Step</button>';
+                
+                document.getElementById('editContent').innerHTML = `
+                    <div class="mb-3">
+                        <label class="form-label">Feature</label>
+                        <input type="text" class="form-control" value="${featureName}" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Payment Method</label>
+                        <input type="text" class="form-control" value="${paymentMethod}" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Integration Steps</label>
+                        ${stepsHtml}
+                    </div>
+                `;
+                
+                modal.show();
+            } else {
+                alert('Error loading integration steps: ' + (data.error || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error loading integration steps');
+        });
+}
+
+// Delete provider-specific steps
+function deleteProviderSteps(featureName, provider, event) {
+    if (event) event.stopPropagation();
+    
+    if (!confirm(`Are you sure you want to delete all provider-specific steps for ${provider}?`)) {
+        return;
+    }
+    
+    fetch('/api/feature-rules/' + featureName + '/provider/' + provider + '/steps', {
+        method: 'DELETE'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Error deleting provider steps: ' + (data.error || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error deleting provider steps');
+    });
+}
+
+// Add master provider-specific steps
+function addMasterProviderSteps(event) {
+    if (event) event.stopPropagation();
+    
+    const modal = new bootstrap.Modal(document.getElementById('editModal'));
+    document.getElementById('editModal').querySelector('.modal-title').textContent = 'Add Provider-Specific Master Steps';
+    document.getElementById('editType').value = 'master_provider_steps';
+    document.getElementById('editFeatureName').value = 'master';
+    
+    document.getElementById('editContent').innerHTML = `
+        <div class="mb-3">
+            <label class="form-label">Provider Name</label>
+            <input type="text" class="form-control" name="provider" list="common-providers" placeholder="e.g., Stripe, Adyen, PayPal" required>
+            <datalist id="common-providers">
+                <option value="Stripe">
+                <option value="Adyen">
+                <option value="PayPal">
+                <option value="MercadoPago">
+                <option value="PagSeguro">
+            </datalist>
+            <div class="form-text">Enter the payment provider name (e.g., Stripe, Adyen)</div>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Integration Steps</label>
+            <div id="master-provider-steps-container">
+                <div class="provider-step-item mb-3 p-3 border rounded">
+                    <div class="mb-2">
+                        <label class="form-label small">Documentation URL</label>
+                        <input type="url" class="form-control form-control-sm" name="provider_step_url_0" placeholder="https://docs.provider.com/...">
+                    </div>
+                    <div>
+                        <label class="form-label small">Comment/Description</label>
+                        <textarea class="form-control form-control-sm" name="provider_step_comment_0" rows="2" placeholder="Provider-specific master integration step description..."></textarea>
+                    </div>
+                </div>
+            </div>
+            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="addMasterProviderStepField()">
+                <i class="fas fa-plus"></i> Add Another Step
+            </button>
+        </div>
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> Master provider-specific steps apply to all features when the provider matches.
+        </div>
+    `;
+    
+    modal.show();
+}
+
+// Add another master provider step field
+let masterProviderStepCounter = 1;
+function addMasterProviderStepField() {
+    const container = document.getElementById('master-provider-steps-container');
+    const newStep = document.createElement('div');
+    newStep.className = 'provider-step-item mb-3 p-3 border rounded';
+    newStep.innerHTML = `
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="small text-muted">Step ${masterProviderStepCounter + 1}</span>
+            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeProviderStepField(this)">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="mb-2">
+            <label class="form-label small">Documentation URL</label>
+            <input type="url" class="form-control form-control-sm" name="provider_step_url_${masterProviderStepCounter}" placeholder="https://docs.provider.com/...">
+        </div>
+        <div>
+            <label class="form-label small">Comment/Description</label>
+            <textarea class="form-control form-control-sm" name="provider_step_comment_${masterProviderStepCounter}" rows="2" placeholder="Provider-specific master integration step description..."></textarea>
+        </div>
+    `;
+    container.appendChild(newStep);
+    masterProviderStepCounter++;
+}
+
+// Edit master provider-specific steps
+function editMasterProviderSteps(provider, event) {
+    if (event) event.stopPropagation();
+    
+    const modal = new bootstrap.Modal(document.getElementById('editModal'));
+    document.getElementById('editModal').querySelector('.modal-title').textContent = `Edit Master Provider Steps: ${provider}`;
+    document.getElementById('editType').value = 'master_provider_steps_edit';
+    document.getElementById('editFeatureName').value = 'master';
+    document.getElementById('editId').value = provider;
+    
+    // Load current master provider steps
+    fetch('/api/feature-rules/master/provider/' + provider + '/steps?rules_file=' + encodeURIComponent(currentRulesFile))
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const steps = data.steps || [];
+                let stepsHtml = '<div id="master-provider-steps-container">';
+                
+                steps.forEach((step, index) => {
+                    stepsHtml += `
+                        <div class="provider-step-item mb-3 p-3 border rounded">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="small text-muted">Step ${index + 1}</span>
+                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeProviderStepField(this)">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label small">Documentation URL</label>
+                                <input type="url" class="form-control form-control-sm" name="provider_step_url_${index}" value="${step.documentation_url || ''}" placeholder="https://docs.provider.com/...">
+                            </div>
+                            <div>
+                                <label class="form-label small">Comment/Description</label>
+                                <textarea class="form-control form-control-sm" name="provider_step_comment_${index}" rows="2" placeholder="Provider-specific master integration step description...">${step.comment || ''}</textarea>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                if (steps.length === 0) {
+                    stepsHtml += `
+                        <div class="provider-step-item mb-3 p-3 border rounded">
+                            <div class="mb-2">
+                                <label class="form-label small">Documentation URL</label>
+                                <input type="url" class="form-control form-control-sm" name="provider_step_url_0" placeholder="https://docs.provider.com/...">
+                            </div>
+                            <div>
+                                <label class="form-label small">Comment/Description</label>
+                                <textarea class="form-control form-control-sm" name="provider_step_comment_0" rows="2" placeholder="Provider-specific master integration step description..."></textarea>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                stepsHtml += '</div>';
+                stepsHtml += '<button type="button" class="btn btn-sm btn-outline-secondary" onclick="addMasterProviderStepField()"><i class="fas fa-plus"></i> Add Another Step</button>';
+                
+                document.getElementById('editContent').innerHTML = `
+                    <div class="mb-3">
+                        <label class="form-label">Provider Name</label>
+                        <input type="text" class="form-control" name="provider" value="${provider}" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Integration Steps</label>
+                        ${stepsHtml}
+                    </div>
+                `;
+                
+                masterProviderStepCounter = steps.length || 1;
+                modal.show();
+            } else {
+                alert('Error loading master provider steps: ' + (data.error || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error loading master provider steps');
+        });
+}
+
+// Delete master provider-specific steps
+function deleteMasterProviderSteps(provider, event) {
+    if (event) event.stopPropagation();
+    
+    if (!confirm(`Are you sure you want to delete all master provider-specific steps for ${provider}?`)) {
+        return;
+    }
+    
+    fetch('/api/feature-rules/master/provider/' + provider + '/steps', {
+        method: 'DELETE'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Error deleting master provider steps: ' + (data.error || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error deleting master provider steps');
+    });
+}
+
+// Edit master integration steps (universal)
+function editMasterIntegrationSteps(stepType, event) {
+    if (event) event.stopPropagation();
+    
+    const modal = new bootstrap.Modal(document.getElementById('editModal'));
+    document.getElementById('editModal').querySelector('.modal-title').textContent = 'Edit Master Integration Steps';
+    document.getElementById('editType').value = 'master_integration_steps';
+    document.getElementById('editFeatureName').value = 'master';
+    
+    // Load current master integration steps
+    fetch('/api/feature-rules/master/steps?rules_file=' + encodeURIComponent(currentRulesFile))
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const steps = data.steps || [];
+                let stepsHtml = '<div id="master-integration-steps-container">';
+                
+                steps.forEach((step, index) => {
+                    stepsHtml += `
+                        <div class="integration-step-item mb-3 p-3 border rounded">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="small text-muted">Step ${index + 1}</span>
+                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeIntegrationStepField(this)">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label small">Documentation URL</label>
+                                <input type="url" class="form-control form-control-sm" name="step_url_${index}" value="${step.documentation_url || ''}" placeholder="https://docs.y.uno/...">
+                            </div>
+                            <div>
+                                <label class="form-label small">Comment/Description</label>
+                                <textarea class="form-control form-control-sm" name="step_comment_${index}" rows="2" placeholder="Master integration step description...">${step.comment || ''}</textarea>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                if (steps.length === 0) {
+                    stepsHtml += `
+                        <div class="integration-step-item mb-3 p-3 border rounded">
+                            <div class="mb-2">
+                                <label class="form-label small">Documentation URL</label>
+                                <input type="url" class="form-control form-control-sm" name="step_url_0" placeholder="https://docs.y.uno/...">
+                            </div>
+                            <div>
+                                <label class="form-label small">Comment/Description</label>
+                                <textarea class="form-control form-control-sm" name="step_comment_0" rows="2" placeholder="Master integration step description..."></textarea>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                stepsHtml += '</div>';
+                stepsHtml += '<button type="button" class="btn btn-sm btn-outline-secondary" onclick="addIntegrationStepField()"><i class="fas fa-plus"></i> Add Another Step</button>';
+                
+                document.getElementById('editContent').innerHTML = `
+                    <div class="mb-3">
+                        <label class="form-label">Master Rules Integration Steps</label>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> These steps apply to all features regardless of which features are implemented.
+                        </div>
+                        ${stepsHtml}
+                    </div>
+                `;
+                
+                modal.show();
+            } else {
+                alert('Error loading master integration steps: ' + (data.error || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error loading master integration steps');
+        });
+}
+
+// Helper function for adding integration step fields (used by both master and feature steps)
+function addIntegrationStepField() {
+    const container = document.getElementById('integration-steps-container') || document.getElementById('master-integration-steps-container');
+    if (!container) return;
+    
+    const currentSteps = container.querySelectorAll('.integration-step-item').length;
+    const newStep = document.createElement('div');
+    newStep.className = 'integration-step-item mb-3 p-3 border rounded';
+    newStep.innerHTML = `
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="small text-muted">Step ${currentSteps + 1}</span>
+            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeIntegrationStepField(this)">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="mb-2">
+            <label class="form-label small">Documentation URL</label>
+            <input type="url" class="form-control form-control-sm" name="step_url_${currentSteps}" placeholder="https://docs.y.uno/...">
+        </div>
+        <div>
+            <label class="form-label small">Comment/Description</label>
+            <textarea class="form-control form-control-sm" name="step_comment_${currentSteps}" rows="2" placeholder="Integration step description..."></textarea>
+        </div>
+    `;
+    container.appendChild(newStep);
+}
+
+// Remove integration step field
+function removeIntegrationStepField(button) {
+    button.closest('.integration-step-item').remove();
 }
 
 // Add test case
@@ -1113,7 +1819,7 @@ function addNewFeature() {
 // Load feature data for editing
 function loadFeatureData(featureName) {
     // Fetch current feature data from the server
-    fetch('/api/feature-rules/' + featureName + '/data')
+    fetch('/api/feature-rules/' + featureName + '/data?rules_file=' + encodeURIComponent(currentRulesFile))
         .then(response => response.json())
         .then(data => {
             if (data.success) {
@@ -1259,6 +1965,371 @@ function saveEdit() {
         });
         return;
         
+    } else if (type === 'provider_steps') {
+        // Add provider-specific steps
+        const featureName = document.getElementById('editFeatureName').value;
+        const formData = new FormData(form);
+        const provider = formData.get('provider');
+        
+        // Collect all step fields
+        const steps = [];
+        let stepIndex = 0;
+        while (true) {
+            const url = formData.get(`provider_step_url_${stepIndex}`);
+            const comment = formData.get(`provider_step_comment_${stepIndex}`);
+            
+            if (!url && !comment) {
+                break;
+            }
+            
+            if (url && comment) {
+                steps.push({
+                    documentation_url: url,
+                    comment: comment
+                });
+            }
+            
+            stepIndex++;
+        }
+        
+        if (!provider) {
+            alert('Please enter a provider name');
+            return;
+        }
+        
+        if (steps.length === 0) {
+            alert('Please add at least one integration step');
+            return;
+        }
+        
+        fetch('/api/feature-rules/' + featureName + '/provider/' + provider + '/steps', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                provider: provider,
+                steps: steps,
+                rules_file: currentRulesFile
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
+                location.reload();
+            } else {
+                alert('Error saving: ' + data.error);
+            }
+        });
+        return;
+        
+    } else if (type === 'provider_steps_edit') {
+        // Update provider-specific steps
+        const featureName = document.getElementById('editFeatureName').value;
+        const provider = document.getElementById('editId').value;
+        const formData = new FormData(form);
+        
+        // Collect all step fields
+        const steps = [];
+        let stepIndex = 0;
+        while (true) {
+            const url = formData.get(`provider_step_url_${stepIndex}`);
+            const comment = formData.get(`provider_step_comment_${stepIndex}`);
+            
+            if (!url && !comment) {
+                break;
+            }
+            
+            if (url && comment) {
+                steps.push({
+                    documentation_url: url,
+                    comment: comment
+                });
+            }
+            
+            stepIndex++;
+        }
+        
+        if (steps.length === 0) {
+            alert('Please add at least one integration step');
+            return;
+        }
+        
+        fetch('/api/feature-rules/' + featureName + '/provider/' + provider + '/steps', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                steps: steps,
+                rules_file: currentRulesFile
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
+                location.reload();
+            } else {
+                alert('Error saving: ' + data.error);
+            }
+        });
+        return;
+        
+    } else if (type === 'master_provider_steps') {
+        // Add master provider-specific steps
+        const formData = new FormData(form);
+        const provider = formData.get('provider');
+        
+        // Collect all step fields
+        const steps = [];
+        let stepIndex = 0;
+        while (true) {
+            const url = formData.get(`provider_step_url_${stepIndex}`);
+            const comment = formData.get(`provider_step_comment_${stepIndex}`);
+            
+            if (!url && !comment) {
+                break;
+            }
+            
+            if (url && comment) {
+                steps.push({
+                    documentation_url: url,
+                    comment: comment
+                });
+            }
+            
+            stepIndex++;
+        }
+        
+        if (!provider) {
+            alert('Please enter a provider name');
+            return;
+        }
+        
+        if (steps.length === 0) {
+            alert('Please add at least one integration step');
+            return;
+        }
+        
+        fetch('/api/feature-rules/master/provider/' + provider + '/steps', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                provider: provider,
+                steps: steps,
+                rules_file: currentRulesFile
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
+                location.reload();
+            } else {
+                alert('Error saving: ' + data.error);
+            }
+        });
+        return;
+        
+    } else if (type === 'master_provider_steps_edit') {
+        // Update master provider-specific steps
+        const provider = document.getElementById('editId').value;
+        const formData = new FormData(form);
+        
+        // Collect all step fields
+        const steps = [];
+        let stepIndex = 0;
+        while (true) {
+            const url = formData.get(`provider_step_url_${stepIndex}`);
+            const comment = formData.get(`provider_step_comment_${stepIndex}`);
+            
+            if (!url && !comment) {
+                break;
+            }
+            
+            if (url && comment) {
+                steps.push({
+                    documentation_url: url,
+                    comment: comment
+                });
+            }
+            
+            stepIndex++;
+        }
+        
+        if (steps.length === 0) {
+            alert('Please add at least one integration step');
+            return;
+        }
+        
+        fetch('/api/feature-rules/master/provider/' + provider + '/steps', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                steps: steps,
+                rules_file: currentRulesFile
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
+                location.reload();
+            } else {
+                alert('Error saving: ' + data.error);
+            }
+        });
+        return;
+        
+    } else if (type === 'integration_steps') {
+        // Update integration steps for a feature and payment method
+        const featureName = document.getElementById('editFeatureName').value;
+        const paymentMethod = document.getElementById('editPaymentMethod').value;
+        const formData = new FormData(form);
+        
+        // Collect all step fields
+        const steps = [];
+        let stepIndex = 0;
+        while (true) {
+            const url = formData.get(`step_url_${stepIndex}`);
+            const comment = formData.get(`step_comment_${stepIndex}`);
+            
+            if (!url && !comment) {
+                break;
+            }
+            
+            if (url && comment) {
+                steps.push({
+                    documentation_url: url,
+                    comment: comment
+                });
+            }
+            
+            stepIndex++;
+        }
+        
+        if (steps.length === 0) {
+            alert('Please add at least one integration step');
+            return;
+        }
+        
+        fetch('/api/feature-rules/' + featureName + '/payment-method/' + paymentMethod + '/steps', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                steps: steps,
+                rules_file: currentRulesFile
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
+                location.reload();
+            } else {
+                alert('Error saving: ' + data.error);
+            }
+        });
+        return;
+        
+    } else if (type === 'master_integration_steps') {
+        // Update master universal integration steps
+        const formData = new FormData(form);
+        
+        // Collect all step fields
+        const steps = [];
+        let stepIndex = 0;
+        while (true) {
+            const url = formData.get(`step_url_${stepIndex}`);
+            const comment = formData.get(`step_comment_${stepIndex}`);
+            
+            if (!url && !comment) {
+                break;
+            }
+            
+            if (url && comment) {
+                steps.push({
+                    documentation_url: url,
+                    comment: comment
+                });
+            }
+            
+            stepIndex++;
+        }
+        
+        if (steps.length === 0) {
+            alert('Please add at least one integration step');
+            return;
+        }
+        
+        fetch('/api/feature-rules/master/steps', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                steps: steps,
+                rules_file: currentRulesFile
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
+                location.reload();
+            } else {
+                alert('Error saving: ' + data.error);
+            }
+        });
+        return;
+        
+    } else if (type === 'new_rules_file') {
+        // Create new rules file
+        const formData = new FormData(form);
+        const name = formData.get('name');
+        const description = formData.get('description');
+        
+        if (!name) {
+            alert('Please enter a file name');
+            return;
+        }
+        
+        fetch('/api/feature-rules-files', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                name: name,
+                description: description || ''
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
+                // Switch to the new file
+                const url = new URL(window.location);
+                url.searchParams.set('file', data.filename);
+                window.location.href = url.toString();
+            } else {
+                alert('Error creating rules file: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error creating rules file');
+        });
+        return;
+        
     } else if (type === 'new_feature') {
         const featureName = data.feature_name;
         if (featureName) {
@@ -1286,6 +2357,45 @@ function saveEdit() {
             alert('Error saving: ' + data.error);
         }
     });
+}
+
+// Switch rules file
+function switchRulesFile() {
+    const selector = document.getElementById('rulesFileSelector');
+    const selectedFile = selector.value;
+    
+    // Update URL and reload
+    const url = new URL(window.location);
+    url.searchParams.set('file', selectedFile);
+    window.location.href = url.toString();
+}
+
+// Create new rules file
+function createNewRulesFile() {
+    const modal = new bootstrap.Modal(document.getElementById('editModal'));
+    document.getElementById('editModal').querySelector('.modal-title').textContent = 'Create New Feature Rules File';
+    document.getElementById('editType').value = 'new_rules_file';
+    
+    document.getElementById('editContent').innerHTML = `
+        <div class="mb-3">
+            <label class="form-label">File Name</label>
+            <input type="text" class="form-control" name="name" id="newRulesFileName" placeholder="e.g., APAC, EMEA, LATAM" required>
+            <div class="form-text">Enter a name for the feature rules file (e.g., "APAC" will create "feature_rules_APAC.json")</div>
+            <div class="form-text text-warning">
+                <i class="fas fa-exclamation-triangle"></i> Only alphanumeric characters, underscores, and hyphens are allowed.
+            </div>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Description (Optional)</label>
+            <textarea class="form-control" name="description" rows="3" placeholder="e.g., Feature rules for APAC region market requirements"></textarea>
+            <div class="form-text">Optional description for this feature rules file</div>
+        </div>
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> A new feature rules file will be created based on the default template. You can then add features specific to your team/region.
+        </div>
+    `;
+    
+    modal.show();
 }
 
 // Initialize page

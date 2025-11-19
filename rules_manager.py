@@ -9,6 +9,7 @@ URLs and comments without requiring code changes.
 
 import json
 import os
+import glob
 from typing import Dict, Any, Optional, List
 from datetime import datetime
 
@@ -16,11 +17,12 @@ from datetime import datetime
 class FeatureRule:
     """Represents a single feature rule with documentation URL and comment."""
     
-    def __init__(self, feature_name: str, documentation_url: str, comment: str, integration_steps: List[Dict[str, str]] = None):
+    def __init__(self, feature_name: str, documentation_url: str, comment: str, integration_steps: List[Dict[str, str]] = None, provider_specific_steps: Dict[str, List[Dict[str, str]]] = None):
         self.feature_name = feature_name
         self.documentation_url = documentation_url
         self.comment = comment
         self.integration_steps = integration_steps or []
+        self.provider_specific_steps = provider_specific_steps or {}
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert rule to dictionary format."""
@@ -40,93 +42,257 @@ class FeatureRule:
 class RulesManager:
     """Manages feature documentation rules for dynamic documentation generation."""
     
-    def __init__(self, rules_file_path: str = 'feature_rules.json', verbose: bool = True):
+    def __init__(self, rules_file_path: str = 'feature_rules.json', verbose: bool = True, rules_file_paths: Optional[List[str]] = None):
         self.rules_file_path = rules_file_path
+        self.rules_file_paths = rules_file_paths or []
         self.verbose = verbose
         self.rules: Dict[str, FeatureRule] = {}
         self.metadata: Dict[str, Any] = {}
         self.version: str = ""
         self.last_loaded: Optional[datetime] = None
+        self.loaded_files: List[str] = []
         
     def load_rules(self) -> None:
-        """Load rules from JSON file."""
-        try:
-            if not os.path.exists(self.rules_file_path):
-                if self.verbose:
-                    print(f"⚠️  Rules file '{self.rules_file_path}' not found. Using empty rules set.")
+        """Load rules from JSON file(s)."""
+        if self.rules_file_paths:
+            # Load multiple files
+            self.load_multiple_rules(self.rules_file_paths)
+        else:
+            # Single file loading (backward compatibility)
+            data = self._load_single_rules_file(self.rules_file_path)
+            if data:
+                # Process single file data
+                self.loaded_files = [self.rules_file_path]
+                self.version = data.get('version', 'unknown')
+                self.metadata = data.get('metadata', {})
                 self.rules = {}
-                return
+                
+                # Process rules from single file
+                for feature_name, rule_data in data.get('rules', {}).items():
+                    if not isinstance(rule_data, dict):
+                        if self.verbose:
+                            print(f"⚠️  Skipping invalid rule for '{feature_name}': not a dictionary")
+                        continue
+                    
+                    # Extract provider-specific steps if present
+                    provider_specific_steps = {}
+                    if 'by_provider' in rule_data:
+                        provider_specific_steps = rule_data['by_provider']
+                    
+                    # Get integration steps from by_payment_method.universal or top-level
+                    integration_steps = []
+                    if 'by_payment_method' in rule_data:
+                        universal = rule_data['by_payment_method'].get('universal', {})
+                        integration_steps = universal.get('integration_steps', [])
+                    elif 'integration_steps' in rule_data:
+                        integration_steps = rule_data.get('integration_steps', [])
+                    
+                    # Get first step for backward compatibility
+                    documentation_url = ''
+                    comment = ''
+                    if integration_steps and isinstance(integration_steps, list) and len(integration_steps) > 0:
+                        first_step = integration_steps[0]
+                        documentation_url = first_step.get('documentation_url', '')
+                        comment = first_step.get('comment', '')
+                    elif 'documentation_url' in rule_data:
+                        # Legacy format
+                        documentation_url = rule_data.get('documentation_url', '')
+                        comment = rule_data.get('comment', '')
+                        if not integration_steps:
+                            integration_steps = [{
+                                'documentation_url': documentation_url,
+                                'comment': comment
+                            }]
+                    
+                    self.rules[feature_name] = FeatureRule(
+                        feature_name=rule_data.get('feature_name', feature_name),
+                        documentation_url=documentation_url,
+                        comment=comment,
+                        integration_steps=integration_steps,
+                        provider_specific_steps=provider_specific_steps
+                    )
+                
+                self.last_loaded = datetime.now()
+                if self.verbose:
+                    print(f"✓ Successfully loaded {len(self.rules)} feature rules from '{self.rules_file_path}'")
+                    print(f"  Version: {self.version}")
+            else:
+                self.rules = {}
+                self.loaded_files = []
+    
+    def _load_single_rules_file(self, file_path: str) -> Dict[str, Any]:
+        """Load a single rules file and return its data."""
+        try:
+            if not os.path.exists(file_path):
+                if self.verbose:
+                    print(f"⚠️  Rules file '{file_path}' not found.")
+                return {}
             
-            with open(self.rules_file_path, 'r', encoding='utf-8') as file:
+            with open(file_path, 'r', encoding='utf-8') as file:
                 data = json.load(file)
             
             # Validate structure
             if 'rules' not in data:
-                raise ValueError("Rules file must contain a 'rules' section")
+                if self.verbose:
+                    print(f"⚠️  Rules file '{file_path}' missing 'rules' section")
+                return {}
             
-            # Load metadata
-            self.version = data.get('version', 'unknown')
-            self.metadata = data.get('metadata', {})
+            return data
+                
+        except FileNotFoundError:
+            if self.verbose:
+                print(f"✗ Rules file '{file_path}' not found")
+            return {}
+        except json.JSONDecodeError as e:
+            if self.verbose:
+                print(f"✗ Error parsing JSON in rules file '{file_path}': {e}")
+            return {}
+        except Exception as e:
+            if self.verbose:
+                print(f"✗ Error loading rules from '{file_path}': {e}")
+            return {}
+    
+    def load_multiple_rules(self, rules_file_paths: List[str]) -> None:
+        """
+        Load and merge rules from multiple files.
+        Default feature_rules.json is always loaded first as base, then provider-specific files are merged.
+        """
+        self.rules = {}
+        self.loaded_files = []
+        all_metadata = []
+        
+        # Always include default feature_rules.json if it exists
+        default_file = 'feature_rules.json'
+        if default_file not in rules_file_paths and os.path.exists(default_file):
+            rules_file_paths = [default_file] + rules_file_paths
+        
+        # Remove duplicates while preserving order
+        seen = set()
+        unique_paths = []
+        for path in rules_file_paths:
+            if path not in seen:
+                seen.add(path)
+                unique_paths.append(path)
+        rules_file_paths = unique_paths
+        
+        # Load each file and merge
+        for file_path in rules_file_paths:
+            data = self._load_single_rules_file(file_path)
+            if not data:
+                continue
             
-            # Load rules
-            self.rules = {}
-            for feature_name, rule_data in data['rules'].items():
+            self.loaded_files.append(file_path)
+            
+            # Load metadata (use first file's version, merge metadata)
+            if not self.version:
+                self.version = data.get('version', 'unknown')
+            if data.get('metadata'):
+                all_metadata.append(data.get('metadata', {}))
+            
+            # Merge rules
+            for feature_name, rule_data in data.get('rules', {}).items():
                 if not isinstance(rule_data, dict):
                     if self.verbose:
                         print(f"⚠️  Skipping invalid rule for '{feature_name}': not a dictionary")
                     continue
                 
-                # Check for new format with integration_steps array
-                if 'integration_steps' in rule_data:
-                    integration_steps = rule_data.get('integration_steps', [])
-                    if isinstance(integration_steps, list) and len(integration_steps) > 0:
-                        # Use first integration step for backward compatibility
-                        first_step = integration_steps[0]
-                        documentation_url = first_step.get('documentation_url', '')
-                        comment = first_step.get('comment', '')
-                        
-                        self.rules[feature_name] = FeatureRule(
-                            feature_name=rule_data['feature_name'],
-                            documentation_url=documentation_url,
-                            comment=comment,
-                            integration_steps=integration_steps
-                        )
-                    else:
-                        if self.verbose:
-                            print(f"⚠️  Skipping rule for '{feature_name}': empty integration_steps")
-                        continue
-                else:
-                    # Legacy format - validate required fields
-                    required_fields = ['feature_name', 'documentation_url', 'comment']
-                    if not all(field in rule_data for field in required_fields):
-                        if self.verbose:
-                            print(f"⚠️  Skipping invalid rule for '{feature_name}': missing required fields")
-                        continue
-                    
-                    self.rules[feature_name] = FeatureRule(
-                        feature_name=rule_data['feature_name'],
-                        documentation_url=rule_data['documentation_url'],
-                        comment=rule_data['comment']
-                    )
-            
-            self.last_loaded = datetime.now()
-            
-            if self.verbose:
-                print(f"✓ Successfully loaded {len(self.rules)} feature rules from '{self.rules_file_path}'")
-                print(f"  Version: {self.version}")
+                # Extract provider-specific steps if present
+                provider_specific_steps = {}
+                if 'by_provider' in rule_data:
+                    provider_specific_steps = rule_data['by_provider']
                 
-        except FileNotFoundError:
-            if self.verbose:
-                print(f"✗ Rules file '{self.rules_file_path}' not found")
-            self.rules = {}
-        except json.JSONDecodeError as e:
-            if self.verbose:
-                print(f"✗ Error parsing JSON in rules file: {e}")
-            self.rules = {}
-        except Exception as e:
-            if self.verbose:
-                print(f"✗ Error loading rules: {e}")
-            self.rules = {}
+                # Get integration steps from by_payment_method.universal or top-level
+                integration_steps = []
+                if 'by_payment_method' in rule_data:
+                    universal = rule_data['by_payment_method'].get('universal', {})
+                    integration_steps = universal.get('integration_steps', [])
+                elif 'integration_steps' in rule_data:
+                    integration_steps = rule_data.get('integration_steps', [])
+                
+                # Get first step for backward compatibility (documentation_url, comment)
+                documentation_url = ''
+                comment = ''
+                if integration_steps and isinstance(integration_steps, list) and len(integration_steps) > 0:
+                    first_step = integration_steps[0]
+                    documentation_url = first_step.get('documentation_url', '')
+                    comment = first_step.get('comment', '')
+                elif 'documentation_url' in rule_data:
+                    # Legacy format
+                    documentation_url = rule_data.get('documentation_url', '')
+                    comment = rule_data.get('comment', '')
+                    if not integration_steps:
+                        integration_steps = [{
+                            'documentation_url': documentation_url,
+                            'comment': comment
+                        }]
+                
+                # Merge with existing rule if it exists
+                if feature_name in self.rules:
+                    existing_rule = self.rules[feature_name]
+                    # Merge integration steps (append new ones)
+                    merged_steps = existing_rule.integration_steps.copy()
+                    for step in integration_steps:
+                        if step not in merged_steps:
+                            merged_steps.append(step)
+                    integration_steps = merged_steps
+                    
+                    # Merge provider-specific steps
+                    merged_provider_steps = existing_rule.provider_specific_steps.copy()
+                    for provider, steps in provider_specific_steps.items():
+                        if provider in merged_provider_steps:
+                            # Append steps for this provider
+                            merged_provider_steps[provider].extend(steps)
+                        else:
+                            merged_provider_steps[provider] = steps.copy()
+                    provider_specific_steps = merged_provider_steps
+                    
+                    # Update URL and comment if not set
+                    if not documentation_url:
+                        documentation_url = existing_rule.documentation_url
+                    if not comment:
+                        comment = existing_rule.comment
+                
+                # Create or update rule
+                self.rules[feature_name] = FeatureRule(
+                    feature_name=rule_data.get('feature_name', feature_name),
+                    documentation_url=documentation_url,
+                    comment=comment,
+                    integration_steps=integration_steps,
+                    provider_specific_steps=provider_specific_steps
+                )
+        
+        # Merge metadata
+        if all_metadata:
+            self.metadata = {}
+            for meta in all_metadata:
+                for key, value in meta.items():
+                    if key not in self.metadata:
+                        self.metadata[key] = value
+                    elif isinstance(value, list) and isinstance(self.metadata[key], list):
+                        # Merge lists
+                        self.metadata[key] = list(set(self.metadata[key] + value))
+        
+        self.last_loaded = datetime.now()
+        
+        if self.verbose:
+            print(f"✓ Successfully loaded {len(self.rules)} feature rules from {len(self.loaded_files)} file(s)")
+            print(f"  Files: {', '.join(self.loaded_files)}")
+            print(f"  Version: {self.version}")
+    
+    @staticmethod
+    def get_provider_rules_files(directory: str = '.') -> List[str]:
+        """
+        Discover available provider-specific rules files matching pattern feature_rules_*.json.
+        
+        Args:
+            directory: Directory to search in (default: current directory)
+            
+        Returns:
+            List of file paths matching the pattern
+        """
+        pattern = os.path.join(directory, 'feature_rules_*.json')
+        files = glob.glob(pattern)
+        return sorted(files)
     
     def get_rule(self, feature_name: str) -> Optional[FeatureRule]:
         """Get rule for a specific feature."""
@@ -157,11 +323,19 @@ class RulesManager:
             'version': self.version,
             'last_loaded': self.last_loaded.isoformat() if self.last_loaded else None,
             'rules_file': self.rules_file_path,
+            'rules_files': self.loaded_files if self.loaded_files else [self.rules_file_path],
             'metadata': self.metadata
         }
     
-    def enrich_feature_data(self, feature_name: str, feature_value: str) -> Dict[str, Any]:
-        """Enrich feature data with documentation URL and comment from rules."""
+    def enrich_feature_data(self, feature_name: str, feature_value: str, provider: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Enrich feature data with documentation URL and comment from rules.
+        
+        Args:
+            feature_name: Name of the feature
+            feature_value: Value of the feature
+            provider: Optional provider name to get provider-specific integration steps
+        """
         rule = self.get_rule(feature_name)
         
         enriched_data = {
@@ -174,19 +348,31 @@ class RulesManager:
         }
         
         if rule:
+            # Get universal integration steps
+            integration_steps = rule.integration_steps if hasattr(rule, 'integration_steps') else []
+            
+            # Get provider-specific steps if provider is specified
+            provider_steps = []
+            if provider and hasattr(rule, 'provider_specific_steps'):
+                provider_steps = rule.provider_specific_steps.get(provider, [])
+            
             enriched_data.update({
                 'documentation_url': rule.documentation_url,
                 'comment': rule.comment,
-                'integration_steps': rule.integration_steps if hasattr(rule, 'integration_steps') else []
+                'integration_steps': integration_steps,
+                'provider_specific_steps': provider_steps if provider else {}
             })
             
             if self.verbose:
                 print(f"🔗 DEBUG: Feature '{feature_name}' matched with rule -> {rule.documentation_url}")
+                if provider and provider_steps:
+                    print(f"  Provider-specific steps for {provider}: {len(provider_steps)}")
         else:
             enriched_data.update({
                 'documentation_url': None,
                 'comment': None,
-                'integration_steps': []
+                'integration_steps': [],
+                'provider_specific_steps': {}
             })
             
             if self.verbose:

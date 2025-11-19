@@ -10,19 +10,23 @@ are not "#N/A" or empty). The parsed data is structured for later documentation 
 
 import csv
 import sys
-from typing import Dict, List, Tuple, Any
+from typing import Dict, List, Tuple, Any, Optional
 import argparse
 from rules_manager import RulesManager
 
 
 class ProviderPaymentParser:
-    def __init__(self, csv_file_path: str, verbose: bool = True, rules_file_path: str = 'feature_rules.json'):
+    def __init__(self, csv_file_path: str, verbose: bool = True, rules_file_path: str = 'feature_rules.json', rules_file_paths: Optional[List[str]] = None):
         self.csv_file_path = csv_file_path
         self.verbose = verbose
         self.data = []
         self.valid_columns = []
         self.parsed_features = {}
-        self.rules_manager = RulesManager(rules_file_path, verbose=verbose)
+        # Use multiple files if provided, otherwise use single file (backward compatibility)
+        if rules_file_paths:
+            self.rules_manager = RulesManager(verbose=verbose, rules_file_paths=rules_file_paths)
+        else:
+            self.rules_manager = RulesManager(rules_file_path, verbose=verbose)
         self.rules_manager.load_rules()
         
     def load_csv(self) -> None:
@@ -220,10 +224,10 @@ class ProviderPaymentParser:
                 'features': {}
             }
             
-            # Enrich each feature with rules data
+            # Enrich each feature with rules data (include provider for provider-specific steps)
             for feature_name, feature_value in data['features'].items():
                 enriched_data[key]['features'][feature_name] = self.rules_manager.enrich_feature_data(
-                    feature_name, feature_value
+                    feature_name, feature_value, provider=data['provider']
                 )
         
         return enriched_data

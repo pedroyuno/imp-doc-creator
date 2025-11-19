@@ -23,15 +23,16 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 
 class TestCaseGenerator:
-    def __init__(self, locale: str = 'en'):
+    def __init__(self, locale: str = 'en', rules_file_paths: Optional[List[str]] = None):
         """
         Initialize the test case generator.
         
         Args:
             locale: Language locale for test case descriptions (en, es, pt)
+            rules_file_paths: Optional list of rules file paths to load
         """
         self.locale = locale
-        self.i18n = I18nHelper(default_locale=locale)
+        self.i18n = I18nHelper(default_locale=locale, rules_file_paths=rules_file_paths)
         
         # Set up Jinja2 environment for document templates
         template_dir = os.path.join(os.path.dirname(__file__), 'templates', 'documents')
@@ -130,11 +131,18 @@ class TestCaseGenerator:
         # Use the feature order from feature_rules.json (via i18n helper)
         feature_order = list(self.i18n.feature_rules.keys())
         
+        # Track providers from parsed_features to include provider-specific steps
+        providers_in_scope = set()
+        for provider_payment_key, provider_data in parsed_features.items():
+            providers_in_scope.add(provider_data['provider'])
+        
         for feature_name in feature_order:
             if feature_name in implemented_features:
-                # Pull integration steps from by_payment_method.universal (with fallback)
-                integration_step_list = self.i18n.get_integration_steps_for_feature(feature_name)
+                # Get universal integration steps
+                integration_steps_data = self.i18n.get_integration_steps_for_feature(feature_name)
+                integration_step_list = integration_steps_data.get('universal', [])
                 
+                # Add universal steps
                 if integration_step_list:
                     for step in integration_step_list:
                         integration_steps.append({
@@ -144,6 +152,19 @@ class TestCaseGenerator:
                             'documentation_url': step['documentation_url']
                         })
                         step_number += 1
+                
+                # Add provider-specific steps for each provider in scope
+                provider_specific_steps = integration_steps_data.get('provider_specific', {})
+                for provider in providers_in_scope:
+                    if provider in provider_specific_steps:
+                        for step in provider_specific_steps[provider]:
+                            integration_steps.append({
+                                'step_number': step_number,
+                                'feature_name': f"{feature_name} ({provider})",
+                                'comment': step['comment'],
+                                'documentation_url': step['documentation_url']
+                            })
+                            step_number += 1
         
         return integration_steps
         
@@ -409,8 +430,8 @@ class TestCaseGenerator:
                 
                 doc_para = doc.add_paragraph()
                 doc_para.add_run("Documentation: ").bold = True
-                doc_run = doc_para.add_run(step['documentation_url'])
-                doc_run.font.color.rgb = RGBColor(0, 0, 255)  # Blue color for links
+                # Add clickable hyperlink
+                self._add_hyperlink(doc_para, step['documentation_url'], step['documentation_url'])
         
         # Introduction section
         intro_heading = doc.add_heading('Test Case Documentation', level=1)
@@ -641,6 +662,50 @@ class TestCaseGenerator:
             stats['production_test_cases'] = len(production_cases) if production_cases else 0
         
         return stats
+    
+    def _add_hyperlink(self, paragraph, url, text):
+        """
+        Add a clickable hyperlink to a paragraph.
+        
+        Args:
+            paragraph: The paragraph to add the hyperlink to
+            url: The URL to link to
+            text: The text to display for the hyperlink
+        """
+        # Add relationship to document part
+        part = paragraph.part
+        r_id = part.relate_to(url, 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink', is_external=True)
+        
+        # Create hyperlink element
+        hyperlink = OxmlElement('w:hyperlink')
+        hyperlink.set(qn('r:id'), r_id)
+        
+        # Create run element for the hyperlink text
+        run = OxmlElement('w:r')
+        r_pr = OxmlElement('w:rPr')
+        
+        # Set blue color
+        color = OxmlElement('w:color')
+        color.set(qn('w:val'), '0000FF')  # Blue
+        r_pr.append(color)
+        
+        # Set underline
+        u = OxmlElement('w:u')
+        u.set(qn('w:val'), 'single')  # Underline
+        r_pr.append(u)
+        
+        run.append(r_pr)
+        
+        # Add text
+        text_elem = OxmlElement('w:t')
+        text_elem.set(qn('xml:space'), 'preserve')  # Preserve spaces
+        text_elem.text = text
+        run.append(text_elem)
+        
+        hyperlink.append(run)
+        
+        # Append hyperlink to paragraph
+        paragraph._p.append(hyperlink)
     
     def _set_cell_background_color(self, cell, color_hex):
         """Set the background color of a table cell.

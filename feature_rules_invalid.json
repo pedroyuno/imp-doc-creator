@@ -1,0 +1,50 @@
+{
+  "version": "2.0",
+  "description": "Feature documentation rules for dynamic documentation generation",
+  "last_updated": "2025-11-19",
+  "rules": {},
+  "master": {
+    "description": "Master rules executed for every conversion regardless of matched features",
+    "integration_steps": [
+      {
+        "documentation_url": "https://docs.y.uno/docs/getting-started",
+        "comment": "Essential setup and configuration steps required for all integrations. This covers initial account setup, API key configuration, and basic implementation requirements."
+      },
+      {
+        "documentation_url": "https://docs.y.uno/docs/yuno-testing-gateway#442---card-detail",
+        "comment": "Testing cards"
+      },
+      {
+        "documentation_url": "https://docs.y.uno/reference/payment",
+        "comment": "Payment status and response codes"
+      }
+    ],
+    "testcases": []
+  },
+  "metadata": {
+    "total_rules": 0,
+    "categories": [],
+    "testcase_types": [
+      "happy path",
+      "unhappy path",
+      "corner case"
+    ],
+    "environments": [
+      "sandbox",
+      "production",
+      "both"
+    ],
+    "i18n": {
+      "supported_locales": [
+        "en",
+        "es",
+        "pt"
+      ],
+      "default_locale": "en",
+      "structure": "Testcase descriptions use i18n keys (description_key) that reference translations in i18n/{locale}.json files"
+    },
+    "usage_instructions": "This file contains documentation rules that map feature names to their corresponding documentation URLs and explanatory comments. Integration steps are an array of objects, each containing documentation_url and comment, allowing multiple integration steps per feature. Testcase descriptions are internationalized using i18n keys. Each testcase now includes an environment field specifying whether it applies to 'sandbox', 'production', or 'both' environments. The 'master' section contains rules that are executed for every conversion regardless of which features are matched. Use the i18n_helper.py utility to load translations.",
+    "file_name": "invalid",
+    "description": "Invalid file name"
+  }
+}

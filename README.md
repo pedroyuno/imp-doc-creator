@@ -54,10 +54,13 @@ A column is considered valid if:
 - 🌍 **Real-time language switching** (English, Spanish, Portuguese)
 - ✏️ **Inline test case description editing** with save/cancel controls
 - 🎯 **Payment method-specific test case organization**
+- 📁 **Multiple Feature Rules Files**: Create and manage separate feature rules files for different teams/regions (e.g., APAC, EMEA)
+- ✏️ **Integration Steps Editing**: Edit documentation URLs and descriptions for integration steps
+- 🔄 **Auto-reload Development Server**: Automatic server reload on code changes (no manual restart needed)
 
 ### Testing & Quality
 - 🧪 **84% code coverage** with comprehensive test suite
-- ✅ **176 comprehensive test cases** (including new API endpoint tests)
+- ✅ **184+ comprehensive test cases** (including new API endpoint tests for integration steps and rules files)
 - 🔄 Unit, integration, and regression tests
 - 🛡️ Security and error handling tests
 - 📋 Automated test runner scripts
@@ -89,6 +92,9 @@ A column is considered valid if:
 - ⚙️ **Feature Rules Management**: Interactive editing of feature rules and test cases
 - ✏️ **Inline Editing**: Edit test case descriptions directly with save/cancel controls
 - 🌍 **Real-time Language Switching**: Switch between languages without page reload
+- 📁 **Multiple Rules Files**: Create and switch between different feature rules files (e.g., feature_rules_APAC.json)
+- 🔗 **Integration Steps Management**: Edit documentation URLs and descriptions for each feature's integration steps
+- 🔄 **Auto-reload**: Development server automatically reloads on code changes
 
 ### Command Line Interface
 

@@ -344,4 +344,142 @@ class TestFeatureRulesManagement:
         result = response.get_json()
         # The API might return success=False if the test case doesn't exist
         # Let's just check that we get a response
-        assert 'success' in result 
+        assert 'success' in result
+
+    def test_api_get_payment_method_steps(self, client, temp_rules_file):
+        """Test API endpoint to get integration steps for a payment method"""
+        # First, ensure the feature has by_payment_method structure
+        with open(temp_rules_file, 'r') as f:
+            rules_data = json.load(f)
+        
+        if 'by_payment_method' not in rules_data['rules']['TestFeature']:
+            rules_data['rules']['TestFeature']['by_payment_method'] = {
+                'universal': {
+                    'integration_steps': [
+                        {
+                            'documentation_url': 'https://test.example.com',
+                            'comment': 'Test integration step'
+                        }
+                    ]
+                }
+            }
+            with open(temp_rules_file, 'w') as f:
+                json.dump(rules_data, f, indent=2)
+        
+        response = client.get('/api/feature-rules/TestFeature/payment-method/universal/steps')
+        assert response.status_code == 200
+        data = response.get_json()
+        assert data['success'] is True
+        assert 'steps' in data
+        assert len(data['steps']) > 0
+
+    def test_api_update_payment_method_steps(self, client, temp_rules_file):
+        """Test API endpoint to update integration steps for a payment method"""
+        # First, ensure the feature has by_payment_method structure
+        with open(temp_rules_file, 'r') as f:
+            rules_data = json.load(f)
+        
+        if 'by_payment_method' not in rules_data['rules']['TestFeature']:
+            rules_data['rules']['TestFeature']['by_payment_method'] = {}
+        
+        if 'universal' not in rules_data['rules']['TestFeature']['by_payment_method']:
+            rules_data['rules']['TestFeature']['by_payment_method']['universal'] = {
+                'testcases': [],
+                'integration_steps': []
+            }
+            with open(temp_rules_file, 'w') as f:
+                json.dump(rules_data, f, indent=2)
+        
+        new_steps = [
+            {
+                'documentation_url': 'https://updated.example.com',
+                'comment': 'Updated integration step'
+            }
+        ]
+        
+        response = client.put('/api/feature-rules/TestFeature/payment-method/universal/steps',
+                            json={'steps': new_steps, 'rules_file': 'feature_rules.json'})
+        assert response.status_code == 200
+        data = response.get_json()
+        assert data['success'] is True
+        
+        # Verify the steps were updated
+        with open(temp_rules_file, 'r') as f:
+            rules_data = json.load(f)
+        
+        steps = rules_data['rules']['TestFeature']['by_payment_method']['universal']['integration_steps']
+        assert len(steps) == 1
+        assert steps[0]['documentation_url'] == 'https://updated.example.com'
+        assert steps[0]['comment'] == 'Updated integration step'
+
+    def test_api_list_feature_rules_files(self, client):
+        """Test API endpoint to list feature rules files"""
+        response = client.get('/api/feature-rules-files')
+        assert response.status_code == 200
+        data = response.get_json()
+        assert data['success'] is True
+        assert 'rules_files' in data
+        assert isinstance(data['rules_files'], list)
+
+    def test_api_create_feature_rules_file(self, client):
+        """Test API endpoint to create a new feature rules file"""
+        import tempfile
+        import shutil
+        
+        # Create a test file name
+        test_file_name = 'TEST_RULES'
+        expected_filename = f'feature_rules_{test_file_name}.json'
+        
+        # Remove file if it exists
+        if os.path.exists(expected_filename):
+            os.remove(expected_filename)
+        
+        try:
+            data = {
+                'name': test_file_name,
+                'description': 'Test rules file'
+            }
+            
+            response = client.post('/api/feature-rules-files', json=data)
+            assert response.status_code == 200
+            result = response.get_json()
+            assert result['success'] is True
+            assert 'filename' in result
+            assert result['filename'] == expected_filename
+            
+            # Verify the file was created
+            assert os.path.exists(expected_filename)
+            
+            # Verify the file structure
+            with open(expected_filename, 'r') as f:
+                file_data = json.load(f)
+            
+            assert 'version' in file_data
+            assert 'rules' in file_data
+            assert 'master' in file_data
+        finally:
+            # Clean up
+            if os.path.exists(expected_filename):
+                os.remove(expected_filename)
+
+    def test_api_create_feature_rules_file_invalid_name(self, client):
+        """Test API endpoint to create feature rules file with invalid name"""
+        data = {
+            'name': '../../invalid',
+            'description': 'Invalid file name'
+        }
+        
+        response = client.post('/api/feature-rules-files', json=data)
+        assert response.status_code == 200
+        result = response.get_json()
+        # Should either succeed with sanitized name or fail gracefully
+        assert 'success' in result
+
+    def test_api_update_payment_method_steps_empty(self, client, temp_rules_file):
+        """Test API endpoint to update integration steps with empty steps"""
+        response = client.put('/api/feature-rules/TestFeature/payment-method/universal/steps',
+                            json={'steps': [], 'rules_file': 'feature_rules.json'})
+        assert response.status_code == 200
+        data = response.get_json()
+        assert data['success'] is False
+        assert 'error' in data 

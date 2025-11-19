@@ -84,11 +84,40 @@
                         </div>
                     </div>
 
+                    <!-- Active Rules Files Info -->
+                    {% if session.get('selected_rules_files') %}
+                    <div class="alert alert-success">
+                        <h6 class="alert-heading">📚 Active Feature Rules Files (Will be merged):</h6>
+                        <ul class="mb-0">
+                            <li><strong>Default:</strong> <code>feature_rules.json</code> (always included)</li>
+                            {% for rules_file in session.get('selected_rules_files', []) %}
+                            <li><strong>Additional:</strong> <code>{{ rules_file }}</code></li>
+                            {% endfor %}
+                        </ul>
+                        <p class="mb-0 mt-2"><small class="text-muted">
+                            <i class="fas fa-info-circle"></i> All selected rules files are merged together. 
+                            Features, test cases, and integration steps from all files will be included in the generated document.
+                        </small></p>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-warning">
+                        <h6 class="alert-heading">📚 Feature Rules Files:</h6>
+                        <p class="mb-0">
+                            <strong>Default:</strong> <code>feature_rules.json</code> will be used.
+                            <br><small class="text-muted">
+                                <i class="fas fa-info-circle"></i> To include additional rules files (e.g., APAC, EMEA), 
+                                select them when uploading the CSV file.
+                            </small>
+                        </p>
+                    </div>
+                    {% endif %}
+
                     <!-- What will be included -->
                     <div class="alert alert-info">
                         <h6 class="alert-heading">📋 What will be included:</h6>
                         <ul class="mb-0">
                             <li><strong>Implemented Features Only:</strong> Test cases for features marked as TRUE, Implemented, or similar values</li>
+                            <li><strong>Merged Rules:</strong> Features, test cases, and integration steps from all selected rules files</li>
                             <li><strong>Separated Tables:</strong> Creates separate tables for sandbox and production test cases</li>
                             <li><strong>Environment Filtering:</strong> Choose specific environment or get separated tables</li>
                             <li><strong>Organized by Provider:</strong> Test cases grouped by provider + payment method combinations</li>
