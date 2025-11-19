@@ -971,12 +971,17 @@ def api_create_testcase():
     try:
         data = request.get_json()
         
-        # Parse feature and payment method from ID
-        feature_pm = data.get('id', '').split(':')
-        if len(feature_pm) != 2:
-            return jsonify({'success': False, 'error': 'Invalid ID format. Use feature:payment_method'})
+        # Parse feature and payment method
+        # Try to get from explicit fields first, then fallback to parsing id
+        feature_name = data.get('feature_name')
+        payment_method = data.get('payment_method')
         
-        feature_name, payment_method = feature_pm
+        if not feature_name or not payment_method:
+            feature_pm = data.get('id', '').split(':')
+            if len(feature_pm) == 2:
+                feature_name, payment_method = feature_pm
+            else:
+                return jsonify({'success': False, 'error': 'Missing feature_name or payment_method, and invalid ID format'})
         
         # Load current rules
         with open('feature_rules.json', 'r', encoding='utf-8') as f:

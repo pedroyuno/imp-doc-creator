@@ -15,9 +15,6 @@
 
         <!-- Quick Actions -->
         <div class="text-center mb-4">
-            <a href="{{ url_for('download_sample') }}" class="btn btn-custom me-3">
-                📥 Download Sample File
-            </a>
             <a href="{{ url_for('index') }}" class="btn btn-outline-primary">
                 📤 Upload Your File
             </a>
@@ -196,75 +193,7 @@
             </div>
         </div>
 
-        <!-- Sample Features -->
-        <div class="card border-0 shadow-sm mb-4">
-            <div class="card-body">
-                <h3 class="card-title text-primary">🔧 Common Features</h3>
-                <p class="text-muted mb-3">Here are some typical features that appear in integration CSV files:</p>
-                
-                <div class="row">
-                    <div class="col-md-4">
-                        <h6 class="text-info">🏛️ Basic Information</h6>
-                        <ul class="list-unstyled">
-                            <li>• Country</li>
-                            <li>• Signed contract with provider</li>
-                            <li>• Already integrated with Yuno?</li>
-                            <li>• Experience</li>
-                            <li>• Market Segment</li>
-                            <li>• Processing model</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="col-md-4">
-                        <h6 class="text-success">💳 Payment Features</h6>
-                        <ul class="list-unstyled">
-                            <li>• Card Type Accepted</li>
-                            <li>• Verify</li>
-                            <li>• Authorize</li>
-                            <li>• Capture</li>
-                            <li>• Purchase</li>
-                            <li>• Refund</li>
-                            <li>• Cancel</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="col-md-4">
-                        <h6 class="text-warning">⚡ Advanced Features</h6>
-                        <ul class="list-unstyled">
-                            <li>• Partial Capture</li>
-                            <li>• Multiple Refunds</li>
-                            <li>• Network Tokens</li>
-                            <li>• Recurring payments</li>
-                            <li>• 3DS</li>
-                            <li>• Split payments</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
 
-        <!-- Tips -->
-        <div class="card border-0 bg-primary text-white">
-            <div class="card-body">
-                <h3 class="card-title">💡 Pro Tips</h3>
-                <div class="row">
-                    <div class="col-md-6">
-                        <ul class="mb-0">
-                            <li>Use clear, descriptive provider names</li>
-                            <li>Keep feature names consistent</li>
-                            <li>Use "TRUE"/"FALSE" for boolean values</li>
-                        </ul>
-                    </div>
-                    <div class="col-md-6">
-                        <ul class="mb-0">
-                            <li>Mark invalid columns with "#N/A"</li>
-                            <li>Leave empty cells blank (don't use "N/A")</li>
-                            <li>Test with our sample file first</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 </div>
 {% endblock %} 

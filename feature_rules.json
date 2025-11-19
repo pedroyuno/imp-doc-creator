@@ -104,6 +104,23 @@
               "comment": "Supports payment authorization functionality. Required for holding funds before capture in two-step payment flows."
             }
           ]
+        },
+        "CARD": {
+          "testcases": [
+            {
+              "id": "TEST001",
+              "description_key": "testcase.authorize.card.test001",
+              "type": "happy path",
+              "environment": "both"
+            },
+            {
+              "id": "TEST001",
+              "description_key": "testcase.authorize.card.test001",
+              "type": "happy path",
+              "environment": "both"
+            }
+          ],
+          "integration_steps": []
         }
       }
     },

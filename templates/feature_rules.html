@@ -7,7 +7,7 @@
     /* Language Switcher */
     .language-switcher {
         position: fixed;
-        top: 20px;
+        top: 80px;
         right: 20px;
         z-index: 1000;
         background: white;
@@ -114,7 +114,7 @@
         border-bottom: 1px solid #dee2e6;
         cursor: pointer;
         display: flex;
-        justify-content: between;
+        justify-content: space-between;
         align-items: center;
     }
     
@@ -265,7 +265,7 @@
     
     .testcase-header {
         display: flex;
-        justify-content: between;
+        justify-content: space-between;
         align-items: center;
         margin-bottom: 15px;
     }
@@ -281,7 +281,7 @@
         border-radius: 8px;
         padding: 12px 15px;
         display: flex;
-        justify-content: between;
+        justify-content: space-between;
         align-items: center;
         transition: all 0.2s ease;
     }
@@ -580,7 +580,7 @@
                     <div class="testcase-section">
                         <div class="testcase-header">
                             <h5><i class="fas fa-vial"></i> Test Cases ({{ master_rules.testcases|length }})</h5>
-                            <button class="btn btn-success" onclick="addTestcase('master')">
+                            <button class="btn btn-success" onclick="addTestcase('master', 'master')">
                                 <i class="fas fa-plus"></i> Add Test Case
                             </button>
                         </div>
@@ -783,13 +783,17 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Edit Feature Rule</h5>
+                <h5 class="modal-title">Edit</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <form id="editForm">
                     <input type="hidden" id="editType" name="type">
                     <input type="hidden" id="editId" name="id">
+                    <!-- Context fields for separate identification -->
+                    <input type="hidden" id="editFeatureName" name="feature_name">
+                    <input type="hidden" id="editPaymentMethod" name="payment_method">
+                    
                     <div id="editContent"></div>
                 </form>
             </div>
@@ -863,27 +867,29 @@ function editFeature(featureName, event) {
 function addPaymentMethod(featureName, event) {
     event.stopPropagation();
     
-    const paymentMethod = prompt('Enter payment method name (e.g., CARD, PIX, universal):');
-    if (paymentMethod) {
-        // Add payment method via API
-        fetch('/api/feature-rules/' + featureName + '/payment-methods', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                payment_method: paymentMethod
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                location.reload();
-            } else {
-                alert('Error adding payment method: ' + data.error);
-            }
-        });
-    }
+    const modal = new bootstrap.Modal(document.getElementById('editModal'));
+    document.getElementById('editModal').querySelector('.modal-title').textContent = 'Add Payment Method to ' + featureName;
+    document.getElementById('editType').value = 'payment_method';
+    document.getElementById('editFeatureName').value = featureName;
+    
+    document.getElementById('editContent').innerHTML = `
+        <div class="mb-3">
+            <label class="form-label">Payment Method Name</label>
+            <input type="text" class="form-control" name="payment_method" list="common-pms" placeholder="e.g., CARD, PIX">
+            <datalist id="common-pms">
+                <option value="universal">
+                <option value="CARD">
+                <option value="PIX">
+                <option value="BOLETO">
+                <option value="PSE">
+            </datalist>
+        </div>
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> 'universal' applies to all payment methods unless overridden.
+        </div>
+    `;
+    
+    modal.show();
 }
 
 // Add test case
@@ -893,13 +899,22 @@ function addTestcase(featureName, paymentMethod = null) {
     const modal = new bootstrap.Modal(document.getElementById('editModal'));
     document.getElementById('editModal').querySelector('.modal-title').textContent = 'Add Test Case';
     document.getElementById('editType').value = 'testcase';
-    document.getElementById('editId').value = featureName + (paymentMethod ? ':' + paymentMethod : '');
+    
+    // Set context fields
+    document.getElementById('editFeatureName').value = featureName;
+    document.getElementById('editPaymentMethod').value = paymentMethod || 'universal';
+    // Clear ID field to avoid conflict
+    document.getElementById('editId').value = '';
     
     // Create form for new test case
     document.getElementById('editContent').innerHTML = `
         <div class="mb-3">
             <label class="form-label">Test Case ID</label>
-            <input type="text" class="form-control" name="id" placeholder="e.g., PURC001">
+            <div class="input-group">
+                <input type="text" class="form-control" name="id" id="newTestcaseId" placeholder="e.g., PURC001">
+                <button class="btn btn-outline-secondary" type="button" onclick="generateTestcaseId()">Generate</button>
+            </div>
+            <div class="form-text">Leave empty to auto-generate</div>
         </div>
         <div class="mb-3">
             <label class="form-label">Description</label>
@@ -927,13 +942,21 @@ function addTestcase(featureName, paymentMethod = null) {
     modal.show();
 }
 
+function generateTestcaseId() {
+    const featureName = document.getElementById('editFeatureName').value;
+    // Simple heuristic: first 3 chars of feature + random number
+    const prefix = featureName.substring(0, 3).toUpperCase();
+    const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+    document.getElementById('newTestcaseId').value = prefix + random;
+}
+
 // Edit test case parameters (type, environment)
 function editTestcaseParams(testcaseId) {
     editingTestcase = testcaseId;
     
     const modal = new bootstrap.Modal(document.getElementById('editModal'));
     document.getElementById('editModal').querySelector('.modal-title').textContent = 'Edit Test Case Parameters: ' + testcaseId;
-    document.getElementById('editType').value = 'testcase';
+    document.getElementById('editType').value = 'testcase_update';
     document.getElementById('editId').value = testcaseId;
     
     // Load current test case data for parameters only
@@ -1051,47 +1074,6 @@ function saveDescription(testcaseId) {
         });
 }
 
-// Update description inline (deprecated - use saveDescription instead)
-function updateDescription(testcaseId, newDescription) {
-    if (newDescription.trim() === '') {
-        return;
-    }
-    
-    // Find the test case and get its description key
-    const locale = currentLocale || 'en';
-    fetch('/api/testcases/' + testcaseId + '/data?locale=' + locale)
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                const descriptionKey = data.testcase.description_key;
-                
-                // Update the description in i18n files
-                fetch('/api/testcases/' + testcaseId, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        description: newDescription.trim()
-                    })
-                })
-                .then(response => response.json())
-                .then(result => {
-                    if (result.success) {
-                        // Show success feedback
-                        const descElement = document.getElementById('desc-' + testcaseId);
-                        descElement.style.color = '#28a745';
-                        setTimeout(() => {
-                            descElement.style.color = '#6c757d';
-                        }, 1000);
-                    } else {
-                        alert('Error updating description: ' + result.error);
-                    }
-                });
-            }
-        });
-}
-
 // Delete test case
 function deleteTestcase(testcaseId) {
     if (confirm('Are you sure you want to delete this test case?')) {
@@ -1111,11 +1093,21 @@ function deleteTestcase(testcaseId) {
 
 // Add new feature
 function addNewFeature() {
-    const featureName = prompt('Enter feature name:');
-    if (featureName) {
-        // Redirect to add feature page
-        window.location.href = '/feature-rules/add?name=' + encodeURIComponent(featureName);
-    }
+    const modal = new bootstrap.Modal(document.getElementById('editModal'));
+    document.getElementById('editModal').querySelector('.modal-title').textContent = 'Add New Feature Rule';
+    document.getElementById('editType').value = 'new_feature';
+    
+    document.getElementById('editContent').innerHTML = `
+        <div class="mb-3">
+            <label class="form-label">Feature Name</label>
+            <input type="text" class="form-control" name="feature_name" placeholder="e.g., Tokenization">
+        </div>
+        <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle"></i> You will be redirected to complete the setup.
+        </div>
+    `;
+    
+    modal.show();
 }
 
 // Load feature data for editing
@@ -1142,41 +1134,11 @@ function loadFeatureData(featureName) {
                 `;
             } else {
                 alert('Error loading feature data: ' + data.error);
-                // Fallback to empty form
-                document.getElementById('editContent').innerHTML = `
-                    <div class="mb-3">
-                        <label class="form-label">Feature Name</label>
-                        <input type="text" class="form-control" name="feature_name" value="${featureName}" readonly>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Documentation URL</label>
-                        <input type="url" class="form-control" name="documentation_url" placeholder="https://docs.y.uno/...">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Comment</label>
-                        <textarea class="form-control" name="comment" rows="3" placeholder="Describe this feature..."></textarea>
-                    </div>
-                `;
             }
         })
         .catch(error => {
             console.error('Error:', error);
             alert('Error loading feature data');
-            // Fallback to empty form
-            document.getElementById('editContent').innerHTML = `
-                <div class="mb-3">
-                    <label class="form-label">Feature Name</label>
-                    <input type="text" class="form-control" name="feature_name" value="${featureName}" readonly>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Documentation URL</label>
-                    <input type="url" class="form-control" name="documentation_url" placeholder="https://docs.y.uno/...">
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Comment</label>
-                    <textarea class="form-control" name="comment" rows="3" placeholder="Describe this feature..."></textarea>
-                </div>
-            `;
         });
 }
 
@@ -1260,18 +1222,51 @@ function saveEdit() {
     if (type === 'feature') {
         url = '/api/feature-rules/' + id;
         method = 'PUT';
+    } else if (type === 'payment_method') {
+        const featureName = document.getElementById('editFeatureName').value;
+        url = '/api/feature-rules/' + featureName + '/payment-methods';
+        method = 'POST';
     } else if (type === 'testcase') {
-        if (editingTestcase) {
-            url = '/api/testcases/' + editingTestcase;
-            method = 'PUT';
-            // Only send type and environment for parameter updates
-            data = {
-                type: data.type,
-                environment: data.environment
-            };
+        url = '/api/testcases';
+        method = 'POST';
+        // Ensure we are sending the context correctly
+        // data.feature_name and data.payment_method are already in formData
+        
+    } else if (type === 'testcase_update') {
+        url = '/api/testcases/' + id;
+        method = 'PUT';
+        // Only send type and environment for parameter updates
+        const updateData = {
+            type: data.type,
+            environment: data.environment
+        };
+        
+        fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(updateData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
+                location.reload();
+            } else {
+                alert('Error saving: ' + data.error);
+            }
+        });
+        return;
+        
+    } else if (type === 'new_feature') {
+        const featureName = data.feature_name;
+        if (featureName) {
+            window.location.href = '/feature-rules/add?name=' + encodeURIComponent(featureName);
+            return;
         } else {
-            url = '/api/testcases';
-            method = 'POST';
+            alert('Please enter a feature name');
+            return;
         }
     }
     

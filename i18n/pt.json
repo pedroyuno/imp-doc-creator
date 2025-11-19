@@ -13,7 +13,10 @@
     "authorize": {
       "successful": "Updated test case description",
       "failure": "Tratar falha de autorização",
-      "expiration": "Testar expiração de autorização"
+      "expiration": "Testar expiração de autorização",
+      "card": {
+        "test001": "Test description"
+      }
     },
     "capture": {
       "full_amount": "Capturar valor autorizado completo",
@@ -83,7 +86,7 @@
     "master": {
       "api_authentication": "Verificar autenticação de API com credenciais válidas",
       "invalid_api_key": "Tratar autenticação com chave API inválida",
-      "rate_limiting": "Testar comportamento de limitação de taxa da API",
+      "rate_limiting": "Test API rate limiting behavior.",
       "network_connectivity": "Tratar problemas de conectividade de rede",
       "ssl_certificate_validation": "Verificar validação de certificado SSL em produção"
     },

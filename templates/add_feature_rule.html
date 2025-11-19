@@ -16,7 +16,7 @@
                         <input type="text" class="form-control" id="feature_name" 
                                name="feature_name" required 
                                pattern="[A-Za-z0-9_-]+" 
-                               value="{{ request.form.get('feature_name', '') }}">
+                               value="{{ request.form.get('feature_name', request.args.get('name', '')) }}">
                         <div class="form-text">
                             Enter the feature name (e.g., "Country", "Verify", "3DS"). 
                             Use only letters, numbers, underscores, and hyphens.
