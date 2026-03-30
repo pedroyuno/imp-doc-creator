@@ -1,5 +1,3 @@
-# Test Cases for {{ merchant_name }}
-
 {% if include_metadata -%}
 **Generated on:** {{ generation_timestamp }}
 **Language:** {{ language.upper() }}
@@ -14,9 +12,8 @@
 Follow these integration steps in sequential order to implement the required features for your payment integration:
 
 {% for step in integration_steps -%}
-### Step {{ step.step_number }}: {{ step.feature_name }} Implementation
+### Step {{ step.step_number }}: {{ step.comment }}
 
-**Description:** {{ step.comment }}
 **Documentation:** [{{ step.documentation_url }}]({{ step.documentation_url }})
 
 {% endfor -%}

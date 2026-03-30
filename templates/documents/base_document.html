@@ -31,8 +31,6 @@
     </style>
 </head>
 <body>
-    <h1>Test Cases for {{ merchant_name }}</h1>
-    
     {% if include_metadata %}
     <div class="metadata">
         <p><strong>Generated on:</strong> {{ generation_timestamp }}</p>
@@ -47,8 +45,7 @@
     <div class="integration-steps">
         {% for step in integration_steps %}
         <div class="integration-step">
-            <h3>Step {{ step.step_number }}: {{ step.feature_name }} Implementation</h3>
-            <p><strong>Description:</strong> {{ step.comment }}</p>
+            <h3>Step {{ step.step_number }}: {{ step.comment }}</h3>
             <p><strong>Documentation:</strong> <a href="{{ step.documentation_url }}" target="_blank">{{ step.documentation_url }}</a></p>
         </div>
         {% endfor %}

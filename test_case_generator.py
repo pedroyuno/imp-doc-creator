@@ -393,25 +393,7 @@ class TestCaseGenerator:
         section.top_margin = Inches(1)
         section.bottom_margin = Inches(1)
         
-        # Document header
-        if include_metadata:
-            title = doc.add_heading(f'Test Cases for {merchant_name}', 0)
-            title.alignment = WD_ALIGN_PARAGRAPH.CENTER
-            
-            # Metadata paragraph
-            metadata_para = doc.add_paragraph()
-            metadata_para.add_run(f"Generated on: ").bold = True
-            metadata_para.add_run(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-            metadata_para.add_run(f"Language: ").bold = True
-            metadata_para.add_run(f"{self.locale.upper()}\n")
-            metadata_para.add_run(f"Environment: ").bold = True
-            metadata_para.add_run(f"{environment.title()}")
-        else:
-            title = doc.add_heading(f'Test Cases for {merchant_name}', 0)
-            title.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        
-        # Add a line break
-        doc.add_paragraph()
+        # Document starts directly with content (no title)
         
         # Integration Steps Section
         integration_steps = self.generate_integration_steps(parsed_features)
@@ -422,12 +404,10 @@ class TestCaseGenerator:
             )
             
             for step in integration_steps:
-                step_heading = doc.add_heading(f"Step {step['step_number']}: {step['feature_name']} Implementation", level=2)
+                # Step heading with just the comment (no feature name or "Implementation")
+                step_heading = doc.add_heading(f"Step {step['step_number']}: {step['comment']}", level=2)
                 
-                desc_para = doc.add_paragraph()
-                desc_para.add_run("Description: ").bold = True
-                desc_para.add_run(step['comment'])
-                
+                # Documentation paragraph
                 doc_para = doc.add_paragraph()
                 doc_para.add_run("Documentation: ").bold = True
                 # Add clickable hyperlink
@@ -475,6 +455,8 @@ class TestCaseGenerator:
             summary_heading = doc.add_heading('Summary', level=1)
             
             summary_para = doc.add_paragraph()
+            summary_para.add_run("Generated on: ").bold = True
+            summary_para.add_run(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
             summary_para.add_run("Total Test Cases: ").bold = True
             summary_para.add_run(f"{total_cases}\n")
             summary_para.add_run("Document Language: ").bold = True

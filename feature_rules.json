@@ -80,7 +80,7 @@
           "integration_steps": [
             {
               "documentation_url": "https://docs.y.uno/reference/authorize-payment",
-              "comment": "Supports payment authorization functionality. Required for holding funds before capture in two-step payment flows."
+              "comment": "Supports payment authorization functionality"
             }
           ]
         },
@@ -1112,7 +1112,7 @@
     "integration_steps": [
       {
         "documentation_url": "https://docs.y.uno/docs/getting-started",
-        "comment": "Essential setup and configuration steps required for all integrations. This covers initial account setup, API key configuration, and basic implementation requirements."
+        "comment": "Essential setup and configuration steps required for all integrations."
       },
       {
         "documentation_url": "https://docs.y.uno/docs/yuno-testing-gateway#442---card-detail",
