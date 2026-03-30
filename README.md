@@ -2,6 +2,8 @@
 
 This Python program parses implementation scoping documents (provided by BDM teams during merchant handover) containing provider and payment method integration information. It extracts features only for valid combinations where both the provider and payment method are properly defined (not "#N/A" or empty). The parsed data is then used to generate comprehensive test case documentation for merchant validation.
 
+> **Claude Code Skill:** This project is also available as a `/imp-doc-creator` Claude Code skill that generates integration documentation (MD + PDF) directly from the terminal. See the [Confluence documentation](https://yunopayments.atlassian.net/wiki/spaces/IB/pages/1913028632/Implementation+Generator+Document) for usage instructions.
+
 ## How it Works
 
 The program analyzes implementation scoping documents (CSV format) with the following structure:
