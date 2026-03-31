@@ -154,4 +154,8 @@ uploads/
 # Temporary files
 temp_*.csv
 tmp_*.csv
-test_upload_*.csv 
+test_upload_*.csv
+
+# Generated integration documents
+*_integration_doc.md
+*_integration_doc.pdf
