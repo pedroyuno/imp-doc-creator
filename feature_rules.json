@@ -429,39 +429,6 @@
         }
       }
     },
-    "Chargeback": {
-      "feature_name": "Chargeback",
-      "by_payment_method": {
-        "universal": {
-          "testcases": [
-            {
-              "id": "CHB0001",
-              "description_key": "testcase.chargeback.receive_notification",
-              "type": "unhappy path",
-              "environment": "both"
-            },
-            {
-              "id": "CHB0002",
-              "description_key": "testcase.chargeback.submit_defense",
-              "type": "happy path",
-              "environment": "both"
-            },
-            {
-              "id": "CHB0003",
-              "description_key": "testcase.chargeback.resolution",
-              "type": "corner case",
-              "environment": "both"
-            }
-          ],
-          "integration_steps": [
-            {
-              "documentation_url": "https://docs.y.uno/docs/step-1-set-up-your-account",
-              "comment": "Chargeback notification and management capabilities. Important for dispute resolution and merchant protection."
-            }
-          ]
-        }
-      }
-    },
     "Split": {
       "feature_name": "Split",
       "by_payment_method": {
@@ -490,72 +457,6 @@
             {
               "documentation_url": "https://docs.y.uno/docs/step-1-set-up-your-account",
               "comment": "Support for splitting payments between multiple recipients. Essential for marketplace and platform implementations."
-            }
-          ]
-        }
-      }
-    },
-    "Experience": {
-      "feature_name": "Experience",
-      "by_payment_method": {
-        "universal": {
-          "testcases": [
-            {
-              "id": "EXP0001",
-              "description_key": "testcase.experience.sdk_integration",
-              "type": "happy path",
-              "environment": "both"
-            },
-            {
-              "id": "EXP0002",
-              "description_key": "testcase.experience.api_integration",
-              "type": "happy path",
-              "environment": "both"
-            },
-            {
-              "id": "EXP0003",
-              "description_key": "testcase.experience.platform_specific",
-              "type": "happy path",
-              "environment": "both"
-            }
-          ],
-          "integration_steps": [
-            {
-              "documentation_url": "https://docs.y.uno/docs/choose-the-right-integration-for-you",
-              "comment": "Defines the integration experience type (SDK, API, Platform-specific). Determines implementation approach and technical requirements."
-            }
-          ]
-        }
-      }
-    },
-    "Card_Type": {
-      "feature_name": "Card_Type",
-      "by_payment_method": {
-        "universal": {
-          "testcases": [
-            {
-              "id": "CDT0001",
-              "description_key": "testcase.card_type.accept_credit",
-              "type": "happy path",
-              "environment": "both"
-            },
-            {
-              "id": "CDT0002",
-              "description_key": "testcase.card_type.accept_debit",
-              "type": "happy path",
-              "environment": "both"
-            },
-            {
-              "id": "CDT0003",
-              "description_key": "testcase.card_type.reject_unsupported",
-              "type": "unhappy path",
-              "environment": "both"
-            }
-          ],
-          "integration_steps": [
-            {
-              "documentation_url": "https://docs.y.uno/docs/cards",
-              "comment": "Specifies accepted card types (Credit, Debit, Prepaid). Critical for payment method validation and user experience."
             }
           ]
         }
@@ -660,39 +561,6 @@
         }
       }
     },
-    "Multiple_Refunds": {
-      "feature_name": "Multiple_Refunds",
-      "by_payment_method": {
-        "universal": {
-          "testcases": [
-            {
-              "id": "MRF0001",
-              "description_key": "testcase.multiple_refunds.sequential_refunds",
-              "type": "happy path",
-              "environment": "both"
-            },
-            {
-              "id": "MRF0002",
-              "description_key": "testcase.multiple_refunds.exceed_original_amount",
-              "type": "unhappy path",
-              "environment": "both"
-            },
-            {
-              "id": "MRF0003",
-              "description_key": "testcase.multiple_refunds.refund_tracking",
-              "type": "corner case",
-              "environment": "both"
-            }
-          ],
-          "integration_steps": [
-            {
-              "documentation_url": "https://docs.y.uno/reference/refund-payment",
-              "comment": "Supports multiple refund operations against a single payment. Important for complex return and customer service scenarios."
-            }
-          ]
-        }
-      }
-    },
     "Checkout": {
       "feature_name": "Checkout",
       "by_payment_method": {
@@ -759,72 +627,6 @@
         }
       }
     },
-    "External_Refunds": {
-      "feature_name": "External_Refunds",
-      "by_payment_method": {
-        "universal": {
-          "testcases": [
-            {
-              "id": "ERF0001",
-              "description_key": "testcase.external_refunds.receive_external_refund",
-              "type": "happy path",
-              "environment": "both"
-            },
-            {
-              "id": "ERF0002",
-              "description_key": "testcase.external_refunds.reconcile_refunds",
-              "type": "corner case",
-              "environment": "both"
-            },
-            {
-              "id": "ERF0003",
-              "description_key": "testcase.external_refunds.duplicate_refund_prevention",
-              "type": "unhappy path",
-              "environment": "both"
-            }
-          ],
-          "integration_steps": [
-            {
-              "documentation_url": "https://docs.y.uno/reference/refund-payment",
-              "comment": "Support for refunds initiated outside of Yuno platform. Important for reconciliation and external system integration."
-            }
-          ]
-        }
-      }
-    },
-    "Conciliations": {
-      "feature_name": "Conciliations",
-      "by_payment_method": {
-        "universal": {
-          "testcases": [
-            {
-              "id": "CON0001",
-              "description_key": "testcase.conciliations.generate_settlement_report",
-              "type": "happy path",
-              "environment": "both"
-            },
-            {
-              "id": "CON0002",
-              "description_key": "testcase.conciliations.handle_discrepancies",
-              "type": "unhappy path",
-              "environment": "both"
-            },
-            {
-              "id": "CON0003",
-              "description_key": "testcase.conciliations.automated_reconciliation",
-              "type": "corner case",
-              "environment": "both"
-            }
-          ],
-          "integration_steps": [
-            {
-              "documentation_url": "https://docs.y.uno/docs/reconciliations",
-              "comment": "Automated reconciliation and settlement reporting. Essential for financial operations and compliance."
-            }
-          ]
-        }
-      }
-    },
     "Network_Tokens": {
       "feature_name": "Network_Tokens",
       "by_payment_method": {
@@ -853,39 +655,6 @@
             {
               "documentation_url": "https://docs.y.uno/docs/network-tokens",
               "comment": "Support for card network tokenization (Visa, Mastercard tokens). Improves authorization rates and reduces fraud."
-            }
-          ]
-        }
-      }
-    },
-    "Market_Segment": {
-      "feature_name": "Market_Segment",
-      "by_payment_method": {
-        "universal": {
-          "testcases": [
-            {
-              "id": "MKS0001",
-              "description_key": "testcase.market_segment.validate_segment_rules",
-              "type": "happy path",
-              "environment": "both"
-            },
-            {
-              "id": "MKS0002",
-              "description_key": "testcase.market_segment.segment_specific_features",
-              "type": "corner case",
-              "environment": "both"
-            },
-            {
-              "id": "MKS0003",
-              "description_key": "testcase.market_segment.cross_segment_compatibility",
-              "type": "corner case",
-              "environment": "both"
-            }
-          ],
-          "integration_steps": [
-            {
-              "documentation_url": "https://docs.y.uno/reference/api-reference-overview",
-              "comment": "Identifies the target market segment for the payment provider. Affects available features and pricing models."
             }
           ]
         }
